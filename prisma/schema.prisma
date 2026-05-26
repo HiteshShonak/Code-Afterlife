@@ -1,0 +1,318 @@
+// =============================================================================
+// Code Afterlife â€” Prisma Schema
+// =============================================================================
+// Database: PostgreSQL (Neon free tier)
+// Philosophy: Schema supports Phase 1 MVP + Phase 2 social/engagement tables
+// Convention: "resurrect" terminology (not "revive") per product identity
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// AUTH.JS MODELS (Required by @auth/prisma-adapter)
+// =============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Custom fields for Code Afterlife
+  githubId Int?    @unique
+  username String? @unique
+
+  // Auth.js relations
+  accounts Account[]
+  sessions Session[]
+
+  // Project relations
+  createdProjects     Project[] @relation("CreatedProjects")
+  resurrectedProjects Project[] @relation("ResurrectedProjects")
+
+  // Social relations
+  likes            ProjectLike[]
+  comments         ProjectComment[]
+  votes            ProjectVote[]
+  followedProjects ProjectFollow[]
+  followers        UserFollow[]     @relation("Followers")
+  following        UserFollow[]     @relation("Following")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =============================================================================
+// CORE DOMAIN MODELS
+// =============================================================================
+
+enum ProjectState {
+  BORN
+  ACTIVE
+  STALLED
+  SHIPPED
+  DEAD
+}
+
+model Project {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("CreatedProjects", fields: [userId], references: [id])
+
+  // GitHub linkage â€” mandatory from Phase 2A
+  githubRepoUrl String
+  githubRepoId  Int?
+
+  // URL-safe identifier (auto-generated from title)
+  slug String @unique
+
+  // --- Project metadata ---
+  title       String
+  description String?  @db.Text
+  summary     String?  @db.Text // AI-generated, Phase 2C
+  stack       String[] // PostgreSQL native array
+  screenshots String[] // Up to 5 Cloudinary URLs (Phase 2A)
+
+  // --- Lifecycle state machine ---
+  state            ProjectState @default(BORN)
+  health           Float        @default(50)
+  lastHealthUpdate DateTime?
+
+  // --- Lineage (resurrection chain) ---
+  parentProjectId   String?
+  parentProject     Project?  @relation("ProjectLineage", fields: [parentProjectId], references: [id])
+  children          Project[] @relation("ProjectLineage")
+  resurrecterUserId String?
+  resurrecter       User?     @relation("ResurrectedProjects", fields: [resurrecterUserId], references: [id])
+  resurrectionDate  DateTime?
+  lineageDepth      Int       @default(0)
+
+  // --- User messages ---
+  testament   String? @db.Text
+  timeCapsule String? @db.Text
+
+  // --- Social counts (denormalized â€” updated in same TX as each action) ---
+  likeCount    Int @default(0)
+  commentCount Int @default(0)
+  voteCount    Int @default(0)
+  viewCount    Int @default(0)
+
+  // --- Trending score (Hacker News time-decay, updated on engagement + daily cron) ---
+  trendingScore Float @default(0)
+
+  // --- Timestamps ---
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lastActivityAt DateTime?
+
+  // --- Relations ---
+  timelineEntries  TimelineEntry[]
+  githubActivities GitHubActivity[]
+  milestones       Milestone[]
+  likes            ProjectLike[]
+  comments         ProjectComment[]
+  votes            ProjectVote[]
+  followers        ProjectFollow[]
+  views            ProjectView[]
+
+  // --- Indices for query performance ---
+  @@index([userId])
+  @@index([state])
+  @@index([parentProjectId])
+  @@index([trendingScore])
+  @@index([health])
+}
+
+// =============================================================================
+// SOCIAL MODELS (Phase 2A schema, Phase 2B implementation)
+// =============================================================================
+
+model ProjectLike {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId]) // one like per user per project
+  @@index([projectId])
+  @@index([userId])
+}
+
+model ProjectComment {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String   @db.Text // max 500 chars enforced at Zod layer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+enum VoteType {
+  WILL_SHIP
+  WILL_DIE
+}
+
+model ProjectVote {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  vote      VoteType
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId]) // one vote per user, changeable
+  @@index([projectId])
+}
+
+// User follows a project â€” appears in /explore?filter=following feed
+model ProjectFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+}
+
+// User follows another user â€” their projects appear in explore feed
+model UserFollow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// =============================================================================
+// TIMELINE & ACTIVITY MODELS
+// =============================================================================
+
+enum TimelineEntryType {
+  MILESTONE
+  DEATH
+  RESURRECTION
+  UPDATE
+  AI_BUILD_LOG
+}
+
+model TimelineEntry {
+  id          String            @id @default(cuid())
+  projectId   String
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        TimelineEntryType
+  title       String
+  description String?           @db.Text
+  image       String?
+  data        Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}
+
+enum GitHubActivityType {
+  PUSH
+  PULL_REQUEST
+  CREATE
+  RELEASE
+}
+
+model GitHubActivity {
+  id        String             @id @default(cuid())
+  projectId String
+  project   Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      GitHubActivityType
+  count     Int?
+  data      Json?
+
+  recordedAt DateTime @default(now())
+
+  @@index([projectId])
+}
+
+enum MilestoneType {
+  FIRST_USER
+  FIRST_DEPLOYMENT
+  SHIPPED
+  FIRST_PR
+  PIVOTED
+  RESURRECTED
+  DEATH
+  ALMOST_QUIT
+  AI_BUILD_LOG
+}
+
+model Milestone {
+  id        String        @id @default(cuid())
+  projectId String
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      MilestoneType
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}
+
+// Tracks unique views for a project (e.g. per IP per 12 hours)
+model ProjectView {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, ipAddress])
+}
