@@ -45,6 +45,8 @@ model User {
   followedProjects ProjectFollow[]
   followers        UserFollow[]     @relation("Followers")
   following        UserFollow[]     @relation("Following")
+  timeCapsules     TimeCapsule[]
+  notifications    Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -124,8 +126,9 @@ model Project {
   lineageDepth      Int       @default(0)
 
   // --- User messages ---
-  testament   String? @db.Text
-  timeCapsule String? @db.Text
+  testament    String? @db.Text
+  deathReason  String? @db.Text // Epitaph shown on tombstone — user-written or AI-generated
+  timeCapsules TimeCapsule[]
 
   // --- Social counts (denormalized â€” updated in same TX as each action) ---
   likeCount    Int @default(0)
@@ -137,9 +140,10 @@ model Project {
   trendingScore Float @default(0)
 
   // --- Timestamps ---
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  lastActivityAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastActivityAt   DateTime?
+  lastPulseCheckAt DateTime? // Tracks when the AI cron last swept this project
 
   // --- Relations ---
   timelineEntries  TimelineEntry[]
@@ -157,6 +161,35 @@ model Project {
   @@index([parentProjectId])
   @@index([trendingScore])
   @@index([health])
+}
+
+// =============================================================================
+// TIME CAPSULE MODEL
+// =============================================================================
+
+enum CapsuleType {
+  MESSAGE
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
+model TimeCapsule {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  type      CapsuleType @default(MESSAGE)
+  title     String
+  content   String?     @db.Text
+  mediaUrl  String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([projectId])
 }
 
 // =============================================================================
@@ -183,6 +216,7 @@ model ProjectComment {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   content   String   @db.Text // max 500 chars enforced at Zod layer
+  isPinned  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -316,3 +350,21 @@ model ProjectView {
 
   @@index([projectId, ipAddress])
 }
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.Text
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+

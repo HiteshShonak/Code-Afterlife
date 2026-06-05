@@ -52,6 +52,7 @@ agents-*.md
 *.prompt.md
 *.instructions.md
 copilot-instructions.md
+engine-instructions.md
 .claude/
 .copilot/
 
@@ -69,3 +70,4 @@ copilot-instructions.md
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+engineering-patterns.md
