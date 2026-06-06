@@ -50,8 +50,8 @@ export const resurrectionService = {
     const suffix = Math.random().toString(36).substring(2, 7);
     const slug = `${baseSlug}-${suffix}`;
 
-    const [newProject] = await prisma.$transaction([
-      prisma.project.create({
+    const newProject = await prisma.$transaction(async (tx) => {
+      const created = await tx.project.create({
         data: {
           title: `${deadProject.title} (Resurrected)`,
           slug,
@@ -68,16 +68,30 @@ export const resurrectionService = {
           lastActivityAt: new Date(),
           lastHealthUpdate: new Date(),
         },
-      }),
-      prisma.timelineEntry.create({
+      });
+
+      // 1. Mark the death in the parent
+      await tx.timelineEntry.create({
         data: {
           projectId: deadProjectId,
           type: 'RESURRECTION',
           title: 'Project Resurrected',
-          description: 'This project was resurrected as a new project.',
+          description: 'This project was resurrected. The legacy continues in a new repository.',
         },
-      }),
-    ]);
+      });
+
+      // 2. Mark the rebirth in the child (will appear in feeds as "resurrected ---- project")
+      await tx.timelineEntry.create({
+        data: {
+          projectId: created.id,
+          type: 'MILESTONE',
+          title: `Resurrected "${deadProject.title}"`,
+          description: `The code breathes again. Lineage depth ${created.lineageDepth}.`,
+        },
+      });
+
+      return created;
+    });
 
     return newProject;
   },
