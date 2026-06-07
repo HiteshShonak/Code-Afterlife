@@ -7,6 +7,62 @@ import { projectService } from '@/services/project.service';
 import { updateStateSchema } from '@/schemas/project.schema';
 import type { ProjectState } from '@prisma/client';
 
+/* ── AI-generated death reason (optional, best-effort) ─────────────────── */
+
+/**
+ * Asks Groq to write a short cinematic epitaph based on the project's details.
+ * Falls back gracefully to null if the API key is missing or the call fails.
+ */
+async function generateDeathReason(
+  title: string,
+  description: string | null,
+  stack: string[],
+): Promise<string | null> {
+  if (!process.env.GROQ_API_KEY) return null;
+
+  const context = [
+    `Project: "${title}"`,
+    description ? `\nDescription: ${description.slice(0, 300)}` : '',
+    stack.length ? `\nStack: ${stack.join(', ')}` : '',
+  ].join('');
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `You are the epitaph writer for Code Afterlife, a graveyard for dead software projects.
+Given a project, write a single short, poetic sentence (max 12 words) explaining why it died or was abandoned.
+Tone: cinematic, wistful, slightly dark — like a tombstone inscription.
+Examples: "Lost to scope creep and sleepless nights." | "The rewrite never came." | "One push notification away from launch." | "Burned out before the first user arrived."
+Return ONLY the sentence. No quotes. No punctuation after the period. No explanation.`,
+          },
+          { role: 'user', content: context },
+        ],
+        max_tokens: 30,
+        temperature: 0.9,
+      }),
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content?.trim() ?? null;
+    // Sanitize: strip surrounding quotes, limit length
+    return raw ? raw.replace(/^["']|["']$/g, '').slice(0, 120) : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ── Route handler ─────────────────────────────────────────────────────── */
+
 /** Transition a project to a new lifecycle state. Validates ownership and state machine rules. */
 export const PATCH = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
@@ -21,7 +77,19 @@ export const PATCH = asyncHandler(
     if (!existing) throw ApiError.notFound('Project not found');
     if (existing.userId !== user.id) throw ApiError.forbidden('You do not own this project');
 
-    const updated = await projectService.updateState(id, newState);
+    // When transitioning to DEAD via API (not via archiveProjectAction),
+    // generate an AI epitaph as a best-effort fallback so the tombstone always has text.
+    let deathReason: string | undefined;
+    if (newState === 'DEAD') {
+      const aiReason = await generateDeathReason(
+        existing.title,
+        existing.description ?? null,
+        existing.stack,
+      );
+      deathReason = aiReason ?? 'Lost to time.';
+    }
+
+    const updated = await projectService.updateState(id, newState, deathReason);
 
     return apiResponse.success(updated, `State changed to ${newState}`);
   }

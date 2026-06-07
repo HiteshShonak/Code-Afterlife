@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth-guard';
 import { actionHandler } from '@/lib/async-handler';
 import { projectService } from '@/services/project.service';
 import { createProjectSchema, updateProjectSchema } from '@/schemas/project.schema';
+import { notificationService } from '@/services/notification.service';
 import type { Project } from '@prisma/client';
 
 /**
@@ -54,7 +55,7 @@ export const updateProjectAction = actionHandler(
     const project = await projectService.update(projectId, user.id, validated);
 
     revalidatePath('/');
-    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/project/${project.slug}`);
 
     return project;
   }
@@ -69,8 +70,11 @@ export const shipProjectAction = actionHandler(
     const user = await requireAuth();
     const project = await projectService.markAsShipped(projectId, user.id);
 
+    // Fire notification in background
+    notificationService.notifyProjectUnsealed(project.id, 'SHIPPED').catch(console.error);
+
     revalidatePath('/');
-    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/project/${project.slug}`);
 
     return project;
   }
@@ -79,14 +83,67 @@ export const shipProjectAction = actionHandler(
 /**
  * Soft-delete a project by setting state to DEAD.
  * Verifies ownership via the service layer.
+ * @deprecated Use archiveProjectAction instead — it records a deathReason epitaph.
  */
 export const deleteProjectAction = actionHandler(
   async (projectId: string): Promise<{ deleted: true }> => {
     const user = await requireAuth();
-    await projectService.delete(projectId, user.id);
+    await projectService.delete(projectId, user.id, 'Lost to time.');
+
+    // Fire notification in background
+    notificationService.notifyProjectUnsealed(projectId, 'DEAD').catch(console.error);
 
     revalidatePath('/');
     revalidatePath('/dashboard');
+    revalidatePath('/graveyard');
+
+    return { deleted: true };
+  }
+);
+
+/**
+ * Archive a project as DEAD with a user-written or default epitaph.
+ * This is the preferred action — opens from ArchiveProjectModal.
+ */
+export const archiveProjectAction = actionHandler(
+  async (projectId: string, rawReason: string): Promise<{ archived: true }> => {
+    const user = await requireAuth();
+
+    // Sanitize: trim, max 120 chars, fall back to cinematic default
+    const DEFAULT_REASONS = [
+      'Lost to time.',
+      'Abandoned by its creator.',
+      'Scope crept into the void.',
+      'The rewrite never came.',
+      'Burned out before launch.',
+    ];
+    const deathReason = rawReason?.trim().slice(0, 120) ||
+      DEFAULT_REASONS[Math.floor(Math.random() * DEFAULT_REASONS.length)];
+
+    await projectService.delete(projectId, user.id, deathReason);
+
+    notificationService.notifyProjectUnsealed(projectId, 'DEAD').catch(console.error);
+
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+    revalidatePath('/graveyard');
+
+    return { archived: true };
+  }
+);
+
+/**
+ * Permanently delete a project from the platform.
+ * Verifies ownership and cascades all related records.
+ */
+export const permanentDeleteProjectAction = actionHandler(
+  async (projectId: string): Promise<{ deleted: true }> => {
+    const user = await requireAuth();
+    await projectService.hardDelete(projectId, user.id);
+
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+    revalidatePath('/graveyard');
 
     return { deleted: true };
   }
