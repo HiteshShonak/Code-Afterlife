@@ -1,4 +1,4 @@
-import type { Project, User, ProjectState, TimelineEntry } from '@prisma/client';
+import type { Project, User, ProjectState, TimelineEntry, TimeCapsule } from '@prisma/client';
 
 export { ProjectState } from '@prisma/client';
 
@@ -20,6 +20,7 @@ export type ProjectDetail = Project & {
   resurrecter: User | null;
   children: Project[];
   timelineEntries: TimelineEntry[];
+  timeCapsules: TimeCapsule[];
 };
 
 /** Filters accepted by the project list endpoint. */
