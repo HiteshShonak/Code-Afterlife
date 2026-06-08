@@ -52,11 +52,10 @@ export function useSearchFilters(): UseSearchFiltersReturn {
         else sp.set(k, v);
       });
       const query = sp.toString();
-      startTransition(() => {
-        router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
-      });
+      const newUrl = `${pathname}${query ? `?${query}` : ''}`;
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     },
-    [router, pathname]
+    [pathname]
   );
 
   const setState = (s: ProjectState | undefined) => {
@@ -87,7 +86,7 @@ export function useSearchFilters(): UseSearchFiltersReturn {
     setStacksLocal([]);
     setSearchLocal('');
     setSortLocal('TRENDING');
-    router.replace(pathname, { scroll: false });
+    window.history.replaceState({ ...window.history.state, as: pathname, url: pathname }, '', pathname);
   };
 
   return { state, stacks, search, sort, setState, toggleStack, setSearch, setSort, reset };

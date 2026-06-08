@@ -10,6 +10,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
   const cursor = searchParams.get('cursor') || undefined;
   const sort = (searchParams.get('sort') as any) || 'TRENDING';
   const state = (searchParams.get('state') as ProjectState) || undefined;
+  const search = searchParams.get('q') || undefined;
   
   if (sort === 'DISCOVERY') {
     const discoveryFeed = await getDiscoveryFeed(cursor);
@@ -20,6 +21,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
     cursor,
     sort,
     state,
+    search,
   });
 
   return apiResponse.success(searchPage);

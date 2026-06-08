@@ -46,6 +46,24 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   const { state, search, sort, setState, setSearch, setSort, reset } = useSearchFilters();
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
 
+  // Local state for the input to prevent router transitions from stealing focus while typing
+  const [localSearch, setLocalSearch] = useState(search);
+
+  // Sync external search changes (e.g. from Clear button) into local state
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
+
+  // Debounce the push to the URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== search) {
+        setSearch(localSearch);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [localSearch, search, setSearch]);
+
   const [projects, setProjects]     = useState<ProjectWithUser[]>(initialProjects);
   const [cursor, setCursor]         = useState<string | null>(initialCursor);
   const [loading, setLoading]       = useState(false);
@@ -54,12 +72,15 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
 
   const isInitialState = !state && search === '' && sort === 'TRENDING';
 
-  // ── Debounced fetch on filter change ──────────────────────────────────────
+  // ── Fetch on filter change (debounced implicitly by localSearch -> search) ──
   useEffect(() => {
     if (isInitialState && projects.length > 0 && projects[0].id === initialProjects[0]?.id) return;
 
-    const timer = setTimeout(async () => {
-      setLoading(true);
+    // We no longer need the 400ms delay here because 'search' itself is debounced!
+    setLoading(true);
+
+    let isMounted = true;
+    const fetchResults = async () => {
       try {
         const params = new URLSearchParams({ sort });
         if (state)  params.set('state', state);
@@ -68,16 +89,17 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         const res = await fetch(`/api/search?${params}`);
         if (!res.ok) return;
         const json = await res.json();
-        if (json.success) {
+        if (json.success && isMounted) {
           setProjects(json.data.projects);
           setCursor(json.data.nextCursor);
         }
       } catch { /* stale data is fine */ }
-      finally   { setLoading(false); }
-    }, 400);
+      finally   { if (isMounted) setLoading(false); }
+    };
 
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchResults();
+
+    return () => { isMounted = false; };
   }, [search, state, sort]);
 
   // ── Infinite scroll ────────────────────────────────────────────────────────
@@ -115,8 +137,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   const hasActiveFilter  = !!state || !!search.trim();
   const activeFilter     = STATE_FILTERS.find(f => f.value === state) ?? STATE_FILTERS[0];
   const ActiveBannerIcon = activeFilter.icon;
-  // Key changes whenever filters change — triggers AnimatePresence crossfade
-  const resultsKey = `${state ?? 'all'}-${sort}-${search}`;
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 pb-32 pt-10 md:px-10 min-h-screen">
@@ -126,34 +146,16 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/60 mb-2">
           Code Afterlife — Search
         </p>
-        <AnimatePresence mode="wait">
-          <motion.h1
-            key={state ?? 'all'}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.2 }}
-            className="font-mono text-3xl font-extrabold tracking-tight text-foreground"
-          >
-            {state ? (
-              <>
-                <span style={{ color: STATE_META[state].color }}>{STATE_META[state].label}</span>{' '}projects
-              </>
-            ) : 'All Projects'}
-          </motion.h1>
-        </AnimatePresence>
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={state ?? 'all'}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="mt-2 font-mono text-[12px] text-muted-foreground/70"
-          >
-            {state ? STATE_META[state].tagline : 'Software in every stage of its lifecycle — born, alive, stalled, shipped, and dead.'}
-          </motion.p>
-        </AnimatePresence>
+        <h1 className="font-mono text-3xl font-extrabold tracking-tight text-foreground transition-colors duration-300">
+          {state ? (
+            <>
+              <span style={{ color: STATE_META[state].color }}>{STATE_META[state].label}</span>{' '}projects
+            </>
+          ) : 'All Projects'}
+        </h1>
+        <p className="mt-2 font-mono text-[12px] text-muted-foreground/70 transition-colors duration-300">
+          {state ? STATE_META[state].tagline : 'Software in every stage of its lifecycle — born, alive, stalled, shipped, and dead.'}
+        </p>
       </div>
 
       {/* ── Filter Bar ─────────────────────────────────────────────────────── */}
@@ -166,12 +168,18 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
             return (
               <button
                 key={f.label}
-                onClick={() => setState(f.value)}
+                onClick={() => {
+                  if (state !== f.value) {
+                    setProjects([]);
+                    setLoading(true);
+                    setState(f.value);
+                  }
+                }}
                 className={[
-                  'group flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] font-medium tracking-wide transition-all duration-200',
+                  'group flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] font-medium tracking-wide transition-all duration-200 border',
                   isActive
-                    ? 'bg-foreground/10 ring-1 ring-foreground/20 text-foreground shadow-md ' + f.glow
-                    : 'border border-border/50 text-muted-foreground hover:border-foreground/20 hover:text-foreground hover:bg-white/[0.04]',
+                    ? 'bg-foreground/10 border-foreground/30 text-foreground shadow-md ' + f.glow
+                    : 'border-border/50 text-muted-foreground hover:border-foreground/20 hover:text-foreground hover:bg-white/[0.04]',
                 ].join(' ')}
               >
                 <Icon className={['h-3.5 w-3.5 transition-colors', isActive ? f.color : 'text-muted-foreground/50 group-hover:' + f.color].join(' ')} />
@@ -183,20 +191,39 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
 
         {/* Search + Sort + View toggle */}
         <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+          <div className="relative flex-1 flex items-center">
+            <Search className="absolute left-3 h-3.5 w-3.5 text-muted-foreground/50" />
             <input
               type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              value={localSearch}
+              onChange={e => setLocalSearch(e.target.value)}
               placeholder="Search by title..."
-              className="h-10 w-full rounded-xl border border-border/60 bg-card/60 pl-9 pr-4 font-mono text-[12px] text-foreground backdrop-blur-sm outline-none placeholder:text-muted-foreground/40 focus:border-accent/40 focus:ring-1 focus:ring-accent/20 transition-all"
+              className="h-10 w-full rounded-xl border border-border/60 bg-card/60 pl-9 pr-20 font-mono text-[12px] text-foreground backdrop-blur-sm outline-none placeholder:text-muted-foreground/40 focus:border-accent/40 focus:ring-1 focus:ring-accent/20 transition-all"
             />
+            {hasActiveFilter && (
+              <button
+                onClick={() => {
+                  setProjects([]);
+                  setLoading(true);
+                  reset();
+                }}
+                className="absolute right-2 flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[10px] text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+              >
+                <X className="h-3 w-3" /> Clear
+              </button>
+            )}
           </div>
 
           <select
             value={sort}
-            onChange={e => setSort(e.target.value as SearchSort)}
+            onChange={e => {
+              const newSort = e.target.value as SearchSort;
+              if (sort !== newSort) {
+                setProjects([]);
+                setLoading(true);
+                setSort(newSort);
+              }
+            }}
             className="h-10 rounded-xl border border-border/60 bg-card/60 px-3 font-mono text-[11px] text-foreground outline-none focus:border-accent/40 backdrop-blur-sm cursor-pointer"
           >
             {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -214,21 +241,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
               </button>
             ))}
           </div>
-
-          <AnimatePresence>
-            {hasActiveFilter && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={{ duration: 0.15 }}
-                onClick={reset}
-                className="flex items-center gap-1.5 rounded-xl border border-destructive/30 px-3 py-2.5 font-mono text-[10px] text-destructive/70 transition-colors hover:border-destructive hover:text-destructive"
-              >
-                <X className="h-3 w-3" /> Clear
-              </motion.button>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
@@ -270,7 +282,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
           Instead of unmounting the grid while loading, we keep it in the DOM
           and just lower its opacity, preventing massive layout shifts.
       ──────────────────────────────────────────────────────────────────── */}
-      <div className="min-h-[400px] relative">
+      <div className="min-h-[600px] relative">
         {/* Loading Overlay */}
         <AnimatePresence>
           {loading && (
@@ -278,14 +290,14 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-10 flex justify-center py-32 pointer-events-none"
+              className="absolute inset-0 z-10 flex justify-center py-32 pointer-events-none bg-background/20 backdrop-blur-[1px] rounded-2xl"
             >
               <Loader2 className="h-8 w-8 animate-spin text-accent" />
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className={`transition-opacity duration-300 ${loading ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+        <div className="transition-opacity duration-300">
           {projects.length === 0 && !loading ? (
             /* ── Empty ── */
             <motion.div
@@ -307,45 +319,35 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
             </motion.div>
           ) : (
             /* ── Grid / Feed ── */
-            <motion.div
-              layout="position"
+            <div
               className={
                 viewMode === 'grid'
                   ? 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4'
                   : 'flex flex-col gap-5 max-w-3xl mx-auto'
               }
             >
-              <AnimatePresence mode="popLayout">
-                {projects.map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    layout="position"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.25, ease: EASE }}
-                  >
-                    <ProjectCard
-                      id={p.id}
-                      slug={p.slug}
-                      title={p.title}
-                      description={p.description}
-                      state={p.state}
-                      health={p.health}
-                      stack={p.stack}
-                      screenshots={p.screenshots}
-                      lastActivityAt={p.lastActivityAt}
-                      createdAt={p.createdAt}
-                      ownerUsername={p.user?.username ?? null}
-                      likeCount={p.likeCount}
-                      commentCount={p.commentCount}
-                      voteCount={p.voteCount}
-                      trendingScore={p.trendingScore}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
+              {projects.map((p) => (
+                <div key={p.id}>
+                  <ProjectCard
+                    id={p.id}
+                    slug={p.slug}
+                    title={p.title}
+                    description={p.description}
+                    state={p.state}
+                    health={p.health}
+                    stack={p.stack}
+                    screenshots={p.screenshots}
+                    lastActivityAt={p.lastActivityAt}
+                    createdAt={p.createdAt}
+                    ownerUsername={p.user?.username ?? null}
+                    likeCount={p.likeCount}
+                    commentCount={p.commentCount}
+                    voteCount={p.voteCount}
+                    trendingScore={p.trendingScore}
+                  />
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

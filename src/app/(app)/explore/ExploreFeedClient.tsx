@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Heart,
   MessageSquare,
@@ -31,6 +32,9 @@ interface ExploreFeedClientProps {
   initialProjects: ProjectWithUser[];
   initialCursor: string | null;
   trendingTags: string[];
+  currentUserId: string | null;
+  likedProjectIds: string[];
+  votedProjectIds: string[];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -285,13 +289,33 @@ function HealthDot({ health }: { health: number }) {
 // Single Feed Post (Twitter card style)
 // ─────────────────────────────────────────────────────────────
 
-function FeedPost({ project }: { project: ProjectWithUser }) {
+function FeedPost({
+  project,
+  currentUserId,
+  initialLiked,
+  initialVoted,
+}: {
+  project: ProjectWithUser;
+  currentUserId: string | null;
+  initialLiked: boolean;
+  initialVoted: boolean;
+}) {
+  const router = useRouter();
   const { decayState, healthPercent } = useDecayState(project.health);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [liked, setLiked] = useState(false);
+
+  // Like state — seeded from server so icon is pre-colored on first render
+  const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(project.likeCount);
-  const [voted, setVoted] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  // Vote state — seeded from server (WILL_SHIP only for the fire icon)
+  const [myVote, setMyVote] = useState<'WILL_SHIP' | 'WILL_DIE' | null>(initialVoted ? 'WILL_SHIP' : null);
   const [voteCount, setVoteCount] = useState(project.voteCount);
+  const [voteLoading, setVoteLoading] = useState(false);
+
+  const isOwner = !!currentUserId && currentUserId === project.userId;
+  const isLoggedIn = !!currentUserId;
 
   const displayName = project.user.name ?? project.user.username ?? 'Developer';
   const handle = project.user.username ? `@${project.user.username}` : '';
@@ -304,19 +328,76 @@ function FeedPost({ project }: { project: ProjectWithUser }) {
     decayState === 'unstable' ? 'saturate(80%)' :
     'none';
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setLiked((l) => !l);
-    setLikeCount((c) => liked ? c - 1 : c + 1);
+    if (!isLoggedIn) { router.push('/'); return; }
+    if (likeLoading) return;
+    // Optimistic
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount((c) => wasLiked ? c - 1 : c + 1);
+    setLikeLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/like`, { method: 'POST' });
+      if (!res.ok) {
+        // Revert on failure
+        setLiked(wasLiked);
+        setLikeCount((c) => wasLiked ? c + 1 : c - 1);
+      }
+    } catch {
+      setLiked(wasLiked);
+      setLikeCount((c) => wasLiked ? c + 1 : c - 1);
+    } finally {
+      setLikeLoading(false);
+    }
   };
 
-  const handleVote = (e: React.MouseEvent) => {
+  // Fire = WILL_SHIP vote. Toggle: same vote removes it, calling again removes it.
+  const handleVote = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setVoted((v) => !v);
-    setVoteCount((c) => voted ? c - 1 : c + 1);
+    if (!isLoggedIn) { router.push('/'); return; }
+    if (voteLoading) return;
+    const wasVoted = myVote === 'WILL_SHIP';
+    // Optimistic
+    setMyVote(wasVoted ? null : 'WILL_SHIP');
+    setVoteCount((c) => wasVoted ? c - 1 : c + 1);
+    setVoteLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote: 'WILL_SHIP' }),
+      });
+      if (!res.ok) {
+        // Revert
+        setMyVote(wasVoted ? 'WILL_SHIP' : null);
+        setVoteCount((c) => wasVoted ? c + 1 : c - 1);
+      }
+    } catch {
+      setMyVote(wasVoted ? 'WILL_SHIP' : null);
+      setVoteCount((c) => wasVoted ? c + 1 : c - 1);
+    } finally {
+      setVoteLoading(false);
+    }
   };
+
+  const handleShip = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (voteLoading || likeLoading) return;
+    try {
+      await fetch(`/api/projects/${project.id}/state`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'SHIPPED' }),
+      });
+      router.refresh();
+    } catch { /* ignore */ }
+  };
+
+  const voted = myVote === 'WILL_SHIP';
 
   return (
     <>
@@ -336,7 +417,8 @@ function FeedPost({ project }: { project: ProjectWithUser }) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
-        className="relative border-b border-border/50 px-4 py-4 hover:bg-white/[0.018] transition-colors duration-200"
+        onClick={() => router.push(`/project/${project.slug}`)}
+        className="relative border-b border-border/50 px-4 py-4 hover:bg-white/[0.018] transition-colors duration-200 cursor-pointer"
         style={{ filter: cardFilter, transition: 'filter 0.6s ease' }}
       >
         <div className="flex gap-3">
@@ -474,6 +556,17 @@ function FeedPost({ project }: { project: ProjectWithUser }) {
                 <span className="font-mono text-xs">{project.viewCount}</span>
               </div>
 
+              {/* Ship button — only for owner on ACTIVE state (state machine: ACTIVE → SHIPPED) */}
+              {isOwner && project.state === 'ACTIVE' && (
+                <button
+                  onClick={handleShip}
+                  className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 transition-all duration-200 text-emerald-400 hover:bg-emerald-500/20"
+                  title="Mark as Shipped"
+                >
+                  <span className="font-mono text-[10px] font-bold tracking-wider">✓ Ship</span>
+                </button>
+              )}
+
               {/* Open project */}
               <Link
                 href={`/project/${project.slug}`}
@@ -494,7 +587,7 @@ function FeedPost({ project }: { project: ProjectWithUser }) {
 // Main Feed Client
 // ─────────────────────────────────────────────────────────────
 
-export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags }: ExploreFeedClientProps) {
+export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags, currentUserId, likedProjectIds, votedProjectIds }: ExploreFeedClientProps) {
   const [projects, setProjects] = useState<ProjectWithUser[]>(initialProjects);
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -527,11 +620,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
     <div className="flex w-full h-full" style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
       {/* ── Main Feed ── */}
-      <main
-        className="flex-1 border-x border-border/50 overflow-y-auto min-h-0"
-        style={{ scrollbarWidth: 'none' }}
-      >
-        <style>{`main::-webkit-scrollbar { display: none; }`}</style>
+      <main className="flex-1 border-x border-border/50">
 
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 border-b border-border/50 bg-background/85 backdrop-blur-md px-4 py-3 flex items-center justify-between">
@@ -554,7 +643,13 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
         {/* Posts */}
         <div>
           {projects.map((project) => (
-            <FeedPost key={project.id} project={project} />
+            <FeedPost
+              key={project.id}
+              project={project}
+              currentUserId={currentUserId}
+              initialLiked={likedProjectIds.includes(project.id)}
+              initialVoted={votedProjectIds.includes(project.id)}
+            />
           ))}
         </div>
 
@@ -571,7 +666,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
       </main>
 
       {/* ── Right Sidebar ── */}
-      <aside className="hidden lg:flex w-[320px] flex-col overflow-y-auto border-l border-border/40 px-5 py-4 shrink-0">
+      <aside className="hidden lg:flex w-[320px] flex-col border-l border-border/40 px-5 py-4 shrink-0">
         <div className="sticky top-4 flex flex-col gap-4">
 
           {/* Trending Topics */}
@@ -600,29 +695,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
             </div>
           </div>
 
-          {/* Quick Nav */}
-          <div className="rounded-2xl border border-border/40 bg-card/20 p-4">
-            <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50 mb-3">
-              Navigate
-            </h2>
-            <div className="flex flex-col gap-0.5">
-              {[
-                { label: 'Search', href: '/search' },
-                { label: 'Graveyard', href: '/graveyard' },
-                { label: 'Dashboard', href: '/dashboard' },
-                { label: 'About', href: '/about' },
-                { label: 'Contact', href: '/contact' },
-              ].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="font-mono text-[12px] text-muted-foreground/50 hover:text-accent py-2 px-2.5 rounded-lg hover:bg-white/5 transition-all duration-150"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
+
 
           <p className="font-mono text-[9px] text-muted-foreground/20 px-2 leading-relaxed">
             Software Never Dies. — Code Afterlife
