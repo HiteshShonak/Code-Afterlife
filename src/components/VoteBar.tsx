@@ -1,5 +1,6 @@
-﻿'use client';
+'use client';
 
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Rocket, Skull } from 'lucide-react';
 import { useVote } from '@/hooks/use-vote';
@@ -12,14 +13,15 @@ interface VoteBarProps {
 }
 
 /**
- * VoteBar â€” "Will Ship ðŸš€" vs "Will Die ðŸ’€" community prediction bar.
+ * VoteBar — "Will Ship 🚀" vs "Will Die 💀" community prediction bar.
  * Per engineering-patterns.md: Framer Motion for all animations.
  * Per design system: accent (violet) for CTA, destructive for danger.
  *
  * WILL_SHIP = blue-teal (hope, momentum)
- * WILL_DIE  = red (decay, death) â€” matches our DEAD state color
+ * WILL_DIE  = red (decay, death) — matches our DEAD state color
  */
 export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
+  const router = useRouter();
   const { stats, castVote, isPending } = useVote(projectId, initialStats);
 
   const shipPct = stats.total > 0 ? Math.round((stats.willShip / stats.total) * 100) : 50;
@@ -27,7 +29,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
 
   const handleVote = (vote: 'WILL_SHIP' | 'WILL_DIE') => {
     if (!isLoggedIn) {
-      window.location.href = '/';
+      router.push('/');
       return;
     }
     castVote(vote);
@@ -99,7 +101,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
 
       {stats.total === 0 && (
         <p className="text-center font-mono text-[11px] text-muted-foreground/40">
-          No votes yet â€” be the first to predict.
+          No votes yet — be the first to predict.
         </p>
       )}
 

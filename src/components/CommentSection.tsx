@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Trash2, MessageSquare } from 'lucide-react';
+import { Send, Trash2, MessageSquare, Pin } from 'lucide-react';
 import Image from 'next/image';
 import { formatRelativeDate } from '@/lib/utils';
 import type { CommentWithUser } from '@/services/social.service';
+import { Dialog } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
+
+// Extend CommentWithUser to include isPinned
+type CommentWithPinned = CommentWithUser & { isPinned?: boolean };
 
 interface CommentSectionProps {
   projectId:       string;
@@ -13,6 +18,7 @@ interface CommentSectionProps {
   nextCursor:      string | null;
   currentUserId:   string | null;
   isLoggedIn:      boolean;
+  isProjectOwner?: boolean;
 }
 
 const MAX_CHARS = 500;
@@ -22,28 +28,17 @@ const MAX_CHARS = 500;
 function CommentEntry({
   comment,
   currentUserId,
-  onDelete,
+  isProjectOwner,
+  onDeleteRequest,
+  onPinToggle,
 }: {
-  comment:       CommentWithUser;
+  comment:       CommentWithUser & { isPinned?: boolean };
   currentUserId: string | null;
-  onDelete:      (id: string) => void;
+  isProjectOwner?: boolean;
+  onDeleteRequest: (id: string) => void;
+  onPinToggle: (id: string, isPinned: boolean) => void;
 }) {
-  const [deleting, setDeleting] = useState(false);
-  const isOwner = currentUserId === comment.userId;
-
-  const handleDelete = async () => {
-    if (deleting) return;
-    setDeleting(true);
-    try {
-      const res = await fetch(
-        `/api/projects/${comment.projectId}/comments/${comment.id}`,
-        { method: 'DELETE' },
-      );
-      if (res.ok) onDelete(comment.id);
-    } finally {
-      setDeleting(false);
-    }
-  };
+  const isCommentOwner = currentUserId === comment.userId;
 
   return (
     <motion.li
@@ -52,7 +47,7 @@ function CommentEntry({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.3 }}
-      className="flex gap-3 py-4"
+      className={`flex gap-3 py-4 ${comment.isPinned ? 'border border-amber-500/20 bg-amber-500/5 rounded-xl p-4 mb-2' : ''}`}
     >
       {/* Avatar */}
       <div className="flex-shrink-0">
@@ -73,31 +68,47 @@ function CommentEntry({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="mb-1 flex items-baseline gap-2">
-          <span className="font-mono text-[12px] font-semibold text-foreground">
+      <div className="flex-1 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[12px] font-semibold text-foreground/90">
             @{comment.user.username ?? comment.user.name ?? 'unknown'}
           </span>
-          <span className="font-mono text-[10px] text-muted-foreground/50">
+          <span className="font-mono text-[10px] text-muted-foreground/40">
             {formatRelativeDate(new Date(comment.createdAt))}
           </span>
+          {comment.isPinned && (
+            <span className="flex items-center gap-1 font-mono text-[10px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded ml-2">
+              <Pin className="h-3 w-3" />
+              PINNED
+            </span>
+          )}
         </div>
         <p className="font-mono text-[12px] leading-relaxed text-muted-foreground/80 break-words">
           {comment.content}
         </p>
       </div>
 
-      {/* Delete (owner only) */}
-      {isOwner && (
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="flex-shrink-0 self-start p-1 text-muted-foreground/30 transition-colors hover:text-destructive/70 disabled:opacity-40"
-          aria-label="Delete comment"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      )}
+      {/* Actions */}
+      <div className="flex flex-col gap-2 flex-shrink-0 self-start">
+        {isProjectOwner && (
+          <button
+            onClick={() => onPinToggle(comment.id, !!comment.isPinned)}
+            className={`p-1 transition-colors ${comment.isPinned ? 'text-amber-500 hover:text-amber-600' : 'text-muted-foreground/30 hover:text-amber-500/70'}`}
+            title={comment.isPinned ? "Unpin comment" : "Pin comment"}
+          >
+            <Pin className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {isCommentOwner && (
+          <button
+            onClick={() => onDeleteRequest(comment.id)}
+            className="p-1 text-muted-foreground/30 transition-colors hover:text-destructive/70"
+            aria-label="Delete comment"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
     </motion.li>
   );
 }
@@ -123,7 +134,7 @@ function CommentForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || posting || charsLeft < 0) return;
-    if (!isLoggedIn) { window.location.href = '/'; return; }
+    if (!isLoggedIn) { window.location.assign('/'); return; }
 
     setPosting(true);
     setError(null);
@@ -216,18 +227,56 @@ export function CommentSection({
   nextCursor:    initialCursor,
   currentUserId,
   isLoggedIn,
+  isProjectOwner,
 }: CommentSectionProps) {
-  const [comments, setComments]   = useState<CommentWithUser[]>(initialComments);
+  const [comments, setComments]   = useState<CommentWithPinned[]>(initialComments);
   const [cursor, setCursor]       = useState<string | null>(initialCursor);
   const [loading, setLoading]     = useState(false);
+  
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting]           = useState(false);
+  const [deleteError, setDeleteError]         = useState<string | null>(null);
 
-  const handlePosted = (comment: CommentWithUser) => {
+  const handlePosted = useCallback((comment: CommentWithUser) => {
     setComments((prev) => [comment, ...prev]);
-  };
+  }, []);
 
-  const handleDelete = (id: string) => {
-    setComments((prev) => prev.filter((c) => c.id !== id));
-  };
+  const togglePin = useCallback(async (commentId: string, isCurrentlyPinned: boolean) => {
+    // Optimistic UI update
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, isPinned: !isCurrentlyPinned } : c));
+    
+    try {
+      const res = await fetch(`/api/projects/${projectId}/comments/${commentId}/pin`, {
+        method: 'POST',
+      });
+      if (!res.ok) throw new Error('Failed to pin comment');
+    } catch {
+      // Revert on error
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, isPinned: isCurrentlyPinned } : c));
+    }
+  }, [projectId]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!commentToDelete || isDeleting) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(
+        `/api/projects/${projectId}/comments/${commentToDelete}`,
+        { method: 'DELETE' },
+      );
+      if (res.ok) {
+        setComments((prev) => prev.filter((c) => c.id !== commentToDelete));
+        setCommentToDelete(null);
+      } else {
+        setDeleteError('Failed to delete comment. Please try again.');
+      }
+    } catch {
+      setDeleteError('Network error. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [commentToDelete, isDeleting, projectId]);
 
   const loadMore = async () => {
     if (!cursor || loading) return;
@@ -241,6 +290,12 @@ export function CommentSection({
       setLoading(false);
     }
   };
+
+  const sortedComments = useMemo(() => [...comments].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  }), [comments]);
 
   return (
     <div className="space-y-6">
@@ -259,12 +314,14 @@ export function CommentSection({
         <>
           <ul className="divide-y divide-border/40">
             <AnimatePresence mode="popLayout">
-              {comments.map((c) => (
+              {sortedComments.map((c) => (
                 <CommentEntry
                   key={c.id}
-                  comment={c}
+                  comment={c as any}
                   currentUserId={currentUserId}
-                  onDelete={handleDelete}
+                  isProjectOwner={isProjectOwner}
+                  onDeleteRequest={setCommentToDelete}
+                  onPinToggle={togglePin}
                 />
               ))}
             </AnimatePresence>
@@ -282,6 +339,34 @@ export function CommentSection({
           )}
         </>
       )}
+
+      {/* Deletion Modal */}
+      <Dialog
+        open={!!commentToDelete}
+        onClose={() => {
+          if (!isDeleting) { setCommentToDelete(null); setDeleteError(null); }
+        }}
+        title="Delete Comment"
+        description="Are you sure you want to delete this comment? This action cannot be undone."
+      >
+        {deleteError && (
+          <p className="mb-4 font-mono text-[11px] text-destructive">{deleteError}</p>
+        )}
+        <div className="flex justify-end gap-3 mt-2">
+          <Button variant="ghost" onClick={() => { setCommentToDelete(null); setDeleteError(null); }} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={confirmDelete}
+            isLoading={isDeleting}
+            className="w-auto px-6 h-9"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete Comment'}
+          </Button>
+        </div>
+      </Dialog>
     </div>
   );
 }
+
