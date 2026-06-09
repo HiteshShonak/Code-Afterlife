@@ -13,6 +13,7 @@ import { BlendFunction } from "postprocessing";
 import { SimplexNoise } from "three/addons/math/SimplexNoise.js";
 import type { Project } from "./mockData";
 import { GraveyardSidebar } from "./GraveyardSidebar";
+import { GraveyardHeader, type GraveyardFilters } from "./GraveyardHeader";
 
 const simplex = new SimplexNoise();
 
@@ -1082,6 +1083,95 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [atBoundary, setAtBoundary] = useState(false);
 
+  // ── Filter / search / sort state ────────────────────────────────
+  const [filters, setFilters] = useState<GraveyardFilters>({
+    search: '',
+    techs: [],
+    sort: 'trending',
+  });
+
+  /**
+   * Filter projects based on search query and tech selection.
+   * Since mock projects have no stack, tech filter only applies to real DB projects (with a slug).
+   * Sort is applied after filtering.
+   */
+  const filteredProjects = useMemo(() => {
+    let result = [...projects];
+
+    // Search: match name or quote
+    if (filters.search.trim()) {
+      const q = filters.search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.quote.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort
+    if (filters.sort === 'newest') {
+      // Real projects (with slug) first, then mock in original order
+      result = result.sort((a, b) => {
+        const aReal = !!a.slug; const bReal = !!b.slug;
+        if (aReal && !bReal) return -1;
+        if (!aReal && bReal) return 1;
+        return 0;
+      });
+    } else if (filters.sort === 'oldest') {
+      result = result.sort((a, b) => {
+        const aReal = !!a.slug; const bReal = !!b.slug;
+        if (aReal && !bReal) return 1;
+        if (!aReal && bReal) return -1;
+        return 0;
+      });
+    } else if (filters.sort === 'most_connections') {
+      result = result.sort((a, b) => b.soulConnections - a.soulConnections);
+    }
+    // 'trending' = default order
+
+    return result;
+  }, [projects, filters]);
+
+  // ── Filter transition: flash the black overlay then remount treadmill ──
+  // When filteredProjects changes (user applied a filter) we:
+  //   1. Instantly show the black screen (same one used on initial load)
+  //   2. Increment filterKey after 350 ms — React remounts <TreadmillTombstones>
+  //      which re-initialises ALL tombstones with the new filtered array
+  //   3. After another 150 ms, clear isFiltering so the overlay fades out
+  const [filterKey, setFilterKey] = useState(0);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const isFirstRender = useRef(true);
+  const filterTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // Tracks whether the CURRENT fade-out is from a filter change (1.2s) vs initial load (1.8s)
+  const isFilterFade = useRef(false);
+
+  useEffect(() => {
+    // Skip the very first render — initial load is handled by `loaded` state
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // Clear any in-flight timers from a rapid filter change
+    filterTimers.current.forEach(clearTimeout);
+    filterTimers.current = [];
+
+    // Step 1: close stale sidebar + show black screen immediately
+    setSelectedProjectId(null);
+    setIsFiltering(true);
+    isFilterFade.current = true; // mark this as a filter-triggered fade
+
+    // Step 2: remount the treadmill (globalGrid.clear() runs in its cleanup)
+    const t1 = setTimeout(() => setFilterKey((k) => k + 1), 350);
+
+    // Step 3: fade overlay out after treadmill has initialised
+    const t2 = setTimeout(() => setIsFiltering(false), 500);
+
+    filterTimers.current = [t1, t2];
+    return () => filterTimers.current.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredProjects]);
+
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 200);
     return () => clearTimeout(t);
@@ -1090,8 +1180,25 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#030611", overflow: "hidden", position: "relative" }}>
 
+      {/* Glassmorphic header with filter/search/sort */}
+      <GraveyardHeader filters={filters} onChange={setFilters} />
+
+      {/* Filtered count notice */}
+      {(filters.search || filters.techs.length > 0) && (
+        <div
+          className="pointer-events-none absolute bottom-8 left-1/2 z-40 -translate-x-1/2"
+          style={{ fontFamily: 'Inter, sans-serif' }}
+        >
+          <div className="flex items-center gap-2 rounded-full border border-purple-500/20 bg-[#080c18]/70 px-4 py-2 backdrop-blur-md">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-purple-400/70">
+              {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
+            </span>
+          </div>
+        </div>
+      )}
+
       <GraveyardSidebar
-        project={selectedProjectId !== null ? projects[selectedProjectId] ?? null : null}
+        project={selectedProjectId !== null ? filteredProjects[selectedProjectId] ?? null : null}
         isAuthenticated={isAuthenticated}
         onResurrect={onResurrect}
         onClose={() => setSelectedProjectId(null)}
@@ -1136,10 +1243,11 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
           <meshStandardMaterial color="#05070a" transparent opacity={0.5} roughness={0.9} />
         </mesh>
 
-        {/* Treadmill tombstones — pass projects so it's API-ready */}
+        {/* Treadmill tombstones — key forces full remount when filter changes */}
         <TreadmillTombstones
+          key={filterKey}
           onSelectProject={setSelectedProjectId}
-          projects={projects}
+          projects={filteredProjects}
         />
 
         {/* Camera-attached exploration light */}
@@ -1167,11 +1275,30 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
         </EffectComposer>
       </Canvas>
 
+      {/* Black overlay — used for initial load and filter transitions.
+           Variants control the direction separately:
+             · 'visible'  → opacity:1, duration:0   (instant snap to black)
+             · 'hidden'   → opacity:0, duration:1.2 (cinematic fade-out)
+           Initial load uses the same 'visible'→'hidden' path, just slower (1.8s).
+      */}
       <motion.div
         className="pointer-events-none absolute inset-0 z-50 bg-[#030611]"
-        initial={{ opacity: 1 }}
-        animate={{ opacity: loaded ? 0 : 1 }}
-        transition={{ duration: 1.8, ease: [0.76, 0, 0.24, 1] }}
+        initial="visible"
+        animate={(loaded && !isFiltering) ? 'hidden' : 'visible'}
+        variants={{
+          visible: {
+            opacity: 1,
+            transition: { duration: 0, ease: 'linear' },
+          },
+          hidden: {
+            opacity: 0,
+            transition: {
+              duration: isFilterFade.current ? 1.2 : 1.8,
+              ease: [0.76, 0, 0.24, 1] as any,
+              onComplete: () => { isFilterFade.current = false; },
+            },
+          },
+        }}
       />
     </div>
   );

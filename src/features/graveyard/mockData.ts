@@ -7,6 +7,8 @@ export interface Project {
   status: "DECEASED" | "RESURRECTED";
   timeCapsules: number;
   soulConnections: number;
+  /** Optional slug — only present for real DB projects, not mock data */
+  slug?: string;
   resurrectedBy?: {
     name: string;
     handle: string;

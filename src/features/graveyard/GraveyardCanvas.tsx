@@ -1,10 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { OriginalGraveyardCanvas } from './OriginalGraveyardCanvas';
+import dynamic from 'next/dynamic';
 import { extendedMockProjects } from './mockData';
 import { ResurrectionModal } from '@/components/ResurrectionModal';
 import type { Project, User } from '@prisma/client';
+
+// Lazy-load the 49KB Three.js canvas — only after hydration
+const OriginalGraveyardCanvas = dynamic(
+  () => import('./OriginalGraveyardCanvas').then((m) => m.OriginalGraveyardCanvas),
+  { ssr: false, loading: () => null },
+);
 
 /** Shape expected by OriginalGraveyardCanvas's mockData interface */
 interface MockProject {
@@ -16,6 +22,8 @@ interface MockProject {
   status: 'DECEASED' | 'RESURRECTED';
   timeCapsules: number;
   soulConnections: number;
+  /** Optional slug — passed through so GraveyardSidebar can link to real project pages */
+  slug?: string;
   resurrectedBy?: {
     name: string;
     handle: string;
@@ -45,16 +53,30 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
   } | null>(null);
 
   /** Map Prisma project → mock shape for the existing 3D canvas */
-  const mappedProjects: MockProject[] = projects.map((p): MockProject => ({
-    id: p.id,
-    name: p.title,
-    born: formatMonthYear(p.createdAt),
-    died: formatMonthYear(p.lastActivityAt ?? p.updatedAt),
-    quote: p.description ? `"${p.description.slice(0, 80)}${p.description.length > 80 ? '...' : ''}"` : '"Abandoned to the void."',
-    status: 'DECEASED',
-    timeCapsules: 0,
-    soulConnections: p.lineageDepth,
-  }));
+  const mappedProjects: MockProject[] = projects.map((p): MockProject => {
+    // Tombstone epitaph priority:
+    // 1. deathReason — user-written or AI-generated at archive time
+    // 2. description excerpt — fallback for older projects without deathReason
+    // 3. Cinematic default
+    const rawReason = (p as any).deathReason as string | null | undefined;
+    const quote = rawReason
+      ? `"${rawReason}"`
+      : p.description
+        ? `"${p.description.slice(0, 80)}${p.description.length > 80 ? '...' : ''}"`
+        : '"Abandoned to the void."';
+
+    return {
+      id: p.id,
+      name: p.title,
+      born: formatMonthYear(p.createdAt),
+      died: formatMonthYear(p.lastActivityAt ?? p.updatedAt),
+      quote,
+      status: 'DECEASED',
+      timeCapsules: 0,
+      soulConnections: p.lineageDepth,
+      slug: p.slug,
+    };
+  });
 
   const handleResurrect = (projectId: string) => {
     const project = projects.find((p) => p.id === projectId);

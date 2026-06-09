@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Users, Database, ArrowRight } from 'lucide-react';
+import { X, Clock, Users, Database, ArrowRight, ExternalLink } from 'lucide-react';
 import { Project } from './mockData';
 
 interface GraveyardSidebarProps {
@@ -128,31 +129,41 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
                     <span className="text-slate-400">Voters</span>
                     <span className="text-white font-medium">{Math.floor(project.soulConnections * 0.15)}</span>
                   </div>
-                  <div className="flex justify-between text-sm items-center">
-                    <span className="text-slate-400">Contributors</span>
-                    <span className="text-white font-medium">{Math.floor(project.soulConnections * 0.05)}</span>
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* Footer Action */}
+            {/* View project page (only for real DB projects that have a slug) */}
+            {project.slug && (
+              <Link
+                href={`/project/${project.slug}`}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] py-3 transition-colors hover:bg-white/[0.08] hover:border-white/25"
+              >
+                <ExternalLink size={13} className="text-slate-400" />
+                <span className="text-xs uppercase tracking-widest font-medium text-slate-400">View Full Project</span>
+              </Link>
+            )}
+
             {project.status !== 'RESURRECTED' ? (
               isAuthenticated ? (
                 <button
                   onClick={() => onResurrect?.(project.id)}
-                  className="mt-8 w-full py-4 border border-emerald-500/30 rounded-xl flex items-center justify-center gap-2 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                  className="mt-4 w-full py-4 border border-emerald-500/30 rounded-xl flex items-center justify-center gap-2 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors cursor-pointer"
                 >
                   <span className="text-xs uppercase tracking-widest font-medium text-emerald-400">↑ Resurrect this Project</span>
                   <ArrowRight size={14} className="text-emerald-400" />
                 </button>
               ) : (
-                <div className="mt-8 w-full py-4 border border-white/10 rounded-xl flex items-center justify-center gap-2 bg-white/5">
-                  <span className="text-xs uppercase tracking-widest font-medium text-slate-500">Sign in to resurrect</span>
-                </div>
+                <Link
+                  href="/"
+                  className="mt-4 w-full py-4 border border-white/10 rounded-xl flex items-center justify-center gap-2 bg-white/5 transition-colors hover:bg-white/10 cursor-pointer"
+                >
+                  <span className="text-xs uppercase tracking-widest font-medium text-slate-400">Sign in to resurrect</span>
+                </Link>
               )
             ) : (
-              <div className="mt-8 w-full py-4 border border-white/10 rounded-xl flex items-center justify-center gap-2 bg-white/5 opacity-50">
+              <div className="mt-4 w-full py-4 border border-white/10 rounded-xl flex items-center justify-center gap-2 bg-white/5 opacity-50">
                 <span className="text-xs uppercase tracking-widest font-medium text-slate-300">Already resurrected</span>
               </div>
             )}
