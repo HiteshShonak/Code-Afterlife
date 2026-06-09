@@ -1,38 +1,39 @@
-﻿import { AppSidebar } from '@/components/shell/AppSidebar';
+import { AppSidebar } from '@/components/shell/AppSidebar';
+import { GuestSidebar } from '@/components/shell/GuestSidebar';
+
+export const dynamic = 'force-dynamic';
+
 
 /**
  * Route group layout for the app shell.
- * Wraps /dashboard, /search, /project/[slug], /faq.
+ * Wraps /dashboard, /search, /project/[slug], /explore, /faq, /legacy, etc.
  *
  * Auth strategy:
- *   - Layout is session-optional: renders sidebar only when session exists.
+ *   - Authenticated users: see full AppSidebar (with Dashboard + profile chip).
+ *   - Unauthenticated users: see GuestSidebar (with Sign In prompt, no Dashboard).
  *   - Individual protected pages (e.g. /dashboard) do their own auth check + redirect.
- *   - Public pages (explore, project detail, faq) render normally for unauthenticated users.
  */
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Attempt to get session â€” if none, sidebar simply won't render.
-  // Protected child pages call auth() themselves and redirect if needed.
   let hasSession = false;
   try {
     const { auth } = await import('@/lib/auth');
     const session = await auth();
     hasSession = !!session?.user?.id;
   } catch {
-    // Auth error: treat as unauthenticated â€” public pages still render
     hasSession = false;
   }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Floating sidebar â€” only rendered when authenticated */}
-      {hasSession && <AppSidebar />}
+      {/* Sidebar — authenticated users get full sidebar, guests get sign-in sidebar */}
+      {hasSession ? <AppSidebar /> : <GuestSidebar />}
 
-      {/* Main content â€” padded left to avoid sidebar overlap on desktop (when sidebar is present) */}
-      <main className={['min-h-screen flex-1', hasSession ? 'lg:pl-72' : ''].join(' ')}>
+      {/* Main content — always padded on desktop since we always show a sidebar */}
+      <main className="min-h-screen flex-1 lg:pl-72">
         {children}
       </main>
     </div>

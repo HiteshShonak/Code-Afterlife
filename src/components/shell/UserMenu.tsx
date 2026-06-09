@@ -49,7 +49,7 @@ export const UserMenu = ({ name, username, image }: UserMenuProps) => {
         aria-expanded={open}
       >
         {image ? (
-          <Image src={image} alt={displayName} width={32} height={32} className="rounded-full" />
+          <Image src={image} alt={displayName} width={32} height={32} className="rounded-full" priority />
         ) : (
           <span className="font-mono text-xs text-foreground">
             {(name ?? 'D').charAt(0).toUpperCase()}

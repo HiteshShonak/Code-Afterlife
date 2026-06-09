@@ -8,8 +8,8 @@ interface SignInButtonProps {
   className?: string;
   /** Label shown on the button. */
   label?: string;
-  /** Visual variant — 'nav' for inline text link, 'cta' for accented button */
-  variant?: 'nav' | 'cta';
+  /** Visual variant — 'nav' for inline text link, 'cta' for accented button, 'sidebar' for full-width sidebar button */
+  variant?: 'nav' | 'cta' | 'sidebar';
 }
 
 export function SignInButton({
@@ -33,6 +33,18 @@ export function SignInButton({
         <GitHubIcon />
         {label}
       </motion.button>
+    );
+  }
+
+  if (variant === 'sidebar') {
+    return (
+      <button
+        onClick={handleSignIn}
+        className={className ?? 'flex w-full items-center justify-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-accent transition-all hover:bg-accent/20 hover:border-accent/50'}
+      >
+        <GitHubIcon />
+        {label}
+      </button>
     );
   }
 
