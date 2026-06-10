@@ -70,6 +70,14 @@ export function NavClient({ user }: NavClientProps) {
 
           <span className="h-3 w-px bg-foreground/30" />
 
+          {/* Explore — always visible so unauthenticated users can enter the app */}
+          <Link
+            href="/explore"
+            className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Explore
+          </Link>
+
           {/* Dashboard link — only when signed in */}
           {user && (
             <Link

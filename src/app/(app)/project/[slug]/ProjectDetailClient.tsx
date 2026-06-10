@@ -4,20 +4,23 @@ import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen } from 'lucide-react';
 import { DecayVisuals } from '@/components/DecayVisuals';
 import { HealthIndicator } from '@/components/HealthIndicator';
 import { StateBadge } from '@/components/StateBadge';
 import { TimelineEntry } from '@/components/TimelineEntry';
 import { VoteBar } from '@/components/VoteBar';
 import { CommentSection } from '@/components/CommentSection';
+import { ProjectChatbot } from '@/components/project/ProjectChatbot';
 import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
 import { ResurrectionModal } from '@/components/ResurrectionModal';
+import { ArchiveProjectModal } from '@/components/ArchiveProjectModal';
 import { TimeCapsuleSection } from '@/components/project/TimeCapsuleSection';
 import { useDecayState } from '@/hooks/use-decay-state';
 import { useLike } from '@/hooks/use-like';
 import { useFollow } from '@/hooks/use-follow';
-import { shipProjectAction, deleteProjectAction } from '@/actions/project.actions';
+import { shipProjectAction, permanentDeleteProjectAction } from '@/actions/project.actions';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
 import type { ProjectDetail } from '@/types/project';
 import type { VoteStats, CommentWithUser } from '@/services/social.service';
@@ -36,7 +39,7 @@ interface ProjectDetailClientProps {
 const STATE_META = {
   BORN:    { label: 'Born',    color: 'oklch(0.60 0.18 240)', tagline: 'Just beginning its journey' },
   ACTIVE:  { label: 'Active',  color: 'oklch(0.60 0.18 150)', tagline: 'Alive and growing' },
-  STALLED: { label: 'Stalled', color: 'oklch(0.72 0.14 60)',  tagline: 'No activity for 30+ days' },
+  STALLED: { label: 'Stalled', color: 'oklch(0.72 0.14 60)',  tagline: 'No activity for 1+ day' },
   SHIPPED: { label: 'Shipped', color: 'oklch(0.66 0.18 162)', tagline: 'Successfully completed' },
   DEAD:    { label: 'Dead',    color: 'oklch(0.52 0.12 25)',  tagline: 'Abandoned — awaiting resurrection' },
 } as const;
@@ -65,9 +68,11 @@ export function ProjectDetailClient({
   const [isResurrectOpen, setIsResurrectOpen] = useState(false);
   const stateMeta           = STATE_META[project.state];
 
-  // Track view
+  // Track view — AbortController ensures no double-fire on unmount
   useEffect(() => {
-    fetch(`/api/projects/${project.id}/view`, { method: 'POST' }).catch(() => {});
+    const ctrl = new AbortController();
+    fetch(`/api/projects/${project.id}/view`, { method: 'POST', signal: ctrl.signal }).catch(() => {});
+    return () => ctrl.abort();
   }, [project.id]);
 
   // Social hooks
@@ -77,6 +82,8 @@ export function ProjectDetailClient({
     useFollow(project.id, initialFollowing);
 
   const isLoggedIn = !!currentUserId;
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const handleShip = () => {
     startTransition(async () => {
@@ -87,27 +94,68 @@ export function ProjectDetailClient({
   };
 
   const handleDelete = () => {
+    // Open the archive modal so the user can write an epitaph
+    setArchiveModalOpen(true);
+  };
+
+  const handlePermanentDelete = () => {
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmPermanentDelete = () => {
     startTransition(async () => {
-      const result = await deleteProjectAction(project.id);
+      const result = await permanentDeleteProjectAction(project.id);
       if (!result.success) setActionError(result.message);
-      else router.push('/dashboard');
+      else {
+        router.push('/dashboard');
+      }
     });
   };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Permanent Delete Modal */}
+      <Dialog
+        open={isDeleteConfirmOpen}
+        onClose={() => { if (!isPending) setIsDeleteConfirmOpen(false); }}
+        title="Delete Project"
+        description="Are you sure you want to permanently delete this project? This action cannot be undone and will remove all comments, likes, and timeline entries."
+      >
+        <div className="flex justify-end gap-3 mt-4">
+          <Button variant="ghost" onClick={() => setIsDeleteConfirmOpen(false)} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={confirmPermanentDelete}
+            isLoading={isPending}
+            className="w-auto px-6 h-9"
+          >
+            {isPending ? 'Deleting...' : 'Delete Project'}
+          </Button>
+        </div>
+      </Dialog>
+
+      {/* Archive epitaph modal */}
+      <ArchiveProjectModal
+        open={archiveModalOpen}
+        projectId={project.id}
+        projectTitle={project.title}
+        onClose={() => setArchiveModalOpen(false)}
+        onArchived={() => router.push('/dashboard')}
+      />
       {/* Back nav */}
       <div className="mx-auto max-w-4xl px-6 pt-8 md:px-10">
         <div className="mb-8 flex items-center gap-4">
           <Link
             href="/explore"
-            className="group flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+            className="group flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             Explore
           </Link>
-          <span className="font-mono text-[10px] text-muted-foreground/30">/</span>
-          <span className="max-w-xs truncate font-mono text-[10px] text-muted-foreground/60">
+          <span className="font-mono text-xs text-muted-foreground/30">/</span>
+          <span className="max-w-xs truncate font-mono text-xs text-muted-foreground/60">
             {project.title}
           </span>
         </div>
@@ -119,7 +167,7 @@ export function ProjectDetailClient({
           {/* ── Resurrection Banner ────────────────────────────── */}
           {project.lineageDepth > 0 && project.parentProject && (
             <motion.div {...sectionVariant(0)} className="mb-6 sticky top-4 z-20">
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-[#0a1a12] px-4 py-3 font-mono text-[11px] text-emerald-400 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-[#0a1a12] px-4 py-3 font-mono text-xs text-emerald-400 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.15)]">
                 <span className="text-emerald-500/70">↑</span>
                 <span>
                   Resurrected from{' '}
@@ -135,7 +183,7 @@ export function ProjectDetailClient({
           {/* ── Hero Header ─────────────────────────────────────── */}
           <motion.div {...sectionVariant(0.02)} className="mb-10">
             {/* State tagline */}
-            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em]"
+            <p className="mb-3 font-mono text-xs uppercase tracking-[0.22em] font-medium"
                style={{ color: stateMeta.color }}>
               {stateMeta.tagline}
             </p>
@@ -162,32 +210,32 @@ export function ProjectDetailClient({
             </div>
 
             {project.description && (
-              <p className="mt-6 max-w-3xl text-[16px] leading-relaxed text-muted-foreground/90 font-sans">
+              <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground/90 font-sans">
                 {project.description}
               </p>
             )}
 
             {/* Meta row */}
-            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-muted-foreground/60">
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-sm text-muted-foreground/60">
               <span className="flex items-center gap-1.5">
                 <span className="text-accent/70">by</span>
-                <Link href={`/u/${project.user.username ?? project.user.id}`} className="hover:text-accent transition-colors">
+                <Link href={`/u/${project.user.username ?? project.user.id}`} className="hover:text-accent transition-colors font-semibold">
                   @{project.user.username ?? project.user.name ?? 'unknown'}
                 </Link>
               </span>
               <span className="flex items-center gap-1.5">
-                <Clock className="h-3 w-3" />
+                <Clock className="h-4 w-4" />
                 {formatDate(project.createdAt)}
               </span>
               {project.lastActivityAt && (
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-3 w-3" />
+                  <Clock className="h-4 w-4" />
                   Last active {formatRelativeDate(project.lastActivityAt)}
                 </span>
               )}
               {project.lineageDepth > 0 && (
                 <span className="flex items-center gap-1.5 text-accent">
-                  <Layers className="h-3 w-3" />
+                  <Layers className="h-4 w-4" />
                   Lineage depth {project.lineageDepth}
                 </span>
               )}
@@ -195,15 +243,15 @@ export function ProjectDetailClient({
 
             {/* Lineage Breadcrumb Preview */}
             {(project.parentProject || project.children.length > 0) && (
-              <div className="mt-3 flex items-center gap-2 font-mono text-[10px] text-muted-foreground/40">
-                <Layers className="h-3 w-3" />
+              <div className="mt-4 flex items-center gap-2 font-mono text-xs text-muted-foreground/50">
+                <Layers className="h-3.5 w-3.5" />
                 {project.parentProject && (
                   <>
                     <Link href={`/project/${project.parentProject.slug}`} className="hover:text-muted-foreground">Original</Link>
                     <span>→</span>
                   </>
                 )}
-                <span className="text-foreground/70">Current</span>
+                <span className="text-foreground/80 font-semibold">Current</span>
                 {project.children.length > 0 && (
                   <>
                     <span>→</span>
@@ -217,10 +265,10 @@ export function ProjectDetailClient({
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {/* Like button */}
               <button
-                onClick={() => isLoggedIn ? toggleLike() : (window.location.href = '/')}
+                onClick={() => isLoggedIn ? toggleLike() : router.push('/')}
                 disabled={likePending}
                 className={[
-                  'flex items-center gap-2 rounded-xl border px-4 py-2 font-mono text-[12px] font-medium transition-all duration-200',
+                  'flex items-center gap-2 rounded-xl border px-4 py-2 font-mono text-sm font-medium transition-all duration-200',
                   liked
                     ? 'border-rose-500/40 bg-rose-500/10 text-rose-400'
                     : 'border-border/60 bg-card/60 text-muted-foreground hover:border-rose-500/30 hover:text-rose-400',
@@ -235,30 +283,30 @@ export function ProjectDetailClient({
               {/* Comment count (scroll hint) */}
               <a
                 href="#comments"
-                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>{project.commentCount ?? 0}</span>
               </a>
 
               {/* Vote count */}
-              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-[12px] text-muted-foreground/60">
+              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground/60">
                 <Flame className="h-4 w-4" />
                 <span>{project.voteCount ?? 0}</span>
               </span>
 
               {/* Follow button / It's you badge */}
               {isOwner ? (
-                <div className="ml-auto flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2 font-mono text-[12px] font-medium text-accent">
+                <div className="ml-auto flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2 font-mono text-sm font-medium text-accent">
                   <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
                   It's you
                 </div>
               ) : (
                 <button
-                  onClick={() => isLoggedIn ? toggleFollow() : (window.location.href = '/')}
+                  onClick={() => isLoggedIn ? toggleFollow() : router.push('/')}
                   disabled={followPending}
                   className={[
-                    'ml-auto flex items-center gap-2 rounded-xl border px-4 py-2 font-mono text-[12px] font-medium transition-all duration-200',
+                    'ml-auto flex items-center gap-2 rounded-xl border px-4 py-2 font-mono text-sm font-medium transition-all duration-200',
                     following
                       ? 'border-accent/40 bg-accent/10 text-accent'
                       : 'border-border/60 bg-card/60 text-muted-foreground hover:border-accent/30 hover:text-accent',
@@ -272,46 +320,63 @@ export function ProjectDetailClient({
                   )}
                 </button>
               )}
+              {/* Ship button — for owners on ACTIVE or STALLED */}
+              {isOwner && (project.state === 'ACTIVE' || project.state === 'STALLED') && (
+                <button
+                  onClick={handleShip}
+                  disabled={isPending}
+                  className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 font-mono text-sm font-medium text-emerald-400 transition-all hover:bg-emerald-500/20 disabled:opacity-50"
+                >
+                  ✓ Mark as Shipped
+                </button>
+              )}
             </div>
           </motion.div>
 
-          {/* ── Time Capsule ────────────────────────────────────── */}
-          <motion.section {...sectionVariant(0.05)} className="mb-10">
-            <TimeCapsuleSection
-              projectId={project.id}
-              isOwner={isOwner}
-              state={project.state}
-              initialTestament={project.testament}
-              initialTimeCapsule={project.timeCapsule}
-            />
-          </motion.section>
+          {/* ── Unseal Time Capsule (Dead / Shipped only) ───────── */}
+          {(project.state === 'DEAD' || project.state === 'SHIPPED') && (
+            <motion.div {...sectionVariant(0.05)} className="mb-10 flex justify-center">
+              <a
+                href={`/project/${project.slug}/unseal`}
+                className="group flex flex-col items-center gap-4 text-amber-500/80 hover:text-amber-500 transition-colors"
+              >
+                <div className="h-16 w-16 rounded-full border border-amber-500/30 bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                  <LockOpen className="h-7 w-7" />
+                </div>
+                <span className="font-mono text-xs uppercase tracking-[0.3em] font-semibold">Unseal Time Capsule</span>
+              </a>
+            </motion.div>
+          )}
+
 
           {/* ── Health ──────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.07)}
             className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6 backdrop-blur-sm">
-            <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
               Project Health
             </h2>
             <HealthIndicator health={project.health} showLabel showStateLabel className="max-w-sm" />
           </motion.section>
 
           {/* ── Community Vote ───────────────────────────────────── */}
-          <motion.section {...sectionVariant(0.1)}
-            className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6 backdrop-blur-sm">
-            <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
-              Community Prediction
-            </h2>
-            <VoteBar
-              projectId={project.id}
-              initialStats={initialVoteStats}
-              isLoggedIn={isLoggedIn}
-            />
-          </motion.section>
+          {project.state !== 'DEAD' && project.state !== 'SHIPPED' && (
+            <motion.section {...sectionVariant(0.1)}
+              className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6 backdrop-blur-sm">
+              <h2 className="mb-5 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
+                Community Prediction
+              </h2>
+              <VoteBar
+                projectId={project.id}
+                initialStats={initialVoteStats}
+                isLoggedIn={isLoggedIn}
+              />
+            </motion.section>
+          )}
 
           {/* ── Screenshots ─────────────────────────────────────── */}
           {project.screenshots && project.screenshots.length > 1 && (
             <motion.section {...sectionVariant(0.13)} className="mb-8">
-              <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+              <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
                 Additional Screenshots
               </h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -333,13 +398,13 @@ export function ProjectDetailClient({
           {/* ── Stack ───────────────────────────────────────────── */}
           {project.stack.length > 0 && (
             <motion.section {...sectionVariant(0.16)} className="mb-8">
-              <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
-                <Layers className="h-3 w-3" /> Stack
+              <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium flex items-center gap-2">
+                <Layers className="h-4 w-4" /> Stack
               </h2>
               <div className="flex flex-wrap gap-2">
                 {project.stack.map((tech) => (
                   <span key={tech}
-                    className="rounded-lg border border-foreground/[0.1] bg-foreground/[0.04] px-3 py-1.5 font-mono text-[11px] tracking-wide text-muted-foreground">
+                    className="rounded-lg border border-foreground/[0.1] bg-foreground/[0.04] px-3 py-1.5 font-mono text-xs tracking-wide text-muted-foreground font-medium">
                     {tech}
                   </span>
                 ))}
@@ -354,7 +419,7 @@ export function ProjectDetailClient({
                 href={project.githubRepoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-2.5 rounded-xl border border-foreground/[0.1] bg-foreground/[0.03] px-4 py-3 font-mono text-[12px] text-muted-foreground transition-all hover:border-foreground/20 hover:bg-foreground/[0.06] hover:text-foreground"
+                className="group inline-flex items-center gap-2.5 rounded-xl border border-foreground/[0.1] bg-foreground/[0.03] px-4 py-3 font-mono text-sm text-muted-foreground transition-all hover:border-foreground/20 hover:bg-foreground/[0.06] hover:text-foreground"
               >
                 <ExternalLink className="h-4 w-4" />
                 View on GitHub
@@ -367,11 +432,11 @@ export function ProjectDetailClient({
           {(project.parentProject || project.children.length > 0) && (
             <motion.section {...sectionVariant(0.2)}
               className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6">
-              <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+              <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
                 Lineage
               </h2>
               {project.parentProject && (
-                <div className="mb-3 flex items-center gap-2 font-mono text-[12px] text-muted-foreground">
+                <div className="mb-3 flex items-center gap-2 font-mono text-sm text-muted-foreground">
                   <span className="text-accent/70">↑</span>
                   <span>Resurrected from</span>
                   <Link href={`/project/${project.parentProject.slug}`}
@@ -381,7 +446,7 @@ export function ProjectDetailClient({
                 </div>
               )}
               {project.children.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 font-mono text-[12px] text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 font-mono text-sm text-muted-foreground">
                   <span className="text-emerald-400/70">↓</span>
                   <span>Resurrected as</span>
                   {project.children.map((child) => (
@@ -394,16 +459,30 @@ export function ProjectDetailClient({
               )}
               <Link
                 href={`/lineage/${project.slug}`}
-                className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.16em] text-accent/60 transition-colors hover:text-accent"
+                className="mt-4 inline-block font-mono text-xs uppercase tracking-[0.16em] text-accent/80 transition-colors hover:text-accent font-medium"
               >
                 View Lineage Graph →
               </Link>
             </motion.section>
           )}
 
+          {/* ── Will & Testament + Time Capsules ──────────────────── */}
+          {(isOwner || project.testament || (project.timeCapsules && project.timeCapsules.length > 0)) && (
+            <motion.section {...sectionVariant(0.22)} className="mb-8 rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-6">
+              <TimeCapsuleSection
+                projectId={project.id}
+                isOwner={isOwner}
+                initialTestament={project.testament ?? null}
+                initialCapsules={project.timeCapsules ?? []}
+                isDead={project.state === 'DEAD' || project.state === 'SHIPPED'}
+                readOnly={project.state === 'DEAD' || project.state === 'SHIPPED'}
+              />
+            </motion.section>
+          )}
+
           {/* ── Timeline ────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.23)} className="mb-8">
-            <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            <h2 className="mb-5 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
               Timeline
             </h2>
             {project.timelineEntries && project.timelineEntries.length > 0 ? (
@@ -427,7 +506,7 @@ export function ProjectDetailClient({
           </motion.section>
 
           {/* ── Owner Actions ────────────────────────────────────── */}
-          {isOwner && project.state !== 'SHIPPED' && project.state !== 'DEAD' && (
+          {isOwner && (
             <motion.section {...sectionVariant(0.26)}
               className="mb-8 rounded-2xl border border-foreground/[0.08] p-6">
               <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
@@ -442,8 +521,13 @@ export function ProjectDetailClient({
                     Mark as Shipped ✓
                   </Button>
                 )}
-                <Button variant="danger" size="sm" onClick={handleDelete} isLoading={isPending}>
-                  Archive as Dead
+                {project.state !== 'SHIPPED' && project.state !== 'DEAD' && (
+                  <Button variant="danger" size="sm" onClick={handleDelete} isLoading={isPending}>
+                    Archive as Dead
+                  </Button>
+                )}
+                <Button variant="danger" size="sm" onClick={handlePermanentDelete} isLoading={isPending} className="border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20">
+                  Delete Project
                 </Button>
               </div>
             </motion.section>
@@ -472,6 +556,17 @@ export function ProjectDetailClient({
             </motion.section>
           )}
 
+          {/* ── Code Afterlife AI Chatbot ────────────────────────── */}
+          <motion.section {...sectionVariant(0.29)} className="mb-8">
+            <h2 className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+              Ask AI
+            </h2>
+            <ProjectChatbot 
+              projectId={project.id}
+              isLoggedIn={isLoggedIn}
+            />
+          </motion.section>
+
           {/* ── Comments ─────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.3)} id="comments" className="mb-8">
             <h2 className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
@@ -483,6 +578,7 @@ export function ProjectDetailClient({
               nextCursor={commentsCursor}
               currentUserId={currentUserId}
               isLoggedIn={isLoggedIn}
+              isProjectOwner={isOwner}
             />
           </motion.section>
         </main>

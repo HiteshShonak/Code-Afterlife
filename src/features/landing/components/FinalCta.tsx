@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Link from "next/link";
 import { CINEMATIC_EASE } from "@/lib/utils/animation";
 
 const PHILOSOPHY_LINES: readonly string[] = [
@@ -88,21 +89,21 @@ export function FinalCta() {
           transition={{ duration: 2.5, delay: 0.4, ease: CINEMATIC_EASE }}
         >
           {/* Primary Button */}
-          <a
-            href="#graveyard"
+          <Link
+            href="/graveyard"
             className="group relative inline-flex items-center gap-2 rounded-full bg-foreground px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-background transition-all duration-700 ease-out hover:-translate-y-[1px] hover:bg-[#f1f5f9] hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.15)]"
           >
             Explore Graveyard
-            <span className="transition-transform duration-700 ease-out group-hover:translate-x-1">â†’</span>
-          </a>
+            <span className="transition-transform duration-700 ease-out group-hover:translate-x-1">→</span>
+          </Link>
 
           {/* Secondary Button */}
-          <a
-            href="#"
+          <Link
+            href="/explore"
             className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-transparent px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground transition-all duration-700 ease-out hover:-translate-y-[1px] hover:border-foreground/30 hover:bg-foreground/[0.02]"
           >
-            Start Building
-          </a>
+            Start Exploring
+          </Link>
         </motion.div>
 
         {/* Randomized Philosophy Line */}

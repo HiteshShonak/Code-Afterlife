@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 const heroParticles = Array.from({ length: 45 }).map((_, i) => {
@@ -177,19 +178,19 @@ export function Hero() {
           Projects decay. Builders disappear. Code survives.
         </p>
         <div className="mt-12 flex flex-col items-center justify-center gap-3 md:flex-row md:gap-4">
-          <a
+          <Link
             href="/graveyard"
             className="group inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-background transition-colors duration-500 hover:bg-accent hover:text-accent-foreground"
           >
             Enter the Graveyard
             <span className="transition-transform duration-500 group-hover:translate-x-1">→</span>
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/explore"
             className="inline-flex items-center gap-2 rounded-full border border-foreground/20 px-7 py-3.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground transition-colors duration-500 hover:bg-foreground/5"
           >
-            Start a Project
-          </a>
+            Explore Projects
+          </Link>
         </div>
       </div>
 

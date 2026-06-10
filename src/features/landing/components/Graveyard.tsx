@@ -212,9 +212,12 @@ export function Graveyard() {
           </Link>
 
           {/* Secondary ghost link */}
-          <button className="relative font-mono text-[9px] uppercase tracking-[0.4em] text-foreground/20 transition-colors duration-600 hover:text-foreground/45 focus-visible:text-foreground/45 focus-visible:outline-none">
+          <Link
+            href="/legacy"
+            className="relative font-mono text-[9px] uppercase tracking-[0.4em] text-foreground/20 transition-colors duration-600 hover:text-foreground/45 focus-visible:text-foreground/45 focus-visible:outline-none"
+          >
             View Legacy
-          </button>
+          </Link>
 
           {/* Scroll indicator */}
           <motion.div
