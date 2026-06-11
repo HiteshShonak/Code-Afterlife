@@ -21,6 +21,9 @@ export type ProjectDetail = Project & {
   children: Project[];
   timelineEntries: TimelineEntry[];
   timeCapsules: TimeCapsule[];
+  _count?: {
+    followers: number;
+  };
 };
 
 /** Filters accepted by the project list endpoint. */

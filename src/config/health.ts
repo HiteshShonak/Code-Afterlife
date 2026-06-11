@@ -26,9 +26,9 @@ export const HEALTH_CONFIG = {
     maxCommits: 100,
   },
   /** Number of inactive days before transition to the STALLED lifecycle state. */
-  stalledDays: 30,
+  stalledDays: 1,
   /** Number of inactive days before transition to the DEAD lifecycle state. */
-  deadDays: 90,
+  deadDays: 3,
   /** Starting health value assigned to newly created projects. */
   initialHealth: 50,
 } as const;

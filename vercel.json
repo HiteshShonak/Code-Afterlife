@@ -1,8 +1,13 @@
 {
+  "framework": "nextjs",
   "crons": [
     {
       "path": "/api/health/recalculate",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/ai-pulse",
+      "schedule": "0 0 * * *"
     }
   ]
 }
