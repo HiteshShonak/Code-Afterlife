@@ -343,6 +343,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
                     likeCount={p.likeCount}
                     commentCount={p.commentCount}
                     voteCount={p.voteCount}
+                    viewCount={p.viewCount}
                     trendingScore={p.trendingScore}
                   />
                 </div>

@@ -134,6 +134,7 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
                 likeCount={p.likeCount}
                 commentCount={p.commentCount}
                 voteCount={p.voteCount}
+                viewCount={p.viewCount}
                 trendingScore={p.trendingScore}
               />
             </motion.div>
