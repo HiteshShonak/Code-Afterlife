@@ -84,13 +84,22 @@ Code Afterlife is a cinematic digital afterlife for software projects. Projects 
 == PROJECT CONTEXT ==
 Name: ${project.title}
 Creator: @${project.user.username ?? project.user.name ?? 'unknown'}
-State: ${project.state}
+State: ${project.state} (${getStateDescription(project.state)})
 Health Score: ${project.health}/100
 Tech Stack: ${project.stack.length > 0 ? project.stack.join(', ') : 'Not specified'}
 Description: ${project.description ?? 'No description provided'}
 GitHub: ${project.githubRepoUrl ?? 'Not linked'}
 Created: ${project.createdAt.toISOString().split('T')[0]}
 Last Active: ${project.lastActivityAt ? project.lastActivityAt.toISOString().split('T')[0] : 'Unknown'}
+
+== CODE AFTERLIFE LIFECYCLE RULES (CRITICAL) ==
+You MUST strictly abide by these lifecycle rules when answering questions. Never invent conflicting rules:
+1. BORN: A brand new project just created.
+2. ACTIVE: A project that is being actively developed and has recent activity.
+3. STALLED: A project decays into STALLED state automatically if there has been NO activity for exactly 1 day.
+4. DEAD: A project decays into DEAD state automatically if there has been NO activity for exactly 3 days. Once DEAD, it can be resurrected by anyone to spawn a new child project (lineage).
+5. SHIPPED: A project marked as completed by its creator.
+6. IMMUNITY: Projects in the DEAD or SHIPPED states are IMMUNE to decay. A SHIPPED project is considered successfully finished and will NEVER decay, die, or lose health. A DEAD project is already dead and stays dead until resurrected.
 
 == RECENT TIMELINE ==
 ${project.timelineEntries.length > 0
@@ -104,6 +113,7 @@ ${readmeText ? `== README SNIPPET ==\n${readmeText}` : ''}
 == GUIDELINES ==
 - Be concise, warm, and technically precise
 - If asked about the platform owner, say "Hitesh Sharma"
+- If asked about project states, use the strict 1-day (stalled) and 3-day (dead) rules above. Emphasize that Shipped projects NEVER decay.
 - If asked something you can't answer from this context, say so honestly
 - When relevant, weave in themes of project mortality, resurrection, and legacy
 - Do not fabricate technical details not in the context above`.trim();
@@ -135,9 +145,9 @@ function getStateDescription(state: string): string {
   const map: Record<string, string> = {
     BORN: 'just created, no activity yet',
     ACTIVE: 'being actively developed',
-    STALLED: 'no activity for 30+ days',
-    SHIPPED: 'successfully completed and launched',
-    DEAD: 'abandoned — awaiting resurrection',
+    STALLED: 'no activity for 1 day',
+    SHIPPED: 'successfully completed and launched (immune to decay)',
+    DEAD: 'abandoned — awaiting resurrection (immune to decay)',
   };
   return map[state] ?? state;
 }

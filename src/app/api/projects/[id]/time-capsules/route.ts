@@ -35,6 +35,22 @@ export async function POST(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
+    // Generous Rate Limit: Max 20 capsules per hour per user
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentCapsules = await prisma.timeCapsule.count({
+      where: {
+        userId: session.user.id,
+        createdAt: { gte: oneHourAgo }
+      }
+    });
+
+    if (recentCapsules >= 20) {
+      return NextResponse.json(
+        { message: 'Rate limit exceeded. Please wait a while before sealing more capsules.' }, 
+        { status: 429 }
+      );
+    }
+
     // Create the time capsule
     const capsule = await prisma.timeCapsule.create({
       data: {
