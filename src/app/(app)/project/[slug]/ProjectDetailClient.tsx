@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen, Plus } from 'lucide-react';
 import { DecayVisuals } from '@/components/DecayVisuals';
 import { HealthIndicator } from '@/components/HealthIndicator';
 import { StateBadge } from '@/components/StateBadge';
@@ -78,12 +78,20 @@ export function ProjectDetailClient({
   // Social hooks
   const { liked, likeCount, toggle: toggleLike, isPending: likePending } =
     useLike(project.id, initialLiked, project.likeCount ?? 0);
-  const { following, toggle: toggleFollow, isPending: followPending } =
-    useFollow(project.id, initialFollowing);
+  const { following, followerCount, toggle: toggleFollow, isPending: followPending } =
+    useFollow(project.id, initialFollowing, project._count?.followers ?? 0);
 
   const isLoggedIn = !!currentUserId;
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  // Manual Update Modal State
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateMethod, setUpdateMethod] = useState<'MANUAL' | 'AI'>('MANUAL');
+  const [updateTitle, setUpdateTitle] = useState('');
+  const [updateDescription, setUpdateDescription] = useState('');
+  const [isUpdatingTimeline, setIsUpdatingTimeline] = useState(false);
+  const [updateError, setUpdateError] = useState('');
 
   const handleShip = () => {
     startTransition(async () => {
@@ -144,6 +152,114 @@ export function ProjectDetailClient({
         onClose={() => setArchiveModalOpen(false)}
         onArchived={() => router.push('/dashboard')}
       />
+
+      {/* Manual Update Modal */}
+      <Dialog
+        open={updateModalOpen}
+        onClose={() => { if (!isUpdatingTimeline) setUpdateModalOpen(false); }}
+        title="Log Update"
+        description="Add a milestone to the timeline. You can only do this once every 24 hours."
+      >
+        <div className="mt-4 flex flex-col gap-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setUpdateMethod('MANUAL'); setUpdateError(''); }}
+              className={`flex-1 rounded border px-3 py-1.5 font-mono text-[10px] uppercase transition-colors ${updateMethod === 'MANUAL' ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border/50 bg-background/50 text-muted-foreground/60 hover:text-foreground'}`}
+            >
+              Manual Post
+            </button>
+            <button
+              onClick={() => { setUpdateMethod('AI'); setUpdateError(''); }}
+              className={`flex-1 rounded border px-3 py-1.5 font-mono text-[10px] uppercase transition-colors ${updateMethod === 'AI' ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border/50 bg-background/50 text-muted-foreground/60 hover:text-foreground'}`}
+            >
+              AI Fetch from GitHub
+            </button>
+          </div>
+
+          {updateMethod === 'MANUAL' ? (
+            <>
+              <div>
+                <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Title</label>
+                <input
+                  type="text"
+                  value={updateTitle}
+                  onChange={e => setUpdateTitle(e.target.value)}
+                  placeholder="e.g. Finally fixed the auth bug"
+                  className="w-full rounded border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs outline-none focus:border-accent/50"
+                  maxLength={60}
+                />
+              </div>
+              <div>
+                <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Description (Optional)</label>
+                <textarea
+                  value={updateDescription}
+                  onChange={e => setUpdateDescription(e.target.value)}
+                  placeholder="Add more details about this update..."
+                  className="w-full min-h-[80px] resize-y rounded border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs outline-none focus:border-accent/50"
+                  maxLength={300}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed border-accent/20 bg-accent/5 p-6 text-center">
+              <Flame className="mx-auto mb-3 h-6 w-6 text-accent/50" />
+              <p className="mb-1 font-mono text-xs text-accent/80">Trigger AI Pulse</p>
+              <p className="font-mono text-[10px] text-muted-foreground/60">
+                This will force an immediate fetch from GitHub. Our AI will analyze your latest commits and write a cinematic summary.
+              </p>
+            </div>
+          )}
+
+          {updateError && (
+            <p className="font-mono text-[10px] text-red-500/80">{updateError}</p>
+          )}
+          
+          <div className="mt-4 flex justify-end gap-3 border-t border-border/40 pt-4">
+            <Button variant="ghost" onClick={() => setUpdateModalOpen(false)} disabled={isUpdatingTimeline}>Cancel</Button>
+            <Button 
+              onClick={async () => {
+                if (updateMethod === 'MANUAL' && !updateTitle.trim()) {
+                  setUpdateError('Title is required.');
+                  return;
+                }
+                setIsUpdatingTimeline(true);
+                setUpdateError('');
+                try {
+                  const endpoint = updateMethod === 'MANUAL' 
+                    ? `/api/projects/${project.id}/timeline` 
+                    : `/api/projects/${project.id}/ai-pulse`;
+                  
+                  const payload = updateMethod === 'MANUAL'
+                    ? { title: updateTitle, description: updateDescription }
+                    : {}; // AI pulse doesn't need payload
+
+                  const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.message || 'Failed to post update');
+                  
+                  setUpdateModalOpen(false);
+                  setUpdateTitle('');
+                  setUpdateDescription('');
+                  router.refresh();
+                } catch (err: any) {
+                  setUpdateError(err.message);
+                } finally {
+                  setIsUpdatingTimeline(false);
+                }
+              }}
+              isLoading={isUpdatingTimeline}
+              disabled={isUpdatingTimeline || (updateMethod === 'MANUAL' && !updateTitle.trim())}
+              className="bg-accent/20 text-accent hover:bg-accent/30"
+            >
+              {updateMethod === 'MANUAL' ? 'Post Update' : 'Trigger AI'}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
       {/* Back nav */}
       <div className="mx-auto max-w-4xl px-6 pt-8 md:px-10">
         <div className="mb-8 flex items-center gap-4">
@@ -174,7 +290,7 @@ export function ProjectDetailClient({
                   <Link href={`/project/${project.parentProject.slug}`} className="font-bold underline-offset-2 hover:text-emerald-300 transition-colors">
                     {project.parentProject.title}
                   </Link>
-                  {' '}by @{project.resurrecter?.username ?? 'unknown'}
+                  {' '}by @{project.parentProject.user?.username ?? 'unknown'}
                 </span>
               </div>
             </motion.div>
@@ -289,10 +405,15 @@ export function ProjectDetailClient({
                 <span>{project.commentCount ?? 0}</span>
               </a>
 
-              {/* Vote count */}
               <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground/60">
                 <Flame className="h-4 w-4" />
                 <span>{project.voteCount ?? 0}</span>
+              </span>
+
+              {/* View count */}
+              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground/60">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>{project.viewCount ?? 0}</span>
               </span>
 
               {/* Follow button / It's you badge */}
@@ -314,9 +435,9 @@ export function ProjectDetailClient({
                   ].join(' ')}
                 >
                   {following ? (
-                    <><BellOff className="h-4 w-4" /> Unfollow</>
+                    <><BellOff className="h-4 w-4" /> {followerCount} Following</>
                   ) : (
-                    <><Bell className="h-4 w-4" /> Follow</>
+                    <><Bell className="h-4 w-4" /> {followerCount} Follow</>
                   )}
                 </button>
               )}
@@ -476,15 +597,31 @@ export function ProjectDetailClient({
                 initialCapsules={project.timeCapsules ?? []}
                 isDead={project.state === 'DEAD' || project.state === 'SHIPPED'}
                 readOnly={project.state === 'DEAD' || project.state === 'SHIPPED'}
+                hasBeenResurrected={Boolean(project.children && project.children.length > 0)}
               />
             </motion.section>
           )}
 
           {/* ── Timeline ────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.23)} className="mb-8">
-            <h2 className="mb-5 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
-              Timeline
-            </h2>
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
+                Timeline
+              </h2>
+              {isOwner && project.state !== 'DEAD' && project.state !== 'SHIPPED' && (
+                <button
+                  onClick={() => {
+                    setUpdateTitle('');
+                    setUpdateDescription('');
+                    setUpdateError('');
+                    setUpdateModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 font-mono text-[10px] font-semibold tracking-wider text-accent transition-colors hover:bg-accent/10"
+                >
+                  <Plus className="h-3 w-3" /> Log Update
+                </button>
+              )}
+            </div>
             {project.timelineEntries && project.timelineEntries.length > 0 ? (
               <ul>
                 {project.timelineEntries.map((entry, i) => (

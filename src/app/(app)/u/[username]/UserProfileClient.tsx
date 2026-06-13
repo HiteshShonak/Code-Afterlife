@@ -395,7 +395,8 @@ export function UserProfileClient({
                     ownerUsername={p.user.username ?? null}
                     likeCount={p.likeCount ?? 0}
                     commentCount={p.commentCount ?? 0}
-                    voteCount={p.voteCount ?? 0}
+                    voteCount={p.voteCount}
+                    viewCount={p.viewCount}
                     trendingScore={p.trendingScore ?? 0}
                   />
                 </motion.div>
