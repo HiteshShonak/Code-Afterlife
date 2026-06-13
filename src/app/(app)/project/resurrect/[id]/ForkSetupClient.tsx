@@ -29,7 +29,7 @@ export function ForkSetupClient({ deadProjectId, deadProjectTitle, deadProjectSt
   // We only call the backend resurrection once we have the repo URL ready
   const { form, fieldErrors, serverError, isPending: isResurrecting, setField, submit } =
     useResurrectProject(deadProjectId, deadProjectStack, (newSlug) => {
-      router.push(`/project/${newSlug}`);
+      router.push(`/resurrect/${newSlug}/revealed`);
     });
 
   const handleAutoFork = async () => {
@@ -72,19 +72,7 @@ export function ForkSetupClient({ deadProjectId, deadProjectTitle, deadProjectSt
 
   return (
     <div className="flex flex-col gap-12">
-      {/* ── Legacy Will & Testament ── */}
-      {testament && (
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.03] p-8 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-amber-500/50 to-transparent rounded-l-2xl" />
-          <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-500/80 mb-4 flex items-center gap-2">
-            Will & Testament
-            <span className="text-muted-foreground/40 normal-case tracking-normal">(Left by the original developer)</span>
-          </h2>
-          <p className="whitespace-pre-wrap font-sans text-[16px] leading-relaxed text-amber-500/90 font-light italic">
-            "{testament}"
-          </p>
-        </div>
-      )}
+      {/* The Will & Testament was removed from here to preserve the surprise for the Testament Revealed page */}
 
       <div className="flex flex-col md:flex-row gap-12">
         {/* ── Option A: Auto-Fork ── */}
