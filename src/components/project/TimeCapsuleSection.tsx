@@ -8,6 +8,33 @@ import { Dialog } from '@/components/ui/Dialog';
 import type { TimeCapsule } from '@prisma/client';
 import { InteractiveCapsule } from './InteractiveCapsule';
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_VIDEO_SIZE = 90 * 1024 * 1024; // 90 MB
+const MAX_AUDIO_SIZE = 90 * 1024 * 1024; // 90 MB
+
+const compressImageToWebp = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return resolve(file);
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob((blob) => {
+        if (!blob) return resolve(file);
+        const webpFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+          type: 'image/webp',
+        });
+        resolve(webpFile);
+      }, 'image/webp', 0.85);
+    };
+    img.onerror = () => resolve(file);
+  });
+};
+
 interface TimeCapsuleSectionProps {
   projectId: string;
   isOwner: boolean;
@@ -15,6 +42,7 @@ interface TimeCapsuleSectionProps {
   initialCapsules: TimeCapsule[];
   readOnly?: boolean;
   isDead?: boolean;
+  hasBeenResurrected: boolean;
 }
 
 export function TimeCapsuleSection({
@@ -24,6 +52,7 @@ export function TimeCapsuleSection({
   initialCapsules,
   readOnly = false,
   isDead = false,
+  hasBeenResurrected,
 }: TimeCapsuleSectionProps) {
   const [testament, setTestament] = useState(initialTestament || '');
   const [isEditing, setIsEditing] = useState(false);
@@ -37,9 +66,61 @@ export function TimeCapsuleSection({
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadContent, setUploadContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resetUploadState = () => {
+    setUploadType('MESSAGE');
+    setUploadTitle('');
+    setUploadContent('');
+    setFile(null);
+    setPreviewUrl(null);
+    setUploadProgress(0);
+    setUploadError('');
+    setIsUploadModalOpen(false);
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    setUploadError('');
+    
+    if (!selected) {
+      setFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    
+    if (uploadType === 'IMAGE' && selected.size > MAX_IMAGE_SIZE) {
+      setUploadError(`Image exceeds 5MB limit. (Selected: ${formatSize(selected.size)})`);
+      e.target.value = '';
+      return;
+    }
+    if (uploadType === 'VIDEO' && selected.size > MAX_VIDEO_SIZE) {
+      setUploadError(`Video exceeds 90MB limit. (Selected: ${formatSize(selected.size)})`);
+      e.target.value = '';
+      return;
+    }
+    if (uploadType === 'AUDIO' && selected.size > MAX_AUDIO_SIZE) {
+      setUploadError(`Audio exceeds 90MB limit. (Selected: ${formatSize(selected.size)})`);
+      e.target.value = '';
+      return;
+    }
+    
+    setFile(selected);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(selected));
+  };
 
   const handleSaveTestament = () => {
     startTransition(async () => {
@@ -76,8 +157,12 @@ export function TimeCapsuleSection({
     try {
       let mediaUrl = null;
 
-      // 1. Upload to Cloudinary if file exists
       if (file && uploadType !== 'MESSAGE') {
+        let fileToUpload = file;
+        if (uploadType === 'IMAGE') {
+          fileToUpload = await compressImageToWebp(file);
+        }
+
         const sigRes = await fetch('/api/upload/signature', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -86,27 +171,52 @@ export function TimeCapsuleSection({
         if (!sigRes.ok) throw new Error('Failed to get upload signature');
         const { timestamp, signature, apiKey, cloudName } = await sigRes.json();
         
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('api_key', apiKey);
-        formData.append('timestamp', timestamp.toString());
-        formData.append('signature', signature);
-        formData.append('folder', 'time-capsules');
-        
         let resourceType = 'auto';
         if (uploadType === 'VIDEO') resourceType = 'video';
-        if (uploadType === 'AUDIO') resourceType = 'video'; // Cloudinary treats audio as video resource type sometimes, auto is safest
+        if (uploadType === 'AUDIO') resourceType = 'video';
         if (uploadType === 'IMAGE') resourceType = 'image';
 
-        const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
-          method: 'POST',
-          body: formData,
+        mediaUrl = await new Promise<string>((resolve, reject) => {
+          const formData = new FormData();
+          formData.append('file', fileToUpload);
+          formData.append('api_key', apiKey);
+          formData.append('timestamp', timestamp.toString());
+          formData.append('signature', signature);
+          formData.append('folder', 'time-capsules');
+          // Basic video compression via Cloudinary
+          if (uploadType === 'VIDEO') {
+            formData.append('quality', 'auto');
+          }
+
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`);
+          
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const percent = Math.round((e.loaded / e.total) * 100);
+              setUploadProgress(percent);
+            }
+          };
+          
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const data = JSON.parse(xhr.responseText);
+                resolve(data.secure_url);
+              } catch (e) {
+                reject(new Error('Invalid response from Cloudinary'));
+              }
+            } else {
+              reject(new Error('Failed to upload media. Please try again.'));
+            }
+          };
+          
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send(formData);
         });
-        
-        if (!uploadRes.ok) throw new Error('Failed to upload file to Cloudinary');
-        const uploadData = await uploadRes.json();
-        mediaUrl = uploadData.secure_url;
       }
+
+      setUploadProgress(100);
 
       // 2. Save Capsule to DB
       const dbRes = await fetch(`/api/projects/${projectId}/time-capsules`, {
@@ -120,24 +230,27 @@ export function TimeCapsuleSection({
         }),
       });
 
-      if (!dbRes.ok) throw new Error('Failed to save capsule to database');
-      const { capsule } = await dbRes.json();
+      const dbData = await dbRes.json();
+      if (!dbRes.ok) throw new Error(dbData.message || 'Failed to save capsule to database');
 
-      setCapsules((prev) => [...prev, capsule]);
-      setIsUploadModalOpen(false);
-      setUploadTitle('');
-      setUploadContent('');
-      setFile(null);
+      setCapsules((prev) => [...prev, dbData.capsule]);
+      resetUploadState();
       
     } catch (err: any) {
       setUploadError(err.message || 'An error occurred during upload.');
+      setUploadProgress(0);
     } finally {
       setIsUploading(false);
     }
   };
 
-  // If visitor and no content at all, don't show the section to save space
-  if (!isOwner && !initialTestament && capsules.length === 0) {
+  // The testament itself should only be visible to the public if it has been resurrected.
+  // Otherwise, only the owner can see it.
+  const showTestament = isOwner || hasBeenResurrected;
+
+  // If visitor and not allowed to see testament, don't show the section at all to save space.
+  // We hide the "Time Capsules" list from visitors entirely because they use the "Unseal" button elsewhere when it's dead.
+  if (!isOwner && (!showTestament || !initialTestament)) {
     return null;
   }
 
@@ -156,8 +269,8 @@ export function TimeCapsuleSection({
 
       <div className="flex flex-col gap-8">
         
-        {/* TESTAMENT (Only visible to Owner or via Legacy Inherited view) */}
-        {(isOwner || initialTestament) && (
+        {/* TESTAMENT (Visible to Owner, or Public if Resurrected) */}
+        {showTestament && (
           <div className="relative">
             <h3 className="font-mono text-[11px] font-semibold text-foreground/80 mb-3 flex items-center gap-2">
               Will & Testament
@@ -165,12 +278,28 @@ export function TimeCapsuleSection({
             </h3>
             
             {isEditing ? (
-              <textarea
-                value={testament}
-                onChange={(e) => setTestament(e.target.value)}
-                placeholder="Leave instructions or your vision for whoever resurrects this code..."
-                className="w-full min-h-[120px] rounded-xl border border-border/60 bg-card/60 p-4 font-sans text-[14px] text-foreground outline-none focus:border-amber-500/40 focus:ring-1 focus:ring-amber-500/20 resize-y"
-              />
+              <div className="relative rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6 backdrop-blur-sm">
+                <textarea
+                  value={testament}
+                  onChange={(e) => setTestament(e.target.value)}
+                  placeholder="I leave this code to..."
+                  className="w-full min-h-[150px] resize-y bg-transparent font-sans text-[15px] leading-relaxed text-foreground/90 font-light italic outline-none placeholder:text-muted-foreground/30"
+                  maxLength={2000}
+                />
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="font-mono text-[10px] text-muted-foreground/50">{testament.length}/2000</span>
+                  <div className="flex gap-3">
+                    <Button variant="ghost" size="sm" onClick={() => {
+                      setTestament(initialTestament || '');
+                      setIsEditing(false);
+                    }}>Cancel</Button>
+                    <Button variant="outline" size="sm" onClick={handleSaveTestament} className="bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border-amber-500/50" disabled={isPending}>
+                      {isPending ? 'Preserving...' : 'Preserve Testament'}
+                    </Button>
+                  </div>
+                </div>
+                {saveMessage && <p className="mt-3 font-mono text-[10px] text-amber-500/80">{saveMessage}</p>}
+              </div>
             ) : (
               <div className="relative rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-6 backdrop-blur-sm">
                 <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-500/50 to-transparent rounded-l-2xl" />
@@ -188,38 +317,30 @@ export function TimeCapsuleSection({
           </div>
         )}
 
-        {/* TIME CAPSULES */}
-        <div className="relative mt-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-mono text-[11px] font-semibold text-foreground/80 flex items-center gap-2">
-              Time Capsules
-              <span className="font-normal text-muted-foreground/40 tracking-normal text-[10px]">(Sealed until project dies. Followers will be emailed upon unsealing.)</span>
-            </h3>
-            {isOwner && !readOnly && (
-               <Button variant="outline" size="sm" onClick={() => setIsUploadModalOpen(true)} className="h-7 text-[10px] border-amber-500/30 text-amber-500/80 hover:bg-amber-500/10 hover:text-amber-500">
-                 <Plus className="h-3 w-3 mr-1" /> Add Capsule
-               </Button>
-            )}
-          </div>
+        {/* TIME CAPSULES (Only Owner can see this list/add button here) */}
+        {isOwner && (
+          <div className="relative mt-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-mono text-[11px] font-semibold text-foreground/80 flex items-center gap-2">
+                Time Capsules
+                <span className="font-normal text-muted-foreground/40 tracking-normal text-[10px]">(Sealed until project dies. Followers will be emailed upon unsealing.)</span>
+              </h3>
+              {!readOnly && (
+                 <Button variant="outline" size="sm" onClick={() => setIsUploadModalOpen(true)} className="h-7 text-[10px] border-amber-500/30 text-amber-500/80 hover:bg-amber-500/10 hover:text-amber-500">
+                   <Plus className="h-3 w-3 mr-1" /> Add Capsule
+                 </Button>
+              )}
+            </div>
 
-          <div className="mt-8">
-            {capsules.length > 0 ? (
-              isDead ? (
-                <InteractiveCapsule capsules={capsules} isDead={isDead} />
+            <div className="mt-2">
+              {capsules.length > 0 ? (
+                <p className="font-mono text-[12px] text-amber-500/80">{capsules.length} Time Capsule{capsules.length === 1 ? '' : 's'} Sealed.</p>
               ) : (
-                <div className="rounded-xl border border-dashed border-amber-500/20 bg-amber-500/5 p-8 flex flex-col items-center justify-center text-center">
-                   <Lock className="h-6 w-6 text-amber-500/50 mb-3" />
-                   <p className="font-mono text-[12px] text-amber-500/80 mb-1">{capsules.length} Time Capsule{capsules.length === 1 ? '' : 's'} Sealed</p>
-                   <p className="font-mono text-[10px] text-muted-foreground/50">The contents are locked until this project's life ends.</p>
-                </div>
-              )
-            ) : (
-              <div className="col-span-full rounded-xl border border-dashed border-border/40 p-8 text-center">
-                 <p className="font-mono text-[11px] text-muted-foreground/40">No time capsules have been sealed yet.</p>
-              </div>
-            )}
+                <p className="font-mono text-[11px] text-muted-foreground/40">No time capsules have been sealed yet.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* SAVE CONTROLS FOR TESTAMENT */}
         <AnimatePresence>
@@ -263,7 +384,7 @@ export function TimeCapsuleSection({
                   {(['MESSAGE', 'IMAGE', 'VIDEO', 'AUDIO'] as const).map(type => (
                      <button
                         key={type}
-                        onClick={() => { setUploadType(type); setFile(null); }}
+                        onClick={() => { setUploadType(type); setFile(null); setPreviewUrl(null); setUploadError(''); }}
                         className={`px-3 py-1.5 rounded border font-mono text-[10px] transition-colors ${uploadType === type ? 'border-amber-500/50 bg-amber-500/10 text-amber-500' : 'border-border/50 bg-background/50 text-muted-foreground/60 hover:text-foreground'}`}
                      >
                         {type}
@@ -286,30 +407,66 @@ export function TimeCapsuleSection({
 
             {uploadType !== 'MESSAGE' && (
                <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-2 block">Media File</label>
+                  <div className="flex justify-between mb-2 items-end">
+                    <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground block">Media File</label>
+                    <span className="font-mono text-[9px] text-muted-foreground/50">
+                      {uploadType === 'IMAGE' && 'Max 5MB (Auto WebP)'}
+                      {uploadType === 'VIDEO' && 'Max 90MB'}
+                      {uploadType === 'AUDIO' && 'Max 90MB'}
+                    </span>
+                  </div>
                   <input
                      type="file"
                      ref={fileInputRef}
-                     onChange={e => setFile(e.target.files?.[0] || null)}
+                     onChange={handleFileSelect}
                      accept={uploadType === 'IMAGE' ? 'image/*' : uploadType === 'VIDEO' ? 'video/*' : 'audio/*'}
                      className="hidden"
                   />
                   <div 
                      onClick={() => fileInputRef.current?.click()}
-                     className="w-full rounded-xl border border-dashed border-border/60 hover:border-amber-500/40 bg-background/30 p-6 flex flex-col items-center justify-center cursor-pointer transition-colors"
+                     className="w-full rounded-xl border border-dashed border-border/60 hover:border-amber-500/40 bg-background/30 p-6 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden"
                   >
-                     {file ? (
-                        <div className="flex items-center gap-3 text-amber-500/80">
-                           <ImageIcon className="h-5 w-5" />
-                           <span className="font-mono text-[11px] truncate max-w-[200px]">{file.name}</span>
+                     {file && previewUrl ? (
+                        <div className="flex flex-col items-center gap-4 w-full">
+                           {/* Media Preview */}
+                           {uploadType === 'IMAGE' && (
+                             <img src={previewUrl} alt="Preview" className="max-h-[160px] object-contain rounded-md border border-border/50" />
+                           )}
+                           {uploadType === 'VIDEO' && (
+                             <video src={previewUrl} controls className="max-h-[160px] rounded-md border border-border/50 w-full object-cover" />
+                           )}
+                           {uploadType === 'AUDIO' && (
+                             <audio src={previewUrl} controls className="w-full" />
+                           )}
+                           
+                           <div className="flex items-center gap-3 text-amber-500/80 bg-background/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-amber-500/20 w-full justify-between">
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <ImageIcon className="h-4 w-4 shrink-0" />
+                                <span className="font-mono text-[11px] truncate max-w-[200px]">{file.name}</span>
+                              </div>
+                              <span className="font-mono text-[10px] text-muted-foreground shrink-0">{formatSize(file.size)}</span>
+                           </div>
                         </div>
                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground/50 hover:text-amber-500/70 transition-colors">
+                        <div className="flex flex-col items-center gap-2 text-muted-foreground/50 hover:text-amber-500/70 transition-colors py-4">
                            <UploadCloud className="h-6 w-6" />
                            <span className="font-mono text-[10px] uppercase">Click to browse</span>
                         </div>
                      )}
+                     
+                     {/* Upload Progress Bar */}
+                     {isUploading && uploadProgress > 0 && (
+                       <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-background">
+                         <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                       </div>
+                     )}
                   </div>
+                  
+                  {isUploading && (
+                    <div className="mt-2 text-right font-mono text-[10px] text-amber-500/80">
+                      Uploading... {uploadProgress}%
+                    </div>
+                  )}
                </div>
             )}
 
@@ -326,7 +483,7 @@ export function TimeCapsuleSection({
             {uploadError && <p className="font-mono text-[10px] text-red-500/80">{uploadError}</p>}
 
             <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border/40">
-               <Button variant="ghost" onClick={() => setIsUploadModalOpen(false)} disabled={isUploading}>Cancel</Button>
+               <Button variant="ghost" onClick={resetUploadState} disabled={isUploading}>Cancel</Button>
                <Button 
                   onClick={handleUploadCapsule} 
                   isLoading={isUploading}

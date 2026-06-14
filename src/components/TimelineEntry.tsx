@@ -63,7 +63,7 @@ export const TimelineEntry = memo(function TimelineEntry({
       {/* Timeline dot + vertical connector */}
       <div className="relative flex flex-col items-center">
         <span
-          className="z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-foreground/10 bg-card font-mono text-[11px]"
+          className="z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-foreground/10 bg-card font-mono text-sm shadow-sm"
           style={{ color }}
         >
           {icon}
@@ -75,18 +75,18 @@ export const TimelineEntry = memo(function TimelineEntry({
       <div className="flex-1 pt-0.5">
         <div className="flex items-center gap-2">
           <span
-            className="font-mono text-[9px] uppercase tracking-[0.16em]"
+            className="font-mono text-xs uppercase tracking-[0.16em] font-medium"
             style={{ color }}
           >
             {label}
           </span>
-          <span className="font-mono text-[9px] text-muted-foreground/50">
+          <span className="font-mono text-xs text-muted-foreground/60">
             {formatDate(createdAt)}
           </span>
         </div>
-        <p className="mt-0.5 text-[12px] font-medium text-foreground">{title}</p>
+        <p className="mt-1 text-base font-semibold text-foreground/90">{title}</p>
         {description && (
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground/90 font-sans">
             {description}
           </p>
         )}

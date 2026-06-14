@@ -26,6 +26,7 @@ interface ProjectCardProps {
   likeCount?: number;
   commentCount?: number;
   voteCount?: number;
+  viewCount?: number;
   trendingScore?: number;
 }
 
@@ -52,6 +53,7 @@ export const ProjectCard = memo(function ProjectCard({
   likeCount = 0,
   commentCount = 0,
   voteCount = 0,
+  viewCount = 0,
   trendingScore = 0,
 }: ProjectCardProps) {
   const { decayState } = useDecayState(health);
@@ -180,6 +182,10 @@ export const ProjectCard = memo(function ProjectCard({
               </span>
               <span className="flex items-center gap-1">
                 <Flame className="h-3 w-3" /> {voteCount}
+              </span>
+              <span className="flex items-center gap-1 text-muted-foreground/40">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                {viewCount}
               </span>
             </div>
             <span>{ownerUsername ? `@${ownerUsername}` : formatDate(activityDate)}</span>
