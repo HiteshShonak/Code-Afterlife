@@ -4,8 +4,6 @@ import { useCallback } from 'react';
 import {
   ReactFlow,
   Background,
-  Controls,
-  MiniMap,
   useNodesState,
   useEdgesState,
   addEdge,
@@ -57,27 +55,14 @@ export default function ReactFlowGraph({ nodes: initialNodes, edges: initialEdge
       fitViewOptions={{ padding: 0.2 }}
       minZoom={0.3}
       maxZoom={2}
-      style={{ background: 'var(--color-card)' }}
+      style={{ background: 'transparent' }}
+      proOptions={{ hideAttribution: true }}
       defaultEdgeOptions={{
         animated: true,
         style: { stroke: 'oklch(0.66 0.19 295 / 0.6)', strokeWidth: 1.5 },
       }}
     >
       <Background color="oklch(1 0 0 / 4%)" gap={20} size={1} />
-      <Controls
-        className="!border-foreground/10 !bg-card/90 !backdrop-blur-sm"
-        showInteractive={false}
-      />
-      <MiniMap
-        nodeColor={(node) => {
-          const data = node.data as ProjectNodeData;
-          return STATE_COLORS[data.state as string] ?? '#6b7280';
-        }}
-        style={{
-          background: 'var(--color-card)',
-          border: '1px solid oklch(1 0 0 / 10%)',
-        }}
-      />
     </ReactFlow>
   );
 }

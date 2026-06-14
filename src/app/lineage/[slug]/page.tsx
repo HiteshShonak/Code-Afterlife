@@ -32,25 +32,29 @@ export default async function LineagePage({ params }: PageProps) {
   const { nodes, edges } = lineageService.buildReactFlowGraph(tree);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="mx-auto max-w-6xl px-6 pt-24 pb-6 md:px-10">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Lineage Tree
+    <div className="relative h-screen w-full bg-[#050505] overflow-hidden">
+      {/* Absolute Cinematic Header */}
+      <div className="pointer-events-none absolute left-0 top-0 z-50 w-full bg-gradient-to-b from-black/80 to-transparent pt-12 pb-24 px-8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-emerald-500/70 mb-2">
+          Project Lineage
         </p>
-        <h1 className="mt-1 font-mono text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="font-mono text-3xl font-bold tracking-tight text-foreground/90">
           {project.title}
         </h1>
-        <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-          {nodes.length} project{nodes.length !== 1 ? 's' : ''} in this lineage chain
+        <p className="mt-2 font-mono text-[11px] text-muted-foreground/60">
+          {nodes.length} project{nodes.length !== 1 ? 's' : ''} in this resurrection chain
         </p>
+        
+        <div className="mt-6 pointer-events-auto">
+          <a href={`/project/${project.slug}`} className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/20 transition-colors">
+            ← Back to Project
+          </a>
+        </div>
       </div>
 
-      {/* Graph — dynamically loaded, SSR false */}
-      <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <div className="h-[600px] overflow-hidden rounded-sm border border-foreground/10">
-          <LineageGraph nodes={nodes} edges={edges} />
-        </div>
+      {/* Full screen Graph */}
+      <div className="absolute inset-0">
+        <LineageGraph nodes={nodes} edges={edges} />
       </div>
     </div>
   );
