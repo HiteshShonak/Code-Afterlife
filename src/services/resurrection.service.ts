@@ -58,6 +58,7 @@ export const resurrectionService = {
           description: data.description ?? deadProject.description,
           githubRepoUrl: data.repoUrl,
           stack: data.stack ?? deadProject.stack,
+          screenshots: deadProject.screenshots,
           state: 'BORN',
           health: PROJECT_DEFAULTS.initialHealth,
           userId: resurrecterUserId,

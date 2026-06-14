@@ -136,10 +136,15 @@ export const projectService = {
       where: { slug },
       include: {
         user: true,
-        parentProject: true,
+        parentProject: {
+          include: { user: true }
+        },
         resurrecter: true,
         children: true,
         timeCapsules: true,
+        _count: {
+          select: { followers: true },
+        },
         timelineEntries: {
           orderBy: { createdAt: 'desc' },
           take: 20,
@@ -191,7 +196,10 @@ export const projectService = {
   async getDeadProjects(): Promise<ProjectWithUser[]> {
     return prisma.project.findMany({
       where: { state: 'DEAD' },
-      include: { user: true },
+      include: { 
+        user: true,
+        _count: { select: { timeCapsules: true, children: true } }
+      },
       orderBy: { updatedAt: 'desc' },
     }) as Promise<ProjectWithUser[]>;
   },
