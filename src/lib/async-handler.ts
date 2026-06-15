@@ -4,36 +4,18 @@ import { ApiError } from './api-error';
 import { logger } from './logger';
 import { isZodError, extractZodErrors } from './zod-errors';
 
-/**
- * Next.js 16 route context — params are always a Promise.
- * Use this for dynamic routes like /api/projects/[id].
- */
+// next 16 route context
 export interface RouteContext<TParams = Record<string, string>> {
   params: Promise<TParams>;
 }
 
-/**
- * Route handler function with optional typed context.
- * Compatible with Next.js 16's GET/POST/PATCH/DELETE exports.
- */
+// route handler
 type RouteHandlerFn = (
   request: NextRequest,
   context?: RouteContext
 ) => Promise<NextResponse | Response>;
 
-/**
- * Wraps a Next.js route handler with centralized try/catch.
- * All errors are caught by `handleError()` and mapped to standardized responses.
- *
- * @example
- * ```ts
- * export const GET = asyncHandler(async (request, context) => {
- *   const { id } = await context!.params;
- *   const project = await projectService.getById(id);
- *   return apiResponse.success(project);
- * });
- * ```
- */
+// try-catch wrapper for routes
 export function asyncHandler(handler: RouteHandlerFn): RouteHandlerFn {
   return async (
     request: NextRequest,
@@ -47,36 +29,24 @@ export function asyncHandler(handler: RouteHandlerFn): RouteHandlerFn {
   };
 }
 
-/** Successful server action result. */
+// success result
 export interface ActionSuccess<T> {
   readonly success: true;
   readonly data: T;
   readonly message?: string;
 }
 
-/** Failed server action result. */
+// fail result
 export interface ActionError {
   readonly success: false;
   readonly message: string;
   readonly errors?: Record<string, string[]>;
 }
 
-/** Discriminated union of success/error for server actions. */
+// result union
 export type ActionResult<T> = ActionSuccess<T> | ActionError;
 
-/**
- * Wraps a server action with centralized error handling.
- * Returns plain objects (NOT NextResponse) for client-side consumption.
- *
- * @example
- * ```ts
- * export const createProject = actionHandler(async (formData: FormData) => {
- *   const user = await requireAuth();
- *   const validated = createProjectSchema.parse({ ... });
- *   return projectService.create(user.id, validated);
- * });
- * ```
- */
+// error handler for actions
 export function actionHandler<TArgs extends unknown[], TResult>(
   action: (...args: TArgs) => Promise<TResult>
 ): (...args: TArgs) => Promise<ActionResult<TResult>> {
@@ -85,7 +55,7 @@ export function actionHandler<TArgs extends unknown[], TResult>(
       const result = await action(...args);
       return { success: true, data: result };
     } catch (error) {
-      // ApiError → known domain error
+      // known domain error
       if (error instanceof ApiError) {
         return {
           success: false,
@@ -94,7 +64,7 @@ export function actionHandler<TArgs extends unknown[], TResult>(
         };
       }
 
-      // ZodError → validation failure
+      // validation failure
       if (isZodError(error)) {
         const fieldErrors = extractZodErrors(error.issues);
         return {
@@ -104,7 +74,7 @@ export function actionHandler<TArgs extends unknown[], TResult>(
         };
       }
 
-      // Unknown → generic error (details logged server-side)
+      // generic error
       logger.error('Unhandled action error', error);
       return { success: false, message: 'Something went wrong' };
     }

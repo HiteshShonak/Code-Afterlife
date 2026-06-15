@@ -3,10 +3,10 @@ import GitHub from 'next-auth/providers/github';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
 
-// Import type augmentations (side-effect import)
+// import type augmentations
 import '@/types/auth';
 
-/** GitHub profile shape for the jwt callback. */
+// gh profile shape
 interface GitHubProfile {
   login?: string;
   id?: number;
@@ -27,7 +27,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, account, profile }) {
-      // First sign-in: populate token with user ID and GitHub data
+      // first sign in populate token
       if (user) {
         token.id = user.id;
       }
@@ -53,7 +53,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       if (session.user && token) {
-        // These fields are now properly typed via module augmentation
+        // properly typed via module augmentation
         session.user.id = token.id as string;
         session.user.username = token.username;
         session.user.githubId = token.githubId;
@@ -62,6 +62,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: {
-    signIn: '/', // Redirect to landing page for sign in
+    signIn: '/',
   },
 });

@@ -2,10 +2,7 @@ import { auth } from '@/lib/auth';
 import { ApiError } from '@/lib/api-error';
 import type { AuthUser } from '@/types/auth';
 
-/**
- * Get the current authenticated user, or null if not signed in.
- * Safe to call in any context — never throws.
- */
+// get user safely
 export async function getCurrentUser(): Promise<AuthUser | null> {
   const session = await auth();
 
@@ -23,12 +20,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   };
 }
 
-/**
- * Require authenticated user. Throws ApiError.unauthorized() if not signed in.
- * Used at the top of route handlers and server actions that need auth.
- *
- * @throws {ApiError} 401 if no valid session
- */
+// requires auth or throws
 export async function requireAuth(): Promise<AuthUser> {
   const user = await getCurrentUser();
 

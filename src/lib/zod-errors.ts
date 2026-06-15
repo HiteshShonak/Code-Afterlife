@@ -1,16 +1,10 @@
-/**
- * Zod issue shape — minimal interface to avoid importing Zod at runtime.
- * Matches both Zod v3 and v4 issue shapes.
- */
+// zod issue
 interface ZodIssue {
   readonly path: ReadonlyArray<string | number>;
   readonly message: string;
 }
 
-/**
- * Check if an unknown error is a ZodError by duck-typing.
- * Avoids importing Zod to keep the error layer dependency-free.
- */
+// check zod error
 export function isZodError(
   error: unknown
 ): error is Error & { issues: ZodIssue[] } {
@@ -22,13 +16,7 @@ export function isZodError(
   );
 }
 
-/**
- * Extract structured field errors from a ZodError.
- * Returns a map of field path → error messages.
- *
- * @example
- * { "title": ["Too short"], "stack": ["Required"] }
- */
+// get field errors
 export function extractZodErrors(
   issues: ReadonlyArray<ZodIssue>
 ): Record<string, string[]> {

@@ -7,7 +7,7 @@ export const ghFetch = (path: string) =>
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
       }),
     },
-    next: { revalidate: 0 }, // always fresh
+    next: { revalidate: 0 },
   });
 
 export function calcHealthFromCommits(commitCount: number, currentHealth: number): number {

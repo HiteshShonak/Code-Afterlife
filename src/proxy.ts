@@ -2,22 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-/**
- * Next.js 16 Proxy (formerly Middleware).
- * Protects authenticated routes. Public routes are always accessible.
- *
- * Protected routes: /dashboard, /new
- * Public routes: /, /graveyard, /project/*, /lineage/*, /api/auth/*
- */
+// middleware proxy, handles route protection
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Auth API routes — always pass through
+  // let auth stuff pass through
   if (pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
 
-  // Only check auth for routes that strictly require it
+  // protect specific routes only
   const protectedPaths = ['/dashboard', '/new'];
   const isProtected = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
@@ -27,7 +21,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Use next-auth JWT token (works without DB — reads from cookie)
+  // read jwt from cookie
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET,
@@ -43,9 +37,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  /*
-   * Match only routes that need protection.
-   * Explicitly excluding static files and Next internals.
-   */
+  // matcher for protected paths
   matcher: ['/dashboard', '/dashboard/:path*', '/new', '/new/:path*'],
 };

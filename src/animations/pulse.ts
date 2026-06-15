@@ -1,7 +1,4 @@
-/**
- * Framer Motion variants representing the pulse/activity rhythm of projects.
- * Thriving projects pulse rapidly, stable projects pulse moderately, and unstable projects pulse slowly.
- */
+// pulse variants
 export const pulseVariants = {
   thriving: {
     scale: [1, 1.08, 1],

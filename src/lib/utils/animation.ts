@@ -1,6 +1,6 @@
 import { Variants } from "framer-motion";
 
-// High-end cinematic easing curve (slow start, rapid mid, extremely slow tail)
+// cinematic easing curve
 export const CINEMATIC_EASE = [0.16, 1, 0.3, 1];
 
 export const FADE_UP: Variants = {

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export const apiResponse = {
-  /**
-   * Return a successful JSON response (200).
-   */
+  // return 200 ok
   success<T>(data: T, message?: string) {
     return NextResponse.json(
       { success: true as const, data, ...(message && { message }) },
@@ -11,9 +9,7 @@ export const apiResponse = {
     );
   },
 
-  /**
-   * Return a created JSON response (201).
-   */
+  // return 201 created
   created<T>(data: T, message?: string) {
     return NextResponse.json(
       { success: true as const, data, ...(message && { message }) },
@@ -21,9 +17,7 @@ export const apiResponse = {
     );
   },
 
-  /**
-   * Return an error JSON response with the given status code.
-   */
+  // return error response
   error(message: string, statusCode = 400, errors?: Record<string, string[]>) {
     return NextResponse.json(
       { success: false as const, message, ...(errors && { errors }) },
@@ -31,9 +25,7 @@ export const apiResponse = {
     );
   },
 
-  /**
-   * Return a no-content response (204).
-   */
+  // return 204 no content
   noContent() {
     return new Response(null, { status: 204 });
   },

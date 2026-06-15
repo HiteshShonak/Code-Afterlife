@@ -4,17 +4,13 @@ import { apiResponse } from './api-response';
 import { logger } from './logger';
 import { isZodError, extractZodErrors } from './zod-errors';
 
-/**
- * Prisma error shape — duck-typed to avoid importing @prisma/client here.
- */
+// prisma error shape
 interface PrismaKnownError extends Error {
   code: string;
   meta?: { target?: string[] };
 }
 
-/**
- * Check if an error is a Prisma known request error by duck-typing.
- */
+// check for prisma error
 function isPrismaError(error: unknown): error is PrismaKnownError {
   return (
     error instanceof Error &&
@@ -23,28 +19,20 @@ function isPrismaError(error: unknown): error is PrismaKnownError {
   );
 }
 
-/**
- * Map any caught error to a standardized NextResponse.
- *
- * Priority order:
- * 1. ApiError → direct status code mapping
- * 2. ZodError → 400 with field-level errors
- * 3. PrismaClientKnownRequestError → mapped DB errors
- * 4. Unknown → 500 with generic message (details logged server-side)
- */
+// map error to response
 export function handleError(error: unknown): NextResponse {
-  // Known domain errors
+  // known domain errors
   if (error instanceof ApiError) {
     return apiResponse.error(error.message, error.statusCode, error.errors);
   }
 
-  // Zod validation errors
+  // zod validation errors
   if (isZodError(error)) {
     const fieldErrors = extractZodErrors(error.issues);
     return apiResponse.error('Validation failed', 400, fieldErrors);
   }
 
-  // Prisma known request errors
+  // prisma request errors
   if (isPrismaError(error)) {
     switch (error.code) {
       case 'P2002': {
@@ -61,7 +49,7 @@ export function handleError(error: unknown): NextResponse {
     }
   }
 
-  // Unknown errors — log and return generic 500
+  // log unknown errors
   logger.error('Unhandled error', error);
   return apiResponse.error('Internal server error', 500);
 }

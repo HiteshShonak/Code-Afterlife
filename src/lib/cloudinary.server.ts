@@ -8,25 +8,18 @@ cloudinary.config({
   secure:     true,
 });
 
-/**
- * Delete an array of Cloudinary public_ids.
- * Used for orphan cleanup when project creation fails after upload.
- * Fails silently on individual errors so it never blocks the user flow.
- */
+// delete images
 export async function deleteCloudinaryImages(publicIds: string[]): Promise<void> {
   if (!publicIds.length) return;
   try {
     await cloudinary.api.delete_resources(publicIds, { resource_type: 'image' });
   } catch (err) {
-    // Log but don't throw — orphan cleanup must never crash the caller
+    // dont crash on fail
     console.error('[cloudinary] orphan cleanup failed:', err);
   }
 }
 
-/**
- * Generate a signed Cloudinary upload signature.
- * Called server-side so the API secret never reaches the client.
- */
+// generate signature
 export function generateUploadSignature(folder: string): {
   signature:  string;
   timestamp:  number;

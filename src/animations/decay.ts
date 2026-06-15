@@ -1,7 +1,4 @@
-/**
- * Framer Motion variants representing the visual decay states of projects.
- * Maps project decay stages directly to CSS filter, opacity, and transform animations.
- */
+// decay variants
 export const decayVariants = {
   thriving: {
     opacity: 1,
