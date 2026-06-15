@@ -1,34 +1,34 @@
-/** Decay lifecycle stages from thriving to dead. Maps to visual styling. */
+// decay states
 export type DecayState = 'thriving' | 'stable' | 'unstable' | 'nearDeath' | 'dead';
 
-/** Result of a health score calculation with decay classification. */
+// health result
 export interface HealthResult {
-  /** Health score (0-100, one decimal place). */
+  // score 0-100
   readonly score: number;
-  /** Decay state derived from the health score. */
+  // state bucket
   readonly decayState: DecayState;
-  /** Human-readable label (e.g. "Thriving", "Near Death"). */
+  // display label
   readonly label: string;
 }
 
-/** Input data needed to calculate project health. */
+// health input
 export interface HealthCalculationInput {
-  /** Last recorded activity date, or null if no activity. */
+  // last activity
   readonly lastActivityAt: Date | null;
-  /** Project creation date (fallback for activity calculations). */
+  // creation date
   readonly createdAt: Date;
-  /** Number of timeline entries in the last 30 days. */
+  // commits this month
   readonly commitsThisMonth: number;
-  /** Number of timeline entries in days 30-60 ago. */
+  // commits last month
   readonly commitsLastMonth: number;
 }
 
-/** Health bucket with visual metadata for frontend rendering. */
+// health bucket ui
 export interface HealthBucket {
-  /** Current decay state. */
+  // state
   readonly state: DecayState;
-  /** Human-readable label (e.g. "Thriving", "Near Death"). */
+  // label
   readonly label: string;
-  /** CSS variable reference for health state color. */
+  // color css var
   readonly color: string;
 }

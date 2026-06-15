@@ -15,9 +15,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// =============================================================================
-// AUTH.JS MODELS (Required by @auth/prisma-adapter)
-// =============================================================================
+// auth models
 
 model User {
   id            String    @id @default(cuid())
@@ -26,19 +24,19 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  // Custom fields for Code Afterlife
+  // custom fields
   githubId Int?    @unique
   username String? @unique
 
-  // Auth.js relations
+  // auth relations
   accounts Account[]
   sessions Session[]
 
-  // Project relations
+  // project relations
   createdProjects     Project[] @relation("CreatedProjects")
   resurrectedProjects Project[] @relation("ResurrectedProjects")
 
-  // Social relations
+  // social relations
   likes            ProjectLike[]
   comments         ProjectComment[]
   votes            ProjectVote[]
@@ -80,9 +78,7 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// =============================================================================
-// CORE DOMAIN MODELS
-// =============================================================================
+// domain models
 
 enum ProjectState {
   BORN
@@ -97,26 +93,26 @@ model Project {
   userId String
   user   User   @relation("CreatedProjects", fields: [userId], references: [id])
 
-  // GitHub linkage â€” mandatory from Phase 2A
+  // github linkage
   githubRepoUrl String
   githubRepoId  Int?
 
-  // URL-safe identifier (auto-generated from title)
+  // slug
   slug String @unique
 
-  // --- Project metadata ---
+  // project metadata
   title       String
   description String?  @db.Text
-  summary     String?  @db.Text // AI-generated, Phase 2C
-  stack       String[] // PostgreSQL native array
-  screenshots String[] // Up to 5 Cloudinary URLs (Phase 2A)
+  summary     String?  @db.Text // summary
+  stack       String[]
+  screenshots String[]
 
-  // --- Lifecycle state machine ---
+  // lifecycle state
   state            ProjectState @default(BORN)
   health           Float        @default(50)
   lastHealthUpdate DateTime?
 
-  // --- Lineage (resurrection chain) ---
+  // lineage
   parentProjectId   String?
   parentProject     Project?  @relation("ProjectLineage", fields: [parentProjectId], references: [id])
   children          Project[] @relation("ProjectLineage")
@@ -125,27 +121,27 @@ model Project {
   resurrectionDate  DateTime?
   lineageDepth      Int       @default(0)
 
-  // --- User messages ---
+  // messages
   testament    String? @db.Text
-  deathReason  String? @db.Text // Epitaph shown on tombstone — user-written or AI-generated
+  deathReason  String? @db.Text
   timeCapsules TimeCapsule[]
 
-  // --- Social counts (denormalized â€” updated in same TX as each action) ---
+  // social counts
   likeCount    Int @default(0)
   commentCount Int @default(0)
   voteCount    Int @default(0)
   viewCount    Int @default(0)
 
-  // --- Trending score (Hacker News time-decay, updated on engagement + daily cron) ---
+  // trending score
   trendingScore Float @default(0)
 
-  // --- Timestamps ---
+  // timestamps
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastActivityAt   DateTime?
-  lastPulseCheckAt DateTime? // Tracks when the AI cron last swept this project
+  lastPulseCheckAt DateTime?
 
-  // --- Relations ---
+  // relations
   timelineEntries  TimelineEntry[]
   githubActivities GitHubActivity[]
   milestones       Milestone[]
@@ -155,7 +151,7 @@ model Project {
   followers        ProjectFollow[]
   views            ProjectView[]
 
-  // --- Indices for query performance ---
+  // indices
   @@index([userId])
   @@index([state])
   @@index([parentProjectId])
@@ -163,9 +159,7 @@ model Project {
   @@index([health])
 }
 
-// =============================================================================
-// TIME CAPSULE MODEL
-// =============================================================================
+// time capsule
 
 enum CapsuleType {
   MESSAGE
@@ -192,9 +186,7 @@ model TimeCapsule {
   @@index([projectId])
 }
 
-// =============================================================================
-// SOCIAL MODELS (Phase 2A schema, Phase 2B implementation)
-// =============================================================================
+// social models
 
 model ProjectLike {
   id        String   @id @default(cuid())
@@ -204,7 +196,7 @@ model ProjectLike {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
-  @@unique([projectId, userId]) // one like per user per project
+  @@unique([projectId, userId])
   @@index([projectId])
   @@index([userId])
 }
@@ -215,7 +207,7 @@ model ProjectComment {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  content   String   @db.Text // max 500 chars enforced at Zod layer
+  content   String   @db.Text
   isPinned  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -238,11 +230,11 @@ model ProjectVote {
   vote      VoteType
   createdAt DateTime @default(now())
 
-  @@unique([projectId, userId]) // one vote per user, changeable
+  @@unique([projectId, userId])
   @@index([projectId])
 }
 
-// User follows a project â€” appears in /explore?filter=following feed
+// project follow
 model ProjectFollow {
   id        String   @id @default(cuid())
   userId    String
@@ -256,7 +248,7 @@ model ProjectFollow {
   @@index([projectId])
 }
 
-// User follows another user â€” their projects appear in explore feed
+// user follow
 model UserFollow {
   id          String   @id @default(cuid())
   followerId  String
@@ -270,9 +262,7 @@ model UserFollow {
   @@index([followingId])
 }
 
-// =============================================================================
-// TIMELINE & ACTIVITY MODELS
-// =============================================================================
+// timeline models
 
 enum TimelineEntryType {
   MILESTONE
@@ -340,7 +330,7 @@ model Milestone {
   @@index([projectId])
 }
 
-// Tracks unique views for a project (e.g. per IP per 12 hours)
+// unique views
 model ProjectView {
   id        String   @id @default(cuid())
   projectId String
@@ -351,9 +341,7 @@ model ProjectView {
   @@index([projectId, ipAddress])
 }
 
-// =============================================================================
-// NOTIFICATIONS
-// =============================================================================
+// notifications
 
 model Notification {
   id        String   @id @default(cuid())

@@ -2,14 +2,14 @@ import 'next-auth';
 import 'next-auth/jwt';
 
 declare module 'next-auth' {
-  /** Extended User with Code Afterlife fields. */
+  // custom user fields
   interface User {
     id: string;
     username?: string | null;
     githubId?: number | null;
   }
 
-  /** Session.user includes our custom fields. */
+  // custom session fields
   interface Session {
     user: User & {
       id: string;
@@ -20,7 +20,7 @@ declare module 'next-auth' {
 }
 
 declare module 'next-auth/jwt' {
-  /** JWT token includes our custom fields for session callback. */
+  // custom jwt fields
   interface JWT {
     id?: string;
     username?: string | null;
@@ -28,18 +28,18 @@ declare module 'next-auth/jwt' {
   }
 }
 
-/** Authenticated user as returned by requireAuth(). */
+// auth user shape
 export interface AuthUser {
-  /** Unique user ID (cuid from database). */
+  // user id
   readonly id: string;
-  /** Display name from GitHub. */
+  // user name
   readonly name: string | null;
-  /** Email from GitHub (may be private). */
+  // user email
   readonly email: string | null;
-  /** GitHub avatar URL. */
+  // avatar url
   readonly image: string | null;
-  /** GitHub username (login). */
+  // gh username
   readonly username: string | null;
-  /** GitHub user ID (numeric). */
+  // gh id
   readonly githubId: number | null;
 }

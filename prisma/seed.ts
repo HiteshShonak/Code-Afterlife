@@ -2,7 +2,7 @@ import { PrismaClient, ProjectState } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+// helpers
 
 function daysAgo(days: number): Date {
   const d = new Date();
@@ -16,17 +16,13 @@ function hoursAgo(hours: number): Date {
   return d;
 }
 
-// ─── seed ─────────────────────────────────────────────────────────────────────
+// seed
 
 async function main() {
   console.log('🌱 Seeding Code Afterlife...\n');
 
-  // ── Users ──────────────────────────────────────────────────────────────────
-  // Real GitHub avatar API: u/0 is the fallback/404 ghost
-  // We use the GitHub identicons endpoint which generates deterministic
-  // avatars for any numeric ID without tying to a real person.
-  // Format: https://avatars.githubusercontent.com/u/{id}?v=4
-  // IDs in the 90,000,000+ range are almost certainly not real accounts.
+  // users
+  // avatar api
 
   const arjun = await prisma.user.upsert({
     where: { username: 'arjun-sharma-dev' },
@@ -54,9 +50,9 @@ async function main() {
 
   console.log(`  ✅ Users created: ${arjun.username}, ${priya.username}`);
 
-  // ── Projects ───────────────────────────────────────────────────────────────
+  // projects
 
-  // 1. ACTIVE — healthy, recently worked on
+  // 1. active
   const devlogger = await prisma.project.upsert({
     where: { slug: 'devlogger' },
     update: {},
@@ -76,7 +72,7 @@ async function main() {
     },
   });
 
-  // 2. STALLED — was going strong, then life happened
+  // 2. stalled
   const inkframe = await prisma.project.upsert({
     where: { slug: 'inkframe' },
     update: {},
@@ -96,7 +92,7 @@ async function main() {
     },
   });
 
-  // 3. SHIPPED — done, proud of it
+  // 3. shipped
   const formflux = await prisma.project.upsert({
     where: { slug: 'formflux' },
     update: {},
@@ -116,7 +112,7 @@ async function main() {
     },
   });
 
-  // 4. DEAD — the original ghost to resurrect
+  // 4. dead original
   const channelpilot = await prisma.project.upsert({
     where: { slug: 'channelpilot' },
     update: {},
@@ -136,7 +132,7 @@ async function main() {
     },
   });
 
-  // 5. DEAD — the second ghost
+  // 5. dead second
   const mapvault = await prisma.project.upsert({
     where: { slug: 'mapvault' },
     update: {},
@@ -156,7 +152,7 @@ async function main() {
     },
   });
 
-  // 6. BORN — priya's new project, just created
+  // 6. born new
   const patchwork = await prisma.project.upsert({
     where: { slug: 'patchwork-ui' },
     update: {},
@@ -176,7 +172,7 @@ async function main() {
     },
   });
 
-  // 7. ACTIVE — ChannelPilot resurrected by priya
+  // 7. active resurrected
   const notifyflow = await prisma.project.upsert({
     where: { slug: 'notifyflow' },
     update: {},
@@ -201,11 +197,11 @@ async function main() {
 
   console.log(`  ✅ Projects: ${[devlogger, inkframe, formflux, channelpilot, mapvault, patchwork, notifyflow].map(p => p.title).join(', ')}`);
 
-  // ── Timeline Entries ────────────────────────────────────────────────────────
-  // Realistic, emotionally resonant entries that tell a story.
+  // timeline entries
+  // tell a story
 
   const timelineEntries = [
-    // DevLogger — active, ongoing story
+    // devlogger active
     {
       id: 'tl-devlogger-1',
       projectId: devlogger.id,
@@ -231,7 +227,7 @@ async function main() {
       createdAt: daysAgo(3),
     },
 
-    // Inkframe — the stalled arc
+    // inkframe stalled
     {
       id: 'tl-inkframe-1',
       projectId: inkframe.id,
@@ -257,7 +253,7 @@ async function main() {
       createdAt: daysAgo(47),
     },
 
-    // FormFlux — the success story
+    // formflux success
     {
       id: 'tl-formflux-1',
       projectId: formflux.id,
@@ -283,7 +279,7 @@ async function main() {
       createdAt: daysAgo(31),
     },
 
-    // ChannelPilot — death and memory
+    // channelpilot death
     {
       id: 'tl-channelpilot-1',
       projectId: channelpilot.id,
@@ -317,7 +313,7 @@ async function main() {
       createdAt: daysAgo(38),
     },
 
-    // MapVault — the quiet death
+    // mapvault quiet death
     {
       id: 'tl-mapvault-1',
       projectId: mapvault.id,
@@ -335,7 +331,7 @@ async function main() {
       createdAt: daysAgo(203),
     },
 
-    // NotifyFlow — the resurrection story
+    // notifyflow resurrection
     {
       id: 'tl-notifyflow-1',
       projectId: notifyflow.id,
@@ -372,7 +368,7 @@ async function main() {
 
   console.log(`  ✅ Timeline entries: ${timelineEntries.length} entries created`);
 
-  // ── Milestones ─────────────────────────────────────────────────────────────
+  // milestones
 
   const milestones = [
     { id: 'ms-formflux-deployed', projectId: formflux.id,    type: 'FIRST_DEPLOYMENT' as const, createdAt: daysAgo(80) },

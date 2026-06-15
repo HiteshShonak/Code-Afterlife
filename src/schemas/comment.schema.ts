@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Zod schema for creating a comment. Max 500 chars per product spec. */
+// comment create schema
 export const createCommentSchema = z.object({
   content: z
     .string()

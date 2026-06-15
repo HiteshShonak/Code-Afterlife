@@ -1,21 +1,21 @@
-/** Successful API response wrapper. */
+// success response
 export type ApiSuccessResponse<T> = {
   success: true;
   message?: string;
   data: T;
 };
 
-/** Error API response wrapper. */
+// error response
 export type ApiErrorResponse = {
   success: false;
   message: string;
   errors?: Record<string, string[]>;
 };
 
-/** Discriminated union of success/error API responses. */
+// api response union
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-/** Paginated success response with metadata. */
+// paginated response
 export type PaginatedResponse<T> = ApiSuccessResponse<{
   data: T[];
   total: number;

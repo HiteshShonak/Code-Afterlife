@@ -2,18 +2,18 @@ import type { Project, User, ProjectState, TimelineEntry, TimeCapsule } from '@p
 
 export { ProjectState } from '@prisma/client';
 
-/** Project with its owner user relation included. */
+// project + owner
 export type ProjectWithUser = Project & {
   user: User;
 };
 
-/** Project with lineage relations — parent and children. */
+// project + lineage
 export type ProjectWithLineage = Project & {
   parentProject: Project | null;
   children: Project[];
 };
 
-/** Project with full detail relations used on the project detail page. */
+// full project details
 export type ProjectDetail = Project & {
   user: User;
   parentProject: Project | null;
@@ -26,16 +26,13 @@ export type ProjectDetail = Project & {
   };
 };
 
-/** Filters accepted by the project list endpoint. */
+// list filters
 export interface ProjectListFilters {
   state?: ProjectState;
   userId?: string;
 }
 
-/**
- * Fields required to create a new project.
- * Mirrors the Zod `createProjectSchema` shape for use in frontend form typings.
- */
+// create input
 export interface ProjectCreateInput {
   title: string;
   description?: string;

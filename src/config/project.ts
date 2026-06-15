@@ -1,7 +1,4 @@
-/**
- * Expanded technology stack list organized by category.
- * Official stacks shown in UI picker; custom stacks stored as plain strings.
- */
+// lists of tech stacks
 
 // ─── Frontend ──────────────────────────────────────────────────────────────────
 const FRONTEND = [
@@ -65,10 +62,7 @@ const CLOUD = [
   'Docker', 'GitHub Actions',
 ] as const;
 
-/**
- * Flat list of all officially recognized stacks for the UI picker.
- * Displayed in order: Frontend → Backend → Languages → Frameworks → DB → etc.
- */
+// all valid stacks
 export const AVAILABLE_STACKS = [
   ...FRONTEND,
   ...BACKEND,
@@ -83,10 +77,7 @@ export const AVAILABLE_STACKS = [
   ...CLOUD,
 ] as const;
 
-/**
- * Stack categories for grouped display in the tech stack picker.
- * Each category has a label and its stack options.
- */
+// group stacks
 export const STACK_CATEGORIES = [
   { label: 'Frontend',    stacks: FRONTEND   },
   { label: 'Backend',     stacks: BACKEND    },
@@ -101,29 +92,24 @@ export const STACK_CATEGORIES = [
   { label: 'Cloud',       stacks: CLOUD      },
 ] as const;
 
-/**
- * The most-used stacks shown immediately in the picker (no search needed).
- * Chosen by real-world developer survey data.
- */
+// popular stacks
 export const POPULAR_STACKS = [
   'TypeScript', 'React', 'Next.js', 'Node.js',
   'Python', 'PostgreSQL', 'Prisma', 'Docker',
   'Tailwind', 'Go', 'Vue', 'Bun',
 ] as const;
 
-/**
- * Standard defaults for project creation and initialization.
- */
+// default values
 export const PROJECT_DEFAULTS = {
-  /** Starting health value. */
+  // start health
   initialHealth: 50,
-  /** Initial lifecycle state assigned to project on creation. */
+  // start state
   initialState: 'BORN' as const,
-  /** Maximum number of screenshots allowed per project. */
+  // max screens
   maxScreenshots: 5,
-  /** Maximum number of stacks (official + custom combined). */
+  // max stacks
   maxStacks: 15,
 } as const;
 
-/** Max character limit allowed for project url slug. */
+// max slug len
 export const SLUG_MAX_LENGTH = 80;

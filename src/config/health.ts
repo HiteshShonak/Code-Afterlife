@@ -1,35 +1,33 @@
-/**
- * Configuration options for the project health scoring system and decay thresholds.
- */
+// config for health scores
 export const HEALTH_CONFIG = {
-  /** Weights used to compute the overall health score from component metrics. */
+  // health weights
   weights: {
-    /** 40% weight: active commits this month. */
+    // activity weight
     activity: 0.4,
-    /** 30% weight: consistency based on days since last activity. */
+    // consistency weight
     consistency: 0.3,
-    /** 30% weight: momentum comparing current month vs previous month. */
+    // momentum weight
     momentum: 0.3,
   },
-  /** Minimum health scores required to belong to each decay state bucket. */
+  // state thresholds
   thresholds: {
     thriving: 80,
     stable: 60,
     unstable: 40,
     nearDeath: 20,
   },
-  /** Parameters for calculating the monthly activity metrics. */
+  // activity metrics params
   activity: {
-    /** The observation window in days (30 days). */
+    // days to observe
     windowDays: 30,
-    /** Max commit limit used to normalize activity (100% activity). */
+    // max commits
     maxCommits: 100,
   },
-  /** Number of inactive days before transition to the STALLED lifecycle state. */
+  // days before stalled
   stalledDays: 1,
-  /** Number of inactive days before transition to the DEAD lifecycle state. */
+  // days before dead
   deadDays: 3,
-  /** Starting health value assigned to newly created projects. */
+  // starting health
   initialHealth: 50,
 } as const;
 

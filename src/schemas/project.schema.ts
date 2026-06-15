@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Schema for creating a new project. Validates title, description, repo URL, and stack selection. */
+// new project schema
 export const createProjectSchema = z.object({
   title: z
     .string()
@@ -25,7 +25,7 @@ export const createProjectSchema = z.object({
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
-/** Schema for partially updating an existing project. All fields are optional. */
+// update schema
 export const updateProjectSchema = createProjectSchema.partial().extend({
   testament: z.string().max(2000, 'Testament must be at most 2000 characters').optional().nullable(),
   timeCapsule: z.string().max(2000, 'Message must be at most 2000 characters').optional().nullable(),
@@ -33,7 +33,7 @@ export const updateProjectSchema = createProjectSchema.partial().extend({
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
-/** Schema for resurrecting a dead project. Requires a new repo URL and optional overrides. */
+// resurrect schema
 export const resurrectProjectSchema = z.object({
   repoUrl: z
     .string()
@@ -51,7 +51,7 @@ export const resurrectProjectSchema = z.object({
 
 export type ResurrectProjectInput = z.infer<typeof resurrectProjectSchema>;
 
-/** Schema for manually transitioning a project to a specific lifecycle state. */
+// update state schema
 export const updateStateSchema = z.object({
   state: z.enum(['BORN', 'ACTIVE', 'STALLED', 'SHIPPED', 'DEAD'], {
     error: 'Invalid project state',
