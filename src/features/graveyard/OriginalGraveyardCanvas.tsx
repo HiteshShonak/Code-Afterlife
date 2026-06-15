@@ -11,7 +11,7 @@ import { EffectComposer, Bloom, Vignette, Noise } from "@react-three/postprocess
 import { BlendFunction } from "postprocessing";
 // @ts-ignore
 import { SimplexNoise } from "three/addons/math/SimplexNoise.js";
-import type { Project } from "./mockData";
+import type { Project } from "./types";
 import { GraveyardSidebar } from "./GraveyardSidebar";
 import { GraveyardHeader, type GraveyardFilters } from "./GraveyardHeader";
 
@@ -1092,7 +1092,6 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
 
   /**
    * Filter projects based on search query and tech selection.
-   * Since mock projects have no stack, tech filter only applies to real DB projects (with a slug).
    * Sort is applied after filtering.
    */
   const filteredProjects = useMemo(() => {
@@ -1110,20 +1109,9 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
 
     // Sort
     if (filters.sort === 'newest') {
-      // Real projects (with slug) first, then mock in original order
-      result = result.sort((a, b) => {
-        const aReal = !!a.slug; const bReal = !!b.slug;
-        if (aReal && !bReal) return -1;
-        if (!aReal && bReal) return 1;
-        return 0;
-      });
+      result = result.sort((a, b) => b.diedAt - a.diedAt);
     } else if (filters.sort === 'oldest') {
-      result = result.sort((a, b) => {
-        const aReal = !!a.slug; const bReal = !!b.slug;
-        if (aReal && !bReal) return 1;
-        if (!aReal && bReal) return -1;
-        return 0;
-      });
+      result = result.sort((a, b) => a.diedAt - b.diedAt);
     } else if (filters.sort === 'most_connections') {
       result = result.sort((a, b) => b.soulConnections - a.soulConnections);
     }

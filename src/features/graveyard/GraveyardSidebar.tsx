@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Users, Database, ArrowRight, ExternalLink } from 'lucide-react';
-import { Project } from './mockData';
+import { Project } from './types';
 
 interface GraveyardSidebarProps {
   project: Project | null;
@@ -123,11 +123,11 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm items-center">
                     <span className="text-slate-400">Viewers</span>
-                    <span className="text-white font-medium">{Math.floor(project.soulConnections * 0.8)}</span>
+                    <span className="text-white font-medium">{project.viewCount}</span>
                   </div>
                   <div className="flex justify-between text-sm items-center">
                     <span className="text-slate-400">Voters</span>
-                    <span className="text-white font-medium">{Math.floor(project.soulConnections * 0.15)}</span>
+                    <span className="text-white font-medium">{project.voteCount}</span>
                   </div>
                 </div>
               </div>

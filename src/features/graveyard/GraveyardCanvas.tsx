@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { extendedMockProjects } from './mockData';
 import { ResurrectionModal } from '@/components/ResurrectionModal';
 import type { Project, User } from '@prisma/client';
 
@@ -12,25 +11,7 @@ const OriginalGraveyardCanvas = dynamic(
   { ssr: false, loading: () => null },
 );
 
-/** Shape expected by OriginalGraveyardCanvas's mockData interface */
-interface MockProject {
-  id: string;
-  name: string;
-  born: string;
-  died: string;
-  quote: string;
-  status: 'DECEASED' | 'RESURRECTED';
-  timeCapsules: number;
-  soulConnections: number;
-  /** Optional slug — passed through so GraveyardSidebar can link to real project pages */
-  slug?: string;
-  resurrectedBy?: {
-    name: string;
-    handle: string;
-    date: string;
-    avatarUrl: string;
-  };
-}
+import type { Project as MockProject } from './types';
 
 interface GraveyardCanvasProps {
   projects: (Project & { user: User })[];
@@ -70,10 +51,13 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
       name: p.title,
       born: formatMonthYear(p.createdAt),
       died: formatMonthYear(p.lastActivityAt ?? p.updatedAt),
+      diedAt: (p.lastActivityAt ?? p.updatedAt).getTime(),
       quote,
       status: 'DECEASED',
-      timeCapsules: 0,
-      soulConnections: p.lineageDepth,
+      timeCapsules: (p as any)._count?.timeCapsules ?? 0,
+      soulConnections: (p as any)._count?.children ?? 0,
+      viewCount: p.viewCount ?? 0,
+      voteCount: p.voteCount ?? 0,
       slug: p.slug,
     };
   });
@@ -89,14 +73,10 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
     });
   };
 
-  // Guarantee the graveyard always feels atmospheric and densely populated.
-  // If the DB has only a few projects, an infinite empty field ruins immersion.
-  const combinedProjects = [...mappedProjects, ...extendedMockProjects];
-
   return (
     <>
       <OriginalGraveyardCanvas
-        projects={combinedProjects}
+        projects={mappedProjects}
         isAuthenticated={isAuthenticated}
         onResurrect={handleResurrect}
       />
