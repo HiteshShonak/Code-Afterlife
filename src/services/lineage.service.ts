@@ -21,10 +21,7 @@ const INCLUDE = {
 } as const;
 
 export const lineageService = {
-  /**
-   * Traverse ancestors (up) and descendants (down) of a project.
-   * Returns a flat, ordered array representing the full resurrection chain.
-   */
+  // get lineage tree
   async getLineageTree(projectId: string): Promise<LineageProject[]> {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -35,7 +32,7 @@ export const lineageService = {
 
     const all: LineageProject[] = [project];
 
-    // Walk ancestors upward
+    // go up
     let parentId = project.parentProjectId;
     while (parentId) {
       const ancestor = await prisma.project.findUnique({
@@ -47,7 +44,7 @@ export const lineageService = {
       parentId = ancestor.parentProjectId;
     }
 
-    // Walk descendants via BFS
+    // go down
     const queue = [projectId];
     while (queue.length > 0) {
       const currentId = queue.shift()!;
@@ -64,16 +61,12 @@ export const lineageService = {
     return all;
   },
 
-  /**
-   * Convert lineage projects into React Flow nodes and edges.
-   * Node data shape matches ProjectNodeData exactly (including index signature).
-   * Positions nodes by lineage depth — siblings spaced horizontally.
-   */
+  // build flow graph
   buildReactFlowGraph(projects: LineageProject[]): {
     nodes: Node<ProjectNodeData>[];
     edges: Edge[];
   } {
-    // Group siblings by depth level for horizontal spacing
+    // group by depth
     const depthGroups = new Map<number, LineageProject[]>();
     for (const p of projects) {
       const group = depthGroups.get(p.lineageDepth) ?? [];
@@ -90,7 +83,7 @@ export const lineageService = {
       const totalWidth = siblings.length * NODE_WIDTH;
       const startX = -(totalWidth / 2);
 
-      // ProjectNodeData extends Record<string, unknown> — all fields are valid
+      // node data
       const data: ProjectNodeData = {
         label:    project.title,
         state:    project.state,

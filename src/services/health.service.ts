@@ -8,10 +8,7 @@ import type { HealthCalculationInput, DecayState } from '@/types/health';
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export const healthService = {
-  /**
-   * Recalculates the health score and decay state of a single project.
-   * Compares timeline entry activity from this month against last month.
-   */
+  // calc health for one
   async recalculateOne(
     projectId: string
   ): Promise<{ health: number; decayState: DecayState } | undefined> {
@@ -61,16 +58,13 @@ export const healthService = {
       commitsThisMonth,
     });
 
-    // Evaluate state transitions based on new health
+    // eval state
     await this.evaluateAndTransition(projectId);
 
     return { health, decayState };
   },
 
-  /**
-   * Recalculates health scores and decay states for all active projects.
-   * Skip projects in terminal states (SHIPPED, DEAD).
-   */
+  // calc health for all
   async recalculateAll(): Promise<{ processed: number; errors: number }> {
     const projects = await prisma.project.findMany({
       where: {
@@ -96,9 +90,7 @@ export const healthService = {
     return { processed, errors };
   },
 
-  /**
-   * Evaluates the lifecycle state of a project and transitions it if necessary.
-   */
+  // check state change
   async evaluateAndTransition(projectId: string): Promise<void> {
     const project = await prisma.project.findUnique({
       where: { id: projectId },

@@ -17,11 +17,7 @@ export interface SearchPage {
   nextCursor: string | null;
 }
 
-/**
- * Paginated public project feed for the Search page.
- * Cursor-based (by id) so pages are stable and Neon-friendly.
- * Filters: state, tech stack, keyword, sort.
- */
+// search feed
 export async function getSearchPage(
   filters: SearchFilters = {}
 ): Promise<SearchPage> {
@@ -34,7 +30,7 @@ export async function getSearchPage(
   }
 
   if (stacks && stacks.length > 0) {
-    // All selected stacks must appear in the project's stack array
+    // match all stacks
     where.stack = { hasSome: stacks };
   }
 
@@ -60,7 +56,7 @@ export async function getSearchPage(
   const projects = await prisma.project.findMany({
     where,
     orderBy,
-    take: PAGE_SIZE + 1, // fetch one extra to detect next page
+    take: PAGE_SIZE + 1, // get extra for pagination
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     include: { user: true },
   });

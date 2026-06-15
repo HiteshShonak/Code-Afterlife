@@ -9,10 +9,7 @@ import type { ProjectWithUser, ProjectDetail, ProjectListFilters } from '@/types
 
 export type { ProjectWithUser, ProjectDetail, ProjectListFilters };
 
-/**
- * Fetch a project and verify the given user owns it.
- * Throws ApiError.notFound or ApiError.forbidden if checks fail.
- */
+// get owned project
 async function findOwnedProject(id: string, userId: string): Promise<Project> {
   const project = await prisma.project.findUnique({ where: { id } });
 
@@ -26,9 +23,7 @@ async function findOwnedProject(id: string, userId: string): Promise<Project> {
   return project;
 }
 
-/**
- * Generates an AI birth entry and saves it to the timeline.
- */
+// ai birth entry
 async function seedBirthEntry(
   projectId: string,
   title: string,
@@ -91,11 +86,17 @@ Return ONLY the sentence. No quotes.`,
   });
 }
 
+/**
+ * Returns a random starting health in the range [42, 58].
+ * Pure Math.random — different every time a project is created.
+ */
+function seededInitialHealth(_seed: string): number {
+  const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8
+  return PROJECT_DEFAULTS.initialHealth + offset; // 42 … 58
+}
+
 export const projectService = {
-  /**
-   * Create a new project in BORN state with auto-generated slug.
-   * Health starts at the configured initial value (50).
-   */
+  // create project
   async create(
     userId: string,
     data: CreateProjectInput
@@ -103,8 +104,9 @@ export const projectService = {
     const baseSlug = generateSlug(data.title);
     const suffix = Math.random().toString(36).substring(2, 7);
     const slug = `${baseSlug}-${suffix}`;
+    const startingHealth = seededInitialHealth(data.title + userId);
 
-    // Create project first so we have its ID
+    // create db project
     const project = await prisma.project.create({
       data: {
         title: data.title,
@@ -114,23 +116,20 @@ export const projectService = {
         stack: data.stack,
         screenshots: data.screenshots ?? [],
         state: 'BORN',
-        health: PROJECT_DEFAULTS.initialHealth,
+        health: startingHealth,
         userId,
         lastActivityAt: new Date(),
         lastHealthUpdate: new Date(),
       },
     });
 
-    // Seed the first AI timeline entry in the background — non-blocking
+    // async ai entry
     seedBirthEntry(project.id, project.title, project.description, project.stack).catch(console.error);
 
     return project;
   },
 
-  /**
-   * Get a project by its URL slug with creator, parent, and resurrecter.
-   * Used for public project detail pages.
-   */
+  // get by slug
   async getBySlug(slug: string): Promise<ProjectDetail | null> {
     return prisma.project.findUnique({
       where: { slug },
@@ -153,10 +152,7 @@ export const projectService = {
     }) as Promise<ProjectDetail | null>;
   },
 
-  /**
-   * Get a project by ID with creator relation.
-   * Used for API detail endpoints.
-   */
+  // get by id
   async getById(id: string): Promise<ProjectWithUser | null> {
     return prisma.project.findUnique({
       where: { id },
@@ -164,10 +160,7 @@ export const projectService = {
     }) as Promise<ProjectWithUser | null>;
   },
 
-  /**
-   * Get a project by ID with full detail relations (parent, resurrecter, children).
-   * Used by the /api/projects/[id] GET endpoint.
-   */
+  // get with full relations
   async getByIdWithFullRelations(id: string): Promise<ProjectDetail | null> {
     return prisma.project.findUnique({
       where: { id },
@@ -180,9 +173,7 @@ export const projectService = {
     }) as Promise<ProjectDetail | null>;
   },
 
-  /**
-   * List projects for a specific user, ordered by most recently updated.
-   */
+  // list user projects
   async getUserProjects(userId: string): Promise<Project[]> {
     return prisma.project.findMany({
       where: { userId },
@@ -190,9 +181,7 @@ export const projectService = {
     });
   },
 
-  /**
-   * List all dead projects with creator info (for the Graveyard page).
-   */
+  // get dead projects
   async getDeadProjects(): Promise<ProjectWithUser[]> {
     return prisma.project.findMany({
       where: { state: 'DEAD' },
@@ -204,10 +193,7 @@ export const projectService = {
     }) as Promise<ProjectWithUser[]>;
   },
 
-  /**
-   * List projects with optional filters (state, userId).
-   * Used by the /api/projects GET endpoint.
-   */
+  // list projects
   async list(filters: ProjectListFilters = {}): Promise<ProjectWithUser[]> {
     const where: Record<string, unknown> = {};
     if (filters.state) where.state = filters.state;
@@ -220,11 +206,7 @@ export const projectService = {
     }) as Promise<ProjectWithUser[]>;
   },
 
-  /**
-   * Transition a project to a new lifecycle state.
-   * Validates the transition via the state machine. Setting state to DEAD
-   * also clears lastActivityAt and optionally stores a deathReason epitaph.
-   */
+  // update state
   async updateState(id: string, newState: ProjectState, deathReason?: string): Promise<Project> {
     const project = await prisma.project.findUnique({ where: { id } });
     if (!project) {
@@ -243,9 +225,7 @@ export const projectService = {
     });
   },
 
-  /**
-   * Update health score and timestamp. Called by the health recalculation cron.
-   */
+  // update health
   async updateHealth(id: string, health: number): Promise<Project> {
     return prisma.project.update({
       where: { id },
@@ -256,9 +236,7 @@ export const projectService = {
     });
   },
 
-  /**
-   * Mark a project as SHIPPED (terminal state). Verifies ownership first.
-   */
+  // mark shipped
   async markAsShipped(id: string, userId: string): Promise<Project> {
     const project = await findOwnedProject(id, userId);
     stateMachine.validateTransition(project.state, 'SHIPPED');
@@ -269,9 +247,7 @@ export const projectService = {
     });
   },
 
-  /**
-   * Update project metadata (title, description, stack). Verifies ownership.
-   */
+  // update project
   async update(
     id: string,
     userId: string,
@@ -285,11 +261,7 @@ export const projectService = {
     });
   },
 
-  /**
-   * Soft-delete a project by setting its state to DEAD.
-   * Accepts an optional epitaph (deathReason) shown on the tombstone.
-   * Verifies ownership.
-   */
+  // soft delete
   async delete(id: string, userId: string, deathReason?: string): Promise<Project> {
     await findOwnedProject(id, userId);
 
@@ -306,13 +278,10 @@ export const projectService = {
     });
   },
 
-  /**
-   * Permanently delete a project and all its related data from the database.
-   * This is irreversible. Verifies ownership first.
-   */
+  // hard delete
   async hardDelete(id: string, userId: string): Promise<void> {
     await findOwnedProject(id, userId);
-    // Cascade deletes handle all related records (timeline, capsules, likes, etc.)
+    // cascade delete
     await prisma.project.delete({ where: { id } });
   },
 };

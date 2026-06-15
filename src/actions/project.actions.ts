@@ -8,10 +8,7 @@ import { createProjectSchema, updateProjectSchema } from '@/schemas/project.sche
 import { notificationService } from '@/services/notification.service';
 import type { Project } from '@prisma/client';
 
-/**
- * Create a new project from form data.
- * Validates input, creates project in BORN state, revalidates dashboard.
- */
+// create project action
 export const createProjectAction = actionHandler(
   async (formData: FormData): Promise<Project> => {
     const user = await requireAuth();
@@ -34,10 +31,7 @@ export const createProjectAction = actionHandler(
   }
 );
 
-/**
- * Update project metadata (title, description, stack).
- * Verifies ownership via the service layer.
- */
+// update project action
 export const updateProjectAction = actionHandler(
   async (projectId: string, formData: FormData): Promise<Project> => {
     const user = await requireAuth();
@@ -61,16 +55,13 @@ export const updateProjectAction = actionHandler(
   }
 );
 
-/**
- * Mark a project as SHIPPED (terminal state).
- * Verifies ownership and validates state transition.
- */
+// ship project action
 export const shipProjectAction = actionHandler(
   async (projectId: string): Promise<Project> => {
     const user = await requireAuth();
     const project = await projectService.markAsShipped(projectId, user.id);
 
-    // Fire notification in background
+    // async notification
     notificationService.notifyProjectUnsealed(project.id, 'SHIPPED').catch(console.error);
 
     revalidatePath('/');
@@ -80,17 +71,13 @@ export const shipProjectAction = actionHandler(
   }
 );
 
-/**
- * Soft-delete a project by setting state to DEAD.
- * Verifies ownership via the service layer.
- * @deprecated Use archiveProjectAction instead — it records a deathReason epitaph.
- */
+// soft delete action
 export const deleteProjectAction = actionHandler(
   async (projectId: string): Promise<{ deleted: true }> => {
     const user = await requireAuth();
     await projectService.delete(projectId, user.id, 'Lost to time.');
 
-    // Fire notification in background
+    // async notification
     notificationService.notifyProjectUnsealed(projectId, 'DEAD').catch(console.error);
 
     revalidatePath('/');
@@ -101,15 +88,12 @@ export const deleteProjectAction = actionHandler(
   }
 );
 
-/**
- * Archive a project as DEAD with a user-written or default epitaph.
- * This is the preferred action — opens from ArchiveProjectModal.
- */
+// archive project action
 export const archiveProjectAction = actionHandler(
   async (projectId: string, rawReason: string): Promise<{ archived: true }> => {
     const user = await requireAuth();
 
-    // Sanitize: trim, max 120 chars, fall back to cinematic default
+    // sanitize reason
     const DEFAULT_REASONS = [
       'Lost to time.',
       'Abandoned by its creator.',
@@ -132,10 +116,7 @@ export const archiveProjectAction = actionHandler(
   }
 );
 
-/**
- * Permanently delete a project from the platform.
- * Verifies ownership and cascades all related records.
- */
+// hard delete action
 export const permanentDeleteProjectAction = actionHandler(
   async (projectId: string): Promise<{ deleted: true }> => {
     const user = await requireAuth();

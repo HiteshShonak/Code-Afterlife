@@ -4,12 +4,9 @@ import { Resend } from 'resend';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export const notificationService = {
-  /**
-   * Notify followers when a project changes state to DEAD or SHIPPED,
-   * signaling that the Time Capsule has been unsealed.
-   */
+  // notify on unseal
   async notifyProjectUnsealed(projectId: string, newState: 'DEAD' | 'SHIPPED') {
-    // Get project and author details
+    // get project info
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: { user: true },
@@ -17,7 +14,7 @@ export const notificationService = {
 
     if (!project) return;
 
-    // Get followers
+    // get followers
     const followers = await prisma.projectFollow.findMany({
       where: { projectId },
       include: { user: true },
@@ -51,12 +48,12 @@ export const notificationService = {
       </div>
     `;
 
-    // Create in-app notifications and send emails
+    // send notifications
     for (const follower of followers) {
       if (!follower.user.email) continue;
 
       try {
-        // In-app notification
+        // in app
         await prisma.notification.create({
           data: {
             userId: follower.user.id,
@@ -66,7 +63,7 @@ export const notificationService = {
           },
         });
 
-        // Email notification
+        // email
         if (resend) {
           await resend.emails.send({
             from: 'Code Afterlife <notifications@codeafterlife.com>', // Requires verified domain in Resend

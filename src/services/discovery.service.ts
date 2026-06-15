@@ -20,13 +20,13 @@ export async function getDiscoveryFeed(
       queue = parsed.queue || [];
       seen = parsed.seen || [];
     } catch (e) {
-      // invalid cursor, ignore
+      // invalid cursor
     }
   }
 
-  // If queue is empty, we need to generate a new batch of recommendations
+  // need new batch if empty
   if (queue.length === 0) {
-    // 1. Trending (highly active)
+    // trending
     const trending = await prisma.project.findMany({
       where: { id: { notIn: seen } },
       orderBy: { trendingScore: 'desc' },
@@ -34,7 +34,7 @@ export async function getDiscoveryFeed(
       select: { id: true },
     });
 
-    // 2. Newest (fresh content)
+    // newest
     const newest = await prisma.project.findMany({
       where: { id: { notIn: seen } },
       orderBy: { createdAt: 'desc' },
@@ -42,7 +42,7 @@ export async function getDiscoveryFeed(
       select: { id: true },
     });
 
-    // 3. Most Liked (popular)
+    // most liked
     const mostLiked = await prisma.project.findMany({
       where: { id: { notIn: seen } },
       orderBy: { likeCount: 'desc' },
@@ -50,7 +50,7 @@ export async function getDiscoveryFeed(
       select: { id: true },
     });
     
-    // 4. Random (diversity) - using raw query for ORDER BY RANDOM()
+    // random diversity
     const seenList = seen.length > 0 ? seen.map(id => `'${id}'`).join(',') : "'__none__'";
     const randomRows = await prisma.$queryRawUnsafe<{ id: string }[]>(`
       SELECT id FROM "Project"
@@ -59,7 +59,7 @@ export async function getDiscoveryFeed(
       LIMIT 10
     `);
 
-    // Combine and deduplicate
+    // dedup
     const allIds = new Set<string>();
     trending.forEach((p) => allIds.add(p.id));
     newest.forEach((p) => allIds.add(p.id));
@@ -68,35 +68,33 @@ export async function getDiscoveryFeed(
 
     queue = Array.from(allIds);
 
-    // Shuffle the queue so it feels fresh and "random" on every reload
-    // Fisher-Yates shuffle
+    // shuffle queue
     for (let i = queue.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [queue[i], queue[j]] = [queue[j], queue[i]];
     }
   }
 
-  // If still empty, there are no more projects to show!
+  // nothing to show
   if (queue.length === 0) {
     return { projects: [], nextCursor: null };
   }
 
-  // Take the next PAGE_SIZE items
+  // get next page
   const toShowIds = queue.splice(0, PAGE_SIZE);
   seen.push(...toShowIds);
 
-  // Fetch the full project data for these IDs
-  // We must maintain the order of toShowIds!
+  // fetch project data
   const projectsData = await prisma.project.findMany({
     where: { id: { in: toShowIds } },
     include: { user: true },
   });
   
-  // Sort projectsData to match the shuffled order in toShowIds
+  // sort projects
   const projectMap = new Map(projectsData.map((p: any) => [p.id, p]));
   const sortedProjects = toShowIds.map(id => projectMap.get(id)).filter(Boolean) as ProjectWithUser[];
 
-  // Prepare next cursor
+  // setup next cursor
   let nextCursor: string | null = null;
   if (queue.length > 0 || sortedProjects.length === PAGE_SIZE) {
     const nextData: DiscoveryCursorData = { queue, seen };

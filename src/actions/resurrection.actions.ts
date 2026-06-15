@@ -7,10 +7,7 @@ import { resurrectionService } from '@/services/resurrection.service';
 import { resurrectProjectSchema } from '@/schemas/project.schema';
 import type { Project } from '@prisma/client';
 
-/**
- * Resurrect a dead project. Creates a new child project linked
- * to the original via parentProjectId. Increments lineage depth.
- */
+// resurrect project action
 export const resurrectProjectAction = actionHandler(
   async (deadProjectId: string, formData: FormData): Promise<Project> => {
     const user = await requireAuth();

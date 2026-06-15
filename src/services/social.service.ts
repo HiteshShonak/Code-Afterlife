@@ -1,27 +1,11 @@
-/**
- * social.service.ts
- * Handles all Phase 2B social interactions:
- *   - Likes (toggle, with denormalized count update)
- *   - Comments (CRUD with cursor pagination)
- *   - Votes (WILL_SHIP / WILL_DIE, one per user)
- *   - Follows (project follow + user follow toggle)
- *
- * All write operations update trending score in the same transaction.
- * Pattern: asyncHandler + apiResponse (per engineering-patterns.md)
- */
+// social logic
 
 import { prisma } from '@/lib/prisma';
 import type { VoteType } from '@prisma/client';
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-/*  TRENDING SCORE — Hacker News time-decay formula (internal helper)          */
-/* ─────────────────────────────────────────────────────────────────────────── */
+// trending score
 
-/**
- * Recalculate trending score for a project.
- * Formula: ((likes×3) + (comments×2) + (votes×1) + (health×0.5)) / (ageHours + 2)^1.5
- * Call inside any social mutation transaction.
- */
+// recalc trending
 export async function recalculateTrending(
   tx: Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>,
   projectId: string,
@@ -43,9 +27,7 @@ export async function recalculateTrending(
   });
 }
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-/*  LIKES                                                                       */
-/* ─────────────────────────────────────────────────────────────────────────── */
+// likes
 
 export interface LikeResult {
   liked:     boolean;
@@ -64,7 +46,7 @@ export const socialService = {
       let liked: boolean;
 
       if (existing) {
-        // Remove like
+        // remove like
         await tx.projectLike.delete({
           where: { projectId_userId: { projectId, userId } },
         });
@@ -74,7 +56,7 @@ export const socialService = {
         });
         liked = false;
       } else {
-        // Add like
+        // add like
         await tx.projectLike.create({ data: { projectId, userId } });
         await tx.project.update({
           where: { id: projectId },
@@ -94,7 +76,7 @@ export const socialService = {
     });
   },
 
-  /** Check if a user has liked a project (for initial render state). */
+  // check like
   async hasLiked(projectId: string, userId: string): Promise<boolean> {
     const like = await prisma.projectLike.findUnique({
       where: { projectId_userId: { projectId, userId } },
@@ -102,7 +84,7 @@ export const socialService = {
     return !!like;
   },
 
-  /* ─── Comments ─── */
+  // comments
 
   async getComments(
     projectId: string,
@@ -169,7 +151,7 @@ export const socialService = {
     });
   },
 
-  /* ─── Votes ─── */
+  // votes
 
   async castVote(projectId: string, userId: string, vote: VoteType): Promise<VoteStats> {
     return prisma.$transaction(async (tx) => {
@@ -179,7 +161,7 @@ export const socialService = {
 
       if (existing) {
         if (existing.vote === vote) {
-          // Clicking same vote = remove it
+          // remove vote
           await tx.projectVote.delete({
             where: { projectId_userId: { projectId, userId } },
           });
@@ -188,14 +170,14 @@ export const socialService = {
             data: { voteCount: { decrement: 1 } },
           });
         } else {
-          // Change vote — no count change (net votes don't change)
+          // change vote
           await tx.projectVote.update({
             where: { projectId_userId: { projectId, userId } },
             data: { vote },
           });
         }
       } else {
-        // New vote
+        // new vote
         await tx.projectVote.create({ data: { projectId, userId, vote } });
         await tx.project.update({
           where: { id: projectId },
@@ -205,7 +187,7 @@ export const socialService = {
 
       await recalculateTrending(tx, projectId);
 
-      // Return updated stats
+      // updated stats
       const votes = await tx.projectVote.findMany({ where: { projectId } });
       const userVote = await tx.projectVote.findUnique({
         where: { projectId_userId: { projectId, userId } },
@@ -238,7 +220,7 @@ export const socialService = {
     };
   },
 
-  /* ─── Project Follow ─── */
+  // project follow
 
   async toggleProjectFollow(
     projectId: string,
@@ -266,7 +248,7 @@ export const socialService = {
     return !!follow;
   },
 
-  /* ─── User Follow ─── */
+  // user follow
 
   async toggleUserFollow(
     targetUserId: string,
@@ -292,9 +274,7 @@ export const socialService = {
   },
 };
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-/*  TYPES                                                                        */
-/* ─────────────────────────────────────────────────────────────────────────── */
+// types
 
 export interface CommentWithUser {
   id:        string;

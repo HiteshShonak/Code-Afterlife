@@ -1,42 +1,39 @@
 import { prisma } from '@/lib/prisma';
 import type { User } from '@prisma/client';
 
-/** User activity statistics across the platform. */
+// user stats
 export interface UserStats {
-  /** Total projects created by this user. */
+  // total created
   readonly created: number;
-  /** Total projects resurrected by this user. */
+  // total resurrected
   readonly resurrected: number;
-  /** Total projects shipped by this user. */
+  // total shipped
   readonly shipped: number;
 }
 
 export const userService = {
-  /** Find a user by their database ID. */
+  // get by id
   async getById(id: string): Promise<User | null> {
     return prisma.user.findUnique({
       where: { id },
     });
   },
 
-  /** Find a user by their GitHub ID (numeric). */
+  // get by gh id
   async getByGithubId(githubId: number): Promise<User | null> {
     return prisma.user.findUnique({
       where: { githubId },
     });
   },
 
-  /** Find a user by their GitHub username. */
+  // get by username
   async getByUsername(username: string): Promise<User | null> {
     return prisma.user.findUnique({
       where: { username },
     });
   },
 
-  /**
-   * Get platform activity statistics for a user.
-   * Uses parallel queries for performance.
-   */
+  // get stats
   async getStats(userId: string): Promise<UserStats> {
     const [created, resurrected, shipped] = await Promise.all([
       prisma.project.count({

@@ -5,7 +5,7 @@ import { PROJECT_DEFAULTS } from '@/config/project';
 import type { Project } from '@prisma/client';
 import type { ResurrectProjectInput } from '@/schemas/project.schema';
 
-/** A project in the resurrection chain with minimal user info. */
+// chain project
 export interface ChainProject {
   readonly id: string;
   readonly title: string;
@@ -18,17 +18,7 @@ export interface ChainProject {
 }
 
 export const resurrectionService = {
-  /**
-   * Resurrect a dead project. Creates a new child project with lineage link.
-   *
-   * Process:
-   * 1. Verify original project exists and is DEAD
-   * 2. Generate a unique slug for the new project
-   * 3. Create new project + timeline entry in a transaction
-   *
-   * @throws {ApiError} 404 if project not found
-   * @throws {ApiError} 400 if project is not in DEAD state
-   */
+  // resurrect project
   async resurrect(
     deadProjectId: string,
     resurrecterUserId: string,
@@ -60,7 +50,7 @@ export const resurrectionService = {
           stack: data.stack ?? deadProject.stack,
           screenshots: deadProject.screenshots,
           state: 'BORN',
-          health: PROJECT_DEFAULTS.initialHealth,
+          health: seededInitialHealth(deadProject.title + resurrecterUserId),
           userId: resurrecterUserId,
           resurrecterUserId,
           parentProjectId: deadProjectId,
@@ -71,7 +61,7 @@ export const resurrectionService = {
         },
       });
 
-      // 1. Mark the death in the parent
+      // mark death in parent
       await tx.timelineEntry.create({
         data: {
           projectId: deadProjectId,
@@ -81,7 +71,7 @@ export const resurrectionService = {
         },
       });
 
-      // 2. Mark the rebirth in the child (will appear in feeds as "resurrected ---- project")
+      // mark rebirth in child
       await tx.timelineEntry.create({
         data: {
           projectId: created.id,
@@ -97,10 +87,7 @@ export const resurrectionService = {
     return newProject;
   },
 
-  /**
-   * Walk the resurrection chain (ancestor → descendant) for a given project.
-   * Returns ordered list from oldest ancestor to the given project.
-   */
+  // get chain
   async getResurrectionChain(projectId: string): Promise<ChainProject[]> {
     const selectFields = {
       id: true,
