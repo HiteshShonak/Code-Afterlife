@@ -23,10 +23,10 @@ import { CINEMATIC_EASE } from "@/lib/utils/animation";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
-// ─── THEME ────────────────────────────────────────────────────────────────────
+// theme
 const COPPER = "#b87333";
 
-// ─── ARTIFACT NODE DATA ───────────────────────────────────────────────────────
+// artifact node data
 type ArtifactNode = {
   id: string;
   type: string;
@@ -36,7 +36,7 @@ type ArtifactNode = {
   selectable: boolean;
 };
 
-// ─── INITIAL NODE POSITIONS (centered around 0,0 in RF canvas space) ─────────
+// node positions
 function buildNodes(open: boolean): ArtifactNode[] {
   return [
     {
@@ -120,7 +120,7 @@ function buildNodes(open: boolean): ArtifactNode[] {
   ];
 }
 
-// ─── ARTIFACT CARD BASE ───────────────────────────────────────────────────────
+// artifact card base
 function ArtifactBase({
   open,
   delay,
@@ -161,7 +161,7 @@ function ArtifactBase({
   );
 }
 
-// ─── NODE: MESSAGE TO SELF ─────────────────────────────────────────────────────
+// message to self node
 function MessageNode({ data }: NodeProps) {
   return (
     <>
@@ -177,7 +177,7 @@ function MessageNode({ data }: NodeProps) {
   );
 }
 
-// ─── NODE: README ─────────────────────────────────────────────────────────────
+// readme node
 function ReadmeNode({ data }: NodeProps) {
   return (
     <>
@@ -192,7 +192,7 @@ function ReadmeNode({ data }: NodeProps) {
   );
 }
 
-// ─── NODE: COMMITS ─────────────────────────────────────────────────────────────
+// commits node
 function CommitsNode({ data }: NodeProps) {
   const commits = data.commits as { hash: string; msg: string; date: string }[];
   return (
@@ -216,7 +216,7 @@ function CommitsNode({ data }: NodeProps) {
   );
 }
 
-// ─── NODE: VOICE WAVEFORM ──────────────────────────────────────────────────────
+// voice waveform node
 function VoiceNode({ data }: NodeProps) {
   const bars = useMemo(
     () => Array.from({ length: 28 }, (_, i) => 10 + Math.abs(Math.sin(i * 0.72 + 1.1) * 26) + Math.abs(Math.cos(i * 0.41) * 10)),
@@ -245,7 +245,7 @@ function VoiceNode({ data }: NodeProps) {
   );
 }
 
-// ─── NODE: ROADMAP ─────────────────────────────────────────────────────────────
+// roadmap node
 function RoadmapNode({ data }: NodeProps) {
   const items = data.items as { done: boolean; text: string }[];
   return (
@@ -280,15 +280,13 @@ const NODE_TYPES: NodeTypes = {
   roadmap: RoadmapNode,
 };
 
-// ─── REACT FLOW CANVAS ────────────────────────────────────────────────────────
-// Full-screen invisible canvas. Nodes are draggable when capsule is open.
-// preventScrolling=false lets Lenis/GSAP scroll events pass through.
+// full screen canvas
 
 function ArtifactCanvas({ open }: { open: boolean }) {
   const initial = useMemo(() => buildNodes(false), []);
   const [nodes, setNodes, onNodesChange] = useNodesState(initial);
 
-  // Sync open state into node data without reconstructing positions
+  // sync state
   useEffect(() => {
     setNodes((nds) =>
       nds.map((n) => ({
@@ -299,7 +297,7 @@ function ArtifactCanvas({ open }: { open: boolean }) {
     );
   }, [open, setNodes]);
 
-  // Compute viewport so (0,0) is the center of the viewport
+  // compute viewport
   const [rfViewport, setRfViewport] = useState({ x: 512, y: 300, zoom: 1 });
   useEffect(() => {
     setRfViewport({ x: window.innerWidth / 2, y: window.innerHeight / 2, zoom: 1 });
@@ -308,7 +306,7 @@ function ArtifactCanvas({ open }: { open: boolean }) {
   return (
     <div
       className="absolute inset-0 z-20"
-      // Only block pointer events when open (so GSAP scroll works while closed)
+      // block pointer events
       style={{ pointerEvents: open ? "auto" : "none" }}
     >
       <ReactFlow
@@ -316,31 +314,30 @@ function ArtifactCanvas({ open }: { open: boolean }) {
         edges={[]}
         nodeTypes={NODE_TYPES}
         onNodesChange={onNodesChange}
-        // Viewport: shifts origin to screen center so positions feel relative to capsule
+        // viewport
         defaultViewport={rfViewport}
-        // Disable all pan/zoom — page scroll must pass through
+        // disable pan/zoom
         panOnDrag={false}
         panOnScroll={false}
         zoomOnScroll={false}
         zoomOnPinch={false}
         zoomOnDoubleClick={false}
         preventScrolling={false}
-        // Interaction
+        // interaction
         nodesDraggable={open}
         elementsSelectable={false}
         nodesConnectable={false}
-        // Invisible background
+        // invisible bg
         style={{ background: "transparent" }}
         proOptions={{ hideAttribution: true }}
       >
-        {/* No background dots or controls */}
+        {/* no controls */}
       </ReactFlow>
     </div>
   );
 }
 
-// ─── CAPSULE SVG ──────────────────────────────────────────────────────────────
-// Refs for animated parts: lid, inner glow, lock body, lock hasp, lock texts
+// animated refs
 
 function CapsuleObject({
   lidRef,
@@ -363,7 +360,7 @@ function CapsuleObject({
     <svg viewBox="0 0 280 420" className="w-full h-full" xmlns="http://www.w3.org/2000/svg"
       style={{ filter: "drop-shadow(0 0 48px rgba(184,115,51,0.22))", overflow: "visible" }}>
       <defs>
-        {/* Body metal gradient */}
+        {/* body gradient */}
         <linearGradient id="tc-body" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%"   stopColor="#1a1008" />
           <stop offset="25%"  stopColor="#2d1f0e" />
@@ -382,7 +379,7 @@ function CapsuleObject({
           <stop offset="70%"  stopColor={COPPER} stopOpacity="0.75" />
           <stop offset="100%" stopColor={COPPER} stopOpacity="0" />
         </linearGradient>
-        {/* Inner warm glow — controlled by radialGradient stop opacity via GSAP */}
+        {/* inner glow */}
         <radialGradient id="tc-inner-glow" cx="50%" cy="50%" r="55%" ref={warmHaloRef as any}>
           <stop offset="0%"   stopColor="#fbbf24" stopOpacity="0" />
           <stop offset="60%"  stopColor="#92400e" stopOpacity="0" />
@@ -393,20 +390,20 @@ function CapsuleObject({
         </clipPath>
       </defs>
 
-      {/* ─ BODY ─────────────────────────────────────────────── */}
+      {/* body */}
       <rect x="30" y="132" width="220" height="270" rx="8" fill="url(#tc-body)" />
-      {/* Inner glow (warm amber floods body when lid opens) */}
+      {/* inner glow */}
       <rect x="30" y="132" width="220" height="270" rx="8"
         fill="url(#tc-inner-glow)" clipPath="url(#tc-body-clip)" />
-      {/* Horizontal ribs */}
+      {/* horizontal ribs */}
       {[175, 220, 265, 310, 355].map((y) => (
         <rect key={y} x="30" y={y} width="220" height="1.5" rx="0.75"
           fill={COPPER} opacity="0.1" />
       ))}
-      {/* Side depth lines */}
+      {/* side lines */}
       <line x1="37" y1="137" x2="37" y2="396" stroke="#0a0603" strokeWidth="2" opacity="0.7" />
       <line x1="243" y1="137" x2="243" y2="396" stroke="#0a0603" strokeWidth="2" opacity="0.7" />
-      {/* Identifier plate */}
+      {/* identifier plate */}
       <rect x="75" y="200" width="130" height="44" rx="3"
         fill="#0f0905" stroke={COPPER} strokeWidth="0.5" strokeOpacity="0.32" />
       <text x="140" y="217" textAnchor="middle" fontSize="5.5"
@@ -415,7 +412,7 @@ function CapsuleObject({
         fill={COPPER} fillOpacity="0.4" fontFamily="monospace" letterSpacing="2">ARCHIVE UNIT #0042</text>
       <text x="140" y="237" textAnchor="middle" fontSize="3.5"
         fill={COPPER} fillOpacity="0.3" fontFamily="monospace" letterSpacing="1.5">PRESERVED · SEALED · PERPETUAL</text>
-      {/* Status LEDs */}
+      {/* status leds */}
       {[88, 102].map((cx, i) => (
         <g key={cx}>
           <circle cx={cx} cy="358" r="3" fill="#100804" stroke={COPPER} strokeWidth="0.4" strokeOpacity="0.4" />
@@ -424,10 +421,10 @@ function CapsuleObject({
           </circle>
         </g>
       ))}
-      {/* Bottom base */}
+      {/* bottom base */}
       <rect x="22" y="395" width="236" height="11" rx="3.5" fill="#180e06"
         stroke={COPPER} strokeWidth="0.4" strokeOpacity="0.28" />
-      {/* Hinges — left + right */}
+      {/* hinges */}
       {[{ x: 23 }, { x: 247 }].map(({ x }, i) => (
         <g key={i}>
           <rect x={x} y="148" width="10" height="22" rx="2"
@@ -435,55 +432,55 @@ function CapsuleObject({
           <circle cx={x + 5} cy="159" r="2.2" fill={COPPER} fillOpacity="0.35" />
         </g>
       ))}
-      {/* Seam glow line at join */}
+      {/* seam glow */}
       <line x1="30" y1="133" x2="250" y2="133" stroke="url(#tc-seam)" strokeWidth="1.5" />
 
-      {/* ─ LID ─ (rotates backward around y=132 as GSAP pivot) ─ */}
+      {/* lid */}
       <g ref={lidRef as any} style={{ transformOrigin: "140px 132px" }}>
         <rect x="30" y="30" width="220" height="104" rx="8" fill="url(#tc-lid)" />
-        {/* Lid ribs */}
+        {/* lid ribs */}
         {[54, 76, 98].map((y) => (
           <rect key={y} x="30" y={y} width="220" height="1.5" rx="0.75"
             fill={COPPER} opacity="0.09" />
         ))}
         <line x1="37" y1="36" x2="37" y2="130" stroke="#0a0603" strokeWidth="2" opacity="0.7" />
         <line x1="243" y1="36" x2="243" y2="130" stroke="#0a0603" strokeWidth="2" opacity="0.7" />
-        {/* Lid handle */}
+        {/* lid handle */}
         <rect x="108" y="36" width="64" height="7" rx="3.5"
           fill="#160e06" stroke={COPPER} strokeWidth="0.5" strokeOpacity="0.42" />
         <rect x="120" y="38" width="40" height="3" rx="1.5" fill={COPPER} fillOpacity="0.18" />
 
-        {/* ─ LOCK PANEL ─ */}
+        {/* lock panel */}
         <rect className="tc-lock-panel" x="113" y="88" width="54" height="30" rx="3"
           fill="#0d0804" stroke={COPPER} strokeWidth="0.4" strokeOpacity="0.35" />
 
-        {/* Lock icon body — stroke animated red → green */}
+        {/* lock body */}
         <rect ref={lockBodyRef as any} x="132" y="100" width="16" height="11" rx="1.8"
           fill="none" stroke="#ef4444" strokeWidth="1.1" strokeOpacity="0.85" />
 
-        {/* Lock hasp (U-shape) — translateY animated upward to "open" */}
+        {/* lock hasp */}
         <path ref={lockHaspRef as any}
           d="M134.5 100 Q134.5 95.5 140 95.5 Q145.5 95.5 145.5 100"
           fill="none" stroke="#ef4444" strokeWidth="1.1" strokeLinecap="round" />
 
-        {/* Keyhole dot */}
+        {/* keyhole dot */}
         <circle ref={lockDotRef as any} cx="140" cy="106" r="1.8" fill="#ef4444" fillOpacity="0.75" />
 
-        {/* "SEALED" label — fades out on open */}
+        {/* sealed label */}
         <text ref={lockSealedRef as any} x="140" y="122" textAnchor="middle" fontSize="4"
           fill="#ef4444" fillOpacity="0.55" fontFamily="monospace" letterSpacing="2">SEALED</text>
 
-        {/* "OPEN" label — fades in on open, starts invisible */}
+        {/* open label */}
         <text ref={lockOpenRef as any} x="140" y="122" textAnchor="middle" fontSize="4"
           fill="#22c55e" fillOpacity="0" fontFamily="monospace" letterSpacing="2">OPEN</text>
 
-        {/* Lid top dome highlight */}
+        {/* lid highlight */}
         <ellipse cx="140" cy="38" rx="78" ry="5.5" fill="white" fillOpacity="0.025" />
-        {/* Seam at base of lid */}
+        {/* seam lid base */}
         <line x1="30" y1="132" x2="250" y2="132" stroke="url(#tc-seam)" strokeWidth="1" />
       </g>
 
-      {/* Ambient dust motes */}
+      {/* ambient dust motes */}
       {[
         { cx: 58,  cy: 78,  r: 0.8, dur: "4.1s"  },
         { cx: 202, cy: 62,  r: 0.6, dur: "5.7s"  },
@@ -500,7 +497,7 @@ function CapsuleObject({
   );
 }
 
-// ─── MAIN SECTION ─────────────────────────────────────────────────────────────
+// main section
 export function TimeCapsule() {
   const sectionRef    = useRef<HTMLElement>(null);
   const capsuleRef    = useRef<HTMLDivElement>(null);
@@ -516,7 +513,7 @@ export function TimeCapsule() {
   const headlineRef   = useRef<HTMLDivElement>(null);
 
   const [capsuleOpen, setCapsuleOpen] = useState(false);
-  const openRef = useRef(false); // avoid stale closure in GSAP callback
+  const openRef = useRef(false);
 
   const isHeadlineInView = useInView(headlineRef, { once: true, margin: "-100px" });
 
@@ -525,7 +522,7 @@ export function TimeCapsule() {
 
     const ctx = gsap.context(() => {
 
-      // ── PHASE 1: Rise from darkness (0–18% scroll)
+      // phase 1
       gsap.fromTo(capsuleRef.current,
         { y: 70, opacity: 0, filter: "blur(10px)" },
         {
@@ -540,7 +537,7 @@ export function TimeCapsule() {
         }
       );
 
-      // ── PHASE 2: Lock panel pulse (18–32%)
+      // phase 2
       gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -552,13 +549,13 @@ export function TimeCapsule() {
         .to(".tc-lock-panel", { scale: 1.06, transformOrigin: "center", ease: "power1.inOut" })
         .to(".tc-lock-panel", { scale: 1, ease: "power1.inOut" });
 
-      // ── PHASE 3: Lock color red→green + hasp lifts + lid rotates open (32–62%)
+      // phase 3
       const openTl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "32% top",
           end: "62% top",
-          scrub: 2.0, // Heavy weighted feel
+          scrub: 2.0,
           onUpdate(self) {
             if (self.progress > 0.82 && !openRef.current) {
               openRef.current = true;
@@ -572,7 +569,7 @@ export function TimeCapsule() {
       });
 
       openTl
-        // 0–25%: lock changes color red → green
+        // lock changes color
         .to(lockBodyRef.current, {
           stroke: "#22c55e", strokeOpacity: 0.9,
           ease: "power1.inOut",
@@ -580,7 +577,7 @@ export function TimeCapsule() {
         }, 0)
         .to(lockHaspRef.current, {
           stroke: "#22c55e",
-          // Hasp lifts up — translate Y upward so it looks like it's releasing
+          // hasp lifts
           y: -8,
           ease: "power2.out",
           duration: 0.35,
@@ -590,19 +587,19 @@ export function TimeCapsule() {
           ease: "power1.inOut",
           duration: 0.25,
         }, 0)
-        // SEALED → invisible
+        // sealed to invisible
         .to(lockSealedRef.current, { fillOpacity: 0, duration: 0.2 }, 0.05)
-        // OPEN → visible
+        // open to visible
         .to(lockOpenRef.current,   { fillOpacity: 0.75, duration: 0.2 }, 0.15)
 
-        // 25–100%: lid rotates back (mechanical, heavy)
+        // lid rotates
         .to(lidRef.current, {
           rotationX: -115,
           ease: "power3.inOut",
           duration: 0.75,
         }, 0.22)
 
-        // Simultaneously: internal glow warms the body
+        // internal glow
         .to(warmGlowDiv.current, {
           opacity: 1,
           ease: "power2.out",
@@ -627,10 +624,10 @@ export function TimeCapsule() {
       className="relative bg-background"
       style={{ minHeight: "520vh" }}
     >
-      {/* ── STICKY VIEWPORT ── */}
+      {/* sticky viewport */}
       <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center" style={{ position: "sticky" }}>
 
-        {/* Atmosphere */}
+        {/* atmosphere */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-[#070502] via-[#0c0804] to-[#060503]" />
           <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[700px] h-[450px]
@@ -638,7 +635,7 @@ export function TimeCapsule() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_28%,rgba(0,0,0,0.9)_100%)]" />
         </div>
 
-        {/* Floating dust */}
+        {/* floating dust */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {Array.from({ length: 18 }).map((_, i) => (
             <motion.div key={i}
@@ -655,22 +652,22 @@ export function TimeCapsule() {
           ))}
         </div>
 
-        {/* ── CAPSULE + CANVAS AREA ── */}
+        {/* capsule canvas area */}
         <div className="relative flex items-center justify-center w-full h-full">
 
-          {/* Warm halo behind capsule — glows on open */}
+          {/* warm halo */}
           <div ref={warmHaloDiv}
             className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full opacity-0"
             style={{ background: "radial-gradient(ellipse at center,rgba(251,191,36,0.18) 0%,rgba(180,100,20,0.07) 55%,transparent 78%)" }}
           />
 
-          {/* Internal warmth — inside capsule body */}
+          {/* internal warmth */}
           <div ref={warmGlowDiv}
             className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[42%] w-[190px] h-[220px] opacity-0 rounded-b-xl"
             style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }}
           />
 
-          {/* ── CAPSULE SVG — needs CSS perspective for 3D lid ── */}
+          {/* capsule svg */}
           <div
             ref={capsuleRef}
             className="relative z-10 flex items-center justify-center"
@@ -693,14 +690,14 @@ export function TimeCapsule() {
             </div>
           </div>
 
-          {/* ── REACTFLOW ARTIFACT CANVAS ── edge-to-edge, invisible */}
+          {/* artifact canvas */}
           <ReactFlowProvider>
             <ArtifactCanvas open={capsuleOpen} />
           </ReactFlowProvider>
 
         </div>
 
-        {/* Bottom headline text */}
+        {/* bottom headline */}
         <div ref={headlineRef} className="absolute bottom-0 inset-x-0 z-30 pointer-events-none flex flex-col items-center pb-14">
           <motion.div
             initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
@@ -717,12 +714,7 @@ export function TimeCapsule() {
               Every project leaves behind memories worth preserving.
             </p>
 
-            {/*
-              ── "Drag the memories" hint ─────────────────────────────────
-              Rendered OUTSIDE the normal flow (position:absolute, top:100%)
-              so it NEVER shifts the heading or paragraph above it when
-              capsuleOpen flips true. The parent already has position:relative.
-            */}
+            {/* drag hint */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: capsuleOpen ? 1 : 0 }}
@@ -735,18 +727,18 @@ export function TimeCapsule() {
           </motion.div>
         </div>
 
-        {/* Edge fades */}
+        {/* edge fades */}
         <div className="pointer-events-none absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-background to-transparent z-40" />
         <div className="pointer-events-none absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-background to-transparent z-40" />
       </div>
 
-      {/* ── PERSONAL MESSAGE (below sticky) ── */}
+      {/* personal message */}
       <PersonalMessageReveal />
     </section>
   );
 }
 
-// ─── PERSONAL MESSAGE ─────────────────────────────────────────────────────────
+// personal message
 function PersonalMessageReveal() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-120px" });

@@ -1,15 +1,6 @@
 import { NavClient } from './NavClient';
 
-/**
- * Server component Nav — reads auth session and passes user to NavClient.
- *
- * IMPORTANT: auth() is wrapped in try/catch because it requires a DB connection.
- * If the DB is not yet configured, the landing page must still render
- * (gracefully degraded — shows Sign In button instead of crashing).
- *
- * This follows the "public-first" design: the landing page is accessible
- * to all users (guests and authenticated).
- */
+// server nav
 export async function Nav() {
   let user: {
     id?: string;
@@ -19,13 +10,12 @@ export async function Nav() {
   } | null = null;
 
   try {
-    // Dynamic import so auth module only loads when called (avoids module-level crash)
+    // dynamic import auth
     const { auth } = await import('@/lib/auth');
     const session = await auth();
     user = session?.user ?? null;
   } catch {
-    // DB not connected, auth misconfigured, or env vars missing.
-    // Landing page still renders — user sees Sign In button.
+    // fallback to null user
     user = null;
   }
 

@@ -47,7 +47,7 @@ export function LifecycleEdge({
         }} 
       />
       
-      {/* Light orb travels down the edge, colored by the active stage */}
+      {/* light orb */}
       {isActive && stageIndex !== 3 && ( // No orb travels during stage 3 (Dead)
         <circle r="4" fill={config.orb} filter={`drop-shadow(0 0 6px ${config.orb})`}>
           <animateMotion dur="2.5s" repeatCount="indefinite" path={edgePath} />

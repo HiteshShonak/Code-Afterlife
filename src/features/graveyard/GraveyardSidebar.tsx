@@ -134,7 +134,7 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
             </div>
 
             {/* Footer Action */}
-            {/* View project page (only for real DB projects that have a slug) */}
+            {/* view project link */}
             {project.slug && (
               <Link
                 href={`/project/${project.slug}`}

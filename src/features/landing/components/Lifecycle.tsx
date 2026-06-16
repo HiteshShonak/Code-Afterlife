@@ -14,7 +14,7 @@ const stages = [
   { code: "05", name: "Flatline", desc: "The pulse stops. The repository is archived, the graph goes quiet, and the idea falls out of time." },
 ];
 
-// Stage accent colors — match LifecycleNode STAGE_CONFIGS
+// stage colors
 const STAGE_COLORS = ["#ffffff", "#8b5cf6", "#f59e0b", "#ef4444", "#ffffff"];
 const STAGE_OPACITIES = ["1", "1", "1", "0.5", "0.28"];
 
@@ -38,20 +38,20 @@ export function Lifecycle() {
 
   return (
     <section ref={containerRef} id="lifecycle" className="relative h-[350vh] w-full bg-background border-t border-border/60">
-      {/* Sticky viewport-height container */}
+      {/* sticky container */}
       <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
 
-        {/* Flatline fade-to-dark overlay — desktop + mobile */}
+        {/* fade overlay */}
         <motion.div
           className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-background/20 to-background"
           animate={{ opacity: isFlatline ? 1 : 0, filter: isFlatline ? "grayscale(1)" : "grayscale(0)" }}
           transition={{ duration: 1.8, ease: CINEMATIC_EASE }}
         />
 
-        {/* ── DESKTOP LAYOUT ── two columns, ReactFlow on right */}
+        {/* desktop layout */}
         <div className="hidden md:flex mx-auto h-full max-w-7xl w-full items-center px-10">
 
-          {/* Left: narrative text */}
+          {/* left column */}
           <div className="flex h-full w-1/2 flex-col justify-center relative z-10">
             <div className="mb-12">
               <SectionLabel index="01" label="Lifecycle of a project" />
@@ -87,17 +87,17 @@ export function Lifecycle() {
             </div>
           </div>
 
-          {/* Right: ReactFlow — full height so camera focus has room */}
+          {/* right column */}
           <div className="relative flex h-full w-1/2 items-center justify-center">
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/5 blur-[120px]" />
             <ReactFlowLifecycle activeIndex={activeIndex} />
           </div>
         </div>
 
-        {/* ── MOBILE LAYOUT ── no ReactFlow, full cinematic card progression */}
+        {/* mobile layout */}
         <div className="flex md:hidden mx-auto h-full w-full flex-col justify-between px-6 py-20">
 
-          {/* Top: section heading */}
+          {/* heading */}
           <div>
             <SectionLabel index="01" label="Lifecycle of a project" />
             <h2 className="mt-6 text-balance font-sans text-3xl font-extrabold tracking-tight text-foreground leading-tight">
@@ -105,10 +105,10 @@ export function Lifecycle() {
             </h2>
           </div>
 
-          {/* Center: immersive stage card — fills the vertical space */}
+          {/* card */}
           <div className="relative flex-1 flex flex-col items-center justify-center py-10">
 
-            {/* Ambient glow behind active card */}
+            {/* ambient glow */}
             <motion.div
               className="pointer-events-none absolute inset-0 rounded-3xl blur-[80px]"
               animate={{
@@ -117,7 +117,7 @@ export function Lifecycle() {
               transition={{ duration: 1.2, ease: CINEMATIC_EASE }}
             />
 
-            {/* Stage cards stacked, only active visible */}
+            {/* stage cards */}
             {stages.map((stage, i) => {
               const isActive = activeIndex === i;
               const color = STAGE_COLORS[i];
@@ -136,13 +136,13 @@ export function Lifecycle() {
                   className="absolute inset-x-0 flex flex-col items-center text-center pointer-events-none"
                   style={{ pointerEvents: isActive ? "auto" : "none" }}
                 >
-                  {/* Stage number */}
+                  {/* number */}
                   <span className="font-mono text-[10px] uppercase tracking-[0.4em] mb-4"
                     style={{ color, opacity: parseFloat(opacity) * 0.7 }}>
                     Stage {stage.code}
                   </span>
 
-                  {/* Big cinematic node card */}
+                  {/* node card */}
                   <motion.div
                     animate={{
                       borderColor: `${color}${Math.round(parseFloat(opacity) * 255).toString(16).padStart(2, "0")}`,
@@ -151,7 +151,7 @@ export function Lifecycle() {
                     transition={{ duration: 1.2, ease: CINEMATIC_EASE }}
                     className="w-full max-w-xs border rounded-2xl px-8 py-6 backdrop-blur-md mb-6"
                   >
-                    {/* Pulse dot */}
+                    {/* dot */}
                     {i < stages.length - 2 && (
                       <div className="flex justify-center mb-3">
                         <span
@@ -169,7 +169,7 @@ export function Lifecycle() {
                     </p>
                   </motion.div>
 
-                  {/* Description below card */}
+                  {/* description */}
                   <p className="text-base leading-relaxed text-muted-foreground max-w-[30ch]">
                     {stage.desc}
                   </p>
@@ -178,7 +178,7 @@ export function Lifecycle() {
             })}
           </div>
 
-          {/* Bottom: progress indicator dots */}
+          {/* progress */}
           <div className="flex justify-center gap-3 pb-4">
             {stages.map((_, i) => (
               <motion.div

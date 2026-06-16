@@ -8,7 +8,7 @@ import { CINEMATIC_EASE } from "@/lib/utils/animation";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
-// ─── PALETTE ──────────────────────────────────────────────────────────────────
+// palette
 // Emotional arc: grey/dead → desaturated violet → cold blue → bright cold teal
 const GEN = {
   0: { dot: "#4b5563", border: "rgba(75,85,99,0.30)",   glow: "rgba(75,85,99,0.15)",    bg: "#0a0c10", text: "rgba(255,255,255,0.42)", badge: "ARCHIVED"  },
@@ -17,7 +17,7 @@ const GEN = {
   3: { dot: "#60a5fa", border: "rgba(96,165,250,0.42)",  glow: "rgba(96,165,250,0.22)",  bg: "#050d1c", text: "rgba(255,255,255,0.90)", badge: "THRIVING"  },
 } as const;
 
-// ─── LINEAGE DATA ─────────────────────────────────────────────────────────────
+// lineage data
 // Node positions in SVG viewBox "0 0 600 520"
 // Each node card is centered at (cx, cy)
 const NODE_W = 168;
@@ -44,7 +44,7 @@ const APPROX_LEN: Record<string, number> = {
   e1: 240, e2: 240, e3: 130, e4: 220,
 };
 
-// ─── SVG NODE CARD ────────────────────────────────────────────────────────────
+// svg node card
 function LineageNode({
   node,
   hovered,
@@ -58,7 +58,7 @@ function LineageNode({
   const nx = node.cx - NODE_W / 2;
   const ny = node.cy - NODE_H / 2;
 
-  // Determine if this node is an ancestor of the hovered one
+  // ancestors
   const ancestors: Record<string, string[]> = {
     focus: ["root"],
     pulse: ["root"],
@@ -77,7 +77,7 @@ function LineageNode({
       onMouseEnter={() => onHover(node.id)}
       onMouseLeave={() => onHover(null)}
     >
-      {/* Outer glow halo — brightens on hover */}
+      {/* outer glow */}
       <rect
         x="-6" y="-6" width={NODE_W + 12} height={NODE_H + 12} rx="16"
         fill={c.glow}
@@ -86,7 +86,7 @@ function LineageNode({
         style={{ transition: "opacity 0.5s ease" }}
       />
 
-      {/* Card background */}
+      {/* card background */}
       <rect
         width={NODE_W} height={NODE_H} rx="11"
         fill={c.bg}
@@ -96,7 +96,7 @@ function LineageNode({
         style={{ transition: "stroke-width 0.3s ease, opacity 0.4s ease" }}
       />
 
-      {/* Status dot — pulses for gen>0 */}
+      {/* status dot */}
       <circle cx="14" cy="14" r="3.2" fill={c.dot} opacity={isDimmed ? 0.2 : 1}
         style={{ transition: "opacity 0.4s ease" }}>
         {node.gen > 0 && (
@@ -105,7 +105,7 @@ function LineageNode({
         )}
       </circle>
 
-      {/* Project name */}
+      {/* project name */}
       <text x="26" y="20" fontSize="12" fontWeight="700"
         fill={c.text} fontFamily="monospace"
         opacity={isDimmed ? 0.25 : 1}
@@ -113,7 +113,7 @@ function LineageNode({
         {node.name}
       </text>
 
-      {/* Year */}
+      {/* year */}
       <text x="14" y="36" fontSize="9" fill="rgba(255,255,255,0.25)"
         fontFamily="monospace" letterSpacing="1.2"
         opacity={isDimmed ? 0.15 : 1}
@@ -121,7 +121,7 @@ function LineageNode({
         {node.year}
       </text>
 
-      {/* Status badge */}
+      {/* status badge */}
       <rect x="13" y="46" width={54} height={16} rx="8"
         fill={c.glow} stroke={c.border} strokeWidth="0.55"
         opacity={isDimmed ? 0.15 : 1}
@@ -133,7 +133,7 @@ function LineageNode({
         {c.badge}
       </text>
 
-      {/* Hover: note text */}
+      {/* hover note */}
       <text
         x={NODE_W / 2} y="67" fontSize="7.8" textAnchor="middle"
         fill="rgba(255,255,255,0.30)" fontFamily="monospace"
@@ -145,12 +145,12 @@ function LineageNode({
   );
 }
 
-// ─── SVG LINEAGE GRAPH ────────────────────────────────────────────────────────
+// lineage graph
 function LineageGraph({ revealed }: { revealed: boolean }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const pathRefs = useRef<Record<string, SVGPathElement | null>>({});
 
-  // Measure paths and animate on reveal
+  // animate paths
   useEffect(() => {
     EDGES.forEach((e) => {
       const el = pathRefs.current[e.id];
@@ -171,7 +171,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
     });
   }, [revealed]);
 
-  // Ancestor lookup
+  // ancestor lookup
   const ancestors: Record<string, string[]> = {
     focus: ["root"],
     pulse: ["root"],
@@ -187,7 +187,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
       style={{ overflow: "visible" }}
     >
       <defs>
-        {/* Soft glow filter */}
+        {/* glow filter */}
         <filter id="lg-glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="4.5" result="blur" />
           <feMerge>
@@ -203,7 +203,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
           </feMerge>
         </filter>
 
-        {/* Per-edge gradients */}
+        {/* edge gradients */}
         {EDGES.map((e) => (
           <linearGradient key={e.gradId} id={e.gradId} gradientUnits="userSpaceOnUse"
             x1={NODES.find(n => n.id === e.from)!.cx}
@@ -216,17 +216,17 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
           </linearGradient>
         ))}
 
-        {/* Subtle grid pattern */}
+        {/* grid pattern */}
         <pattern id="lg-grid" width="50" height="50" patternUnits="userSpaceOnUse">
           <path d="M 50 0 L 0 0 0 50" fill="none"
             stroke="rgba(147,197,253,0.035)" strokeWidth="0.5" />
         </pattern>
       </defs>
 
-      {/* Grid backdrop */}
+      {/* grid backdrop */}
       <rect width="600" height="540" fill="url(#lg-grid)" />
 
-      {/* ── EDGES ── */}
+      {/* edges */}
       {EDGES.map((e) => {
         const isActiveEdge = hovered !== null && (
           e.from === hovered || e.to === hovered ||
@@ -238,7 +238,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
 
         return (
           <g key={e.id}>
-            {/* Base path — dash-animated on reveal */}
+            {/* base path */}
             <path
               ref={(el) => { pathRefs.current[e.id] = el; }}
               d={e.d}
@@ -251,7 +251,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
                 transition: "stroke-width 0.4s ease, opacity 0.4s ease",
               }}
             />
-            {/* Glow halo on path */}
+            {/* path glow */}
             <path
               d={e.d}
               fill="none"
@@ -262,7 +262,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
               filter="url(#lg-glow)"
               style={{ transition: "opacity 0.4s ease", pointerEvents: "none" }}
             />
-            {/* Flowing particle on each edge */}
+            {/* flowing particle */}
             {revealed && (
               <circle r="2.2" fill={toC.dot} opacity="0.85" filter="url(#lg-glow-sm)">
                 <animateMotion
@@ -284,7 +284,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
         );
       })}
 
-      {/* ── NODES ── */}
+      {/* nodes */}
       {NODES.map((node) => (
         <LineageNode
           key={node.id}
@@ -297,7 +297,7 @@ function LineageGraph({ revealed }: { revealed: boolean }) {
   );
 }
 
-// ─── PRE-COMPUTED AMBIENT PARTICLES ───────────────────────────────────────────
+// ambient particles
 const PARTICLES = Array.from({ length: 20 }, (_, i) => ({
   left:  `${(i * 21 + 9) % 94}%`,
   top:   `${(i * 37 + 5) % 92}%`,
@@ -309,7 +309,7 @@ const PARTICLES = Array.from({ length: 20 }, (_, i) => ({
   dy:    -(16 + (i % 7) * 9),
 }));
 
-// ─── MAIN SECTION ─────────────────────────────────────────────────────────────
+// main section
 export function Lineage() {
   const sectionRef   = useRef<HTMLElement>(null);
   const graphRef     = useRef<HTMLDivElement>(null);
@@ -320,7 +320,7 @@ export function Lineage() {
   const isLeftInView  = useInView(leftTextRef,  { once: true, margin: "-60px" });
   const isGraphInView = useInView(graphRef,      { once: true, margin: "-80px" });
 
-  // Trigger graph reveal
+  // trigger reveal
   useEffect(() => {
     if (isGraphInView && !revealedRef.current) {
       revealedRef.current = true;
@@ -328,7 +328,7 @@ export function Lineage() {
     }
   }, [isGraphInView]);
 
-  // GSAP: staggered node entrance
+  // animate nodes
   useEffect(() => {
     if (typeof window === "undefined") return;
     const ctx = gsap.context(() => {
@@ -358,15 +358,15 @@ export function Lineage() {
       className="relative border-t bg-[#030508] overflow-hidden"
       style={{ borderColor: "rgba(148,163,184,0.07)" }}
     >
-      {/* ── BACKGROUND ── */}
+      {/* background */}
       <div className="pointer-events-none absolute inset-0">
-        {/* Cold radial base */}
+        {/* cold radial */}
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 90% 70% at 60% 45%, #0a1020 0%, #030508 70%)" }} />
-        {/* Faint moonlit glow */}
+        {/* faint glow */}
         <div className="absolute left-[55%] top-[40%] -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px]"
           style={{ background: "radial-gradient(ellipse at center, rgba(59,130,246,0.025) 0%, transparent 65%)" }} />
-        {/* Ambient particles */}
+        {/* ambient particles */}
         {PARTICLES.map((p, i) => (
           <motion.div key={i} className="absolute rounded-full"
             style={{ left: p.left, top: p.top, width: p.size, height: p.size, backgroundColor: p.color, opacity: 0 }}
@@ -375,17 +375,17 @@ export function Lineage() {
         ))}
       </div>
 
-      {/* ── CONTENT ── */}
+      {/* content */}
       <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 md:px-10">
 
-        {/* ── HEADER ── */}
+        {/* header */}
         <div ref={leftTextRef} className="mb-16 md:mb-20 max-w-3xl">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={isLeftInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1.5, ease: CINEMATIC_EASE }}
           >
-            {/* Label */}
+            {/* label */}
             <div className="mb-6 flex items-center gap-3">
               <span className="h-px w-7 bg-slate-700" />
               <span className="font-mono text-[9.5px] uppercase tracking-[0.42em] text-slate-600">
@@ -393,7 +393,7 @@ export function Lineage() {
               </span>
             </div>
 
-            {/* Heading */}
+            {/* heading */}
             <h2 className="text-balance text-3xl md:text-5xl lg:text-[3.2rem] font-extrabold tracking-tight
               text-slate-200 leading-[1.1] mb-5">
               Some ideas{" "}
@@ -419,10 +419,10 @@ export function Lineage() {
           />
         </div>
 
-        {/* ── MAIN: LEGEND LEFT + GRAPH RIGHT ── */}
+        {/* main area */}
         <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-16">
 
-          {/* ── LEGEND PANEL ── */}
+          {/* legend panel */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={isLeftInView ? { opacity: 1, x: 0 } : {}}
@@ -456,7 +456,7 @@ export function Lineage() {
               })}
             </div>
 
-            {/* Hover hint */}
+            {/* hover hint */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={isGraphInView ? { opacity: 1 } : {}}
@@ -466,7 +466,7 @@ export function Lineage() {
               Hover nodes to trace ancestry
             </motion.p>
 
-            {/* CTA */}
+            {/* cta */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={isLeftInView ? { opacity: 1, y: 0 } : {}}
@@ -488,7 +488,7 @@ export function Lineage() {
             </motion.div>
           </motion.div>
 
-          {/* ── LINEAGE GRAPH ── */}
+          {/* graph */}
           <motion.div
             ref={graphRef}
             initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
@@ -496,7 +496,7 @@ export function Lineage() {
             transition={{ duration: 1.8, ease: CINEMATIC_EASE }}
             className="relative w-full flex-1 min-h-[420px] md:min-h-[520px]"
           >
-            {/* Graph backdrop glow */}
+            {/* graph glow */}
             <div className="pointer-events-none absolute inset-0 rounded-2xl"
               style={{
                 background: "radial-gradient(ellipse at 48% 42%, rgba(59,130,246,0.04) 0%, rgba(75,85,99,0.03) 55%, transparent 80%)",
@@ -506,7 +506,7 @@ export function Lineage() {
           </motion.div>
         </div>
 
-        {/* ── STATS ── */}
+        {/* stats */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={isGraphInView ? { opacity: 1, y: 0 } : {}}

@@ -8,7 +8,7 @@ import { CINEMATIC_EASE } from "@/lib/utils/animation";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
-// ─── PRE-COMPUTED CONSTANTS ───────────────────────────────────────────────────
+// constants
 
 const BG_PARTICLES = [
   { left: "5%",  top: "12%", size: 1.4, color: "#e2e8f0", op: 0.07, dur: 14, delay: 0,   dy: -28 },
@@ -29,60 +29,47 @@ const BG_PARTICLES = [
   { left: "50%", top: "20%", size: 1.0, color: "#e2e8f0", op: 0.05, dur: 14, delay: 1.4, dy: -32 },
 ];
 
-/**
- * The 3 surviving idea fragments.
- *
- * Each is placed at a specific position within the visual column using
- * `top` + `left` as percentages of the column's height/width.
- * They are NOT all centered at the same point — they are spread organically
- * along the inheritance path from dead card → line → revived card.
- *
- * position: "top" = near archived card
- *           "mid" = midway along the line
- *           "bottom" = near the revived project
- *
- * Each has an independent float amplitude (floatDy) and cycle duration.
- */
+// idea fragments
 const FRAGMENTS = [
   {
     text: "Calendar Logic",
-    // Sits just off the right edge of the dead card, drifting slowly outward
+    // top card
     top: "13%",
     left: "72%",
     floatDy: -14,
     dur: 9,
     delay: 0,
     initDelay: 0.4,
-    blur: 0,          // sharp — closest "in time" to the origin
+    blur: 0,
     baseOp: 0.70,
   },
   {
     text: "Offline Sync",
-    // Mid-point — drifting left, slightly out of focus (time has passed)
+    // mid point
     top: "46%",
     left: "8%",
     floatDy: -10,
     dur: 11,
     delay: 2.5,
     initDelay: 1.0,
-    blur: 1.5,        // slight blur — halfway through time
+    blur: 1.5,
     baseOp: 0.52,
   },
   {
     text: "Focus-first UI",
-    // Closest to the revived card — nearly found its new home
+    // bottom card
     top: "74%",
     left: "68%",
     floatDy: -8,
     dur: 13,
     delay: 5.0,
     initDelay: 1.8,
-    blur: 0,          // sharp again — arriving
+    blur: 0,
     baseOp: 0.60,
   },
 ] as const;
 
-// ─── SINGLE IDEA FRAGMENT ─────────────────────────────────────────────────────
+// idea fragment
 function IdeaFragment({
   text,
   top,
@@ -94,13 +81,13 @@ function IdeaFragment({
   blur,
   baseOp,
   visible,
-  glowing,   // true when revived card is hovered
+  glowing,
 }: (typeof FRAGMENTS)[number] & { visible: boolean; glowing: boolean }) {
   return (
     <motion.div
       className="pointer-events-none absolute"
       style={{ top, left, zIndex: 4 }}
-      // Entry fade-in
+      // fade in
       initial={{ opacity: 0, filter: `blur(${blur + 6}px)` }}
       animate={
         visible
@@ -109,12 +96,12 @@ function IdeaFragment({
       }
       transition={{ duration: 2.4, delay: initDelay, ease: CINEMATIC_EASE }}
     >
-      {/* Floating loop — runs independently per fragment */}
+      {/* floating loop */}
       <motion.div
         animate={{ y: [0, floatDy, 0], opacity: [baseOp, baseOp * 0.55, baseOp] }}
         transition={{ duration: dur, delay, repeat: Infinity, ease: "easeInOut" }}
       >
-        {/* Outer glow (intensifies on hover) */}
+        {/* outer glow */}
         <motion.span
           className="pointer-events-none absolute inset-0 rounded-full"
           animate={{ opacity: glowing ? 1 : 0 }}
@@ -126,7 +113,7 @@ function IdeaFragment({
           }}
         />
 
-        {/* The chip */}
+        {/* chip */}
         <motion.span
           className="relative block whitespace-nowrap rounded-full font-mono text-[10px] uppercase tracking-[0.28em] backdrop-blur-md"
           style={{ padding: "5px 14px" }}
@@ -154,7 +141,7 @@ function IdeaFragment({
   );
 }
 
-// ─── DEAD PROJECT CARD ────────────────────────────────────────────────────────
+// dead card
 function DeadCard({ visible }: { visible: boolean }) {
   return (
     <motion.div
@@ -218,7 +205,7 @@ function DeadCard({ visible }: { visible: boolean }) {
   );
 }
 
-// ─── TRANSFER LINE ────────────────────────────────────────────────────────────
+// transfer line
 function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean }) {
   const pathRef  = useRef<SVGPathElement>(null);
   const glowRef  = useRef<SVGPathElement>(null);
@@ -246,7 +233,7 @@ function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean
         ease: "power2.inOut",
         delay: 0.3,
       });
-      // Breathing glow pulse
+      // glow pulse
       gsap.to(glow, {
         opacity: 0.08,
         duration: 2.5,
@@ -258,7 +245,7 @@ function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean
     }
   }, [visible]);
 
-  // Hover: briefly brighten glow layer
+  // hover effect
   useEffect(() => {
     if (!glowRef.current) return;
     gsap.to(glowRef.current, {
@@ -291,15 +278,15 @@ function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean
         </filter>
       </defs>
 
-      {/* Wide soft halo */}
+      {/* wide halo */}
       <path ref={glowRef2} d={PATH} fill="none" stroke="url(#lg-glow-grad)"
         strokeWidth="14" strokeLinecap="round" opacity="0.04" filter="url(#lg-path-glow)" />
 
-      {/* Mid glow */}
+      {/* mid glow */}
       <path ref={glowRef} d={PATH} fill="none" stroke="url(#lg-glow-grad)"
         strokeWidth="5" strokeLinecap="round" opacity="0.12" filter="url(#lg-path-glow)" />
 
-      {/* Extra hover pulse path (separate, animated on hover) */}
+      {/* hover pulse */}
       {hovered && (
         <path ref={pulseRef} d={PATH} fill="none" stroke="url(#lg-glow-grad)"
           strokeWidth="3" strokeLinecap="round" opacity="0.35" filter="url(#lg-path-glow)">
@@ -307,12 +294,12 @@ function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean
         </path>
       )}
 
-      {/* Core hair line */}
+      {/* core line */}
       <path ref={pathRef} d={PATH} fill="none" stroke="url(#lg-line-grad)"
         strokeWidth="1.0" strokeLinecap="round"
         opacity={visible ? 0.75 : 0} style={{ transition: "opacity 0.6s" }} />
 
-      {/* Travelling particles — 3 staggered */}
+      {/* particles */}
       {visible && (
         <>
           <circle r="2" fill="#fbbf24" opacity="0.85" filter="url(#lg-particle-glow)">
@@ -333,7 +320,7 @@ function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean
   );
 }
 
-// ─── REVIVED CARD ─────────────────────────────────────────────────────────────
+// revived card
 function RevivedCard({
   visible,
   onHover,
@@ -410,7 +397,7 @@ function RevivedCard({
   );
 }
 
-// ─── FUTURE NODE ─────────────────────────────────────────────────────────────
+// future node
 function FutureNode({ visible }: { visible: boolean }) {
   return (
     <motion.div
@@ -457,7 +444,7 @@ function FutureNode({ visible }: { visible: boolean }) {
   );
 }
 
-// ─── LEFT NARRATIVE ───────────────────────────────────────────────────────────
+// left narrative
 function LeftNarrative({ inView }: { inView: boolean }) {
   return (
     <div className="flex flex-col justify-center gap-10 lg:gap-12">
@@ -521,21 +508,21 @@ function LeftNarrative({ inView }: { inView: boolean }) {
   );
 }
 
-// ─── MAIN SECTION ─────────────────────────────────────────────────────────────
+// main section
 export function Legacy() {
   const sectionRef  = useRef<HTMLElement>(null);
   const leftRef     = useRef<HTMLDivElement>(null);
   const visualRef   = useRef<HTMLDivElement>(null);
   const epilogueRef = useRef<HTMLDivElement>(null);
 
-  // Hover state on revived card — wires to line brightening + fragment glow
+  // hover state
   const [revivedHovered, setRevivedHovered] = useState(false);
 
   const leftInView     = useInView(leftRef,     { once: true, margin: "-100px" });
   const visualInView   = useInView(visualRef,   { once: true, margin: "-80px"  });
   const epilogueInView = useInView(epilogueRef, { once: true, margin: "-60px"  });
 
-  // Subtle parallax on the right visual column
+  // parallax
   useEffect(() => {
     if (typeof window === "undefined") return;
     const ctx = gsap.context(() => {
@@ -560,13 +547,13 @@ export function Legacy() {
       className="relative overflow-hidden"
       style={{ background: "#060810" }}
     >
-      {/* Top fade */}
+      {/* top fade */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-48 z-10"
         style={{ background: "linear-gradient(to bottom, #030508 0%, transparent 100%)" }}
       />
 
-      {/* Background atmosphere */}
+      {/* background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 90% 65% at 60% 46%, #081020 0%, #060810 60%, #030508 100%)" }}
@@ -619,16 +606,16 @@ export function Legacy() {
         ))}
       </div>
 
-      {/* Main content */}
+      {/* main content */}
       <div className="relative mx-auto max-w-7xl px-6 py-28 md:py-40 md:px-10">
         <div className="flex flex-col gap-20 lg:flex-row lg:gap-24 lg:items-center">
 
-          {/* Left narrative */}
+          {/* left narrative */}
           <div ref={leftRef} className="lg:w-[44%] lg:shrink-0">
             <LeftNarrative inView={leftInView} />
           </div>
 
-          {/* Right — cinematic visualization */}
+          {/* right visual */}
           <div
             ref={visualRef}
             className="relative flex-1 flex flex-col items-center gap-0"
@@ -636,7 +623,7 @@ export function Legacy() {
           >
             <div className="lg-visual-inner relative flex flex-col items-center w-full" style={{ minHeight: 600 }}>
 
-              {/* Volumetric fog behind all cards */}
+              {/* volumetric fog */}
               <div
                 className="pointer-events-none absolute -inset-12 rounded-3xl"
                 style={{
@@ -645,7 +632,7 @@ export function Legacy() {
                 }}
               />
 
-              {/* ── 3 IDEA FRAGMENTS — spread along the path ── */}
+              {/* fragments */}
               {FRAGMENTS.map((f) => (
                 <IdeaFragment
                   key={f.text}
@@ -655,10 +642,10 @@ export function Legacy() {
                 />
               ))}
 
-              {/* DEAD CARD */}
+              {/* dead card */}
               <DeadCard visible={visualInView} />
 
-              {/* CONNECTOR + LINE */}
+              {/* connector */}
               <div className="relative flex flex-col items-center w-full" style={{ height: 210 }}>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div style={{ width: 140, height: 210 }}>
@@ -667,10 +654,10 @@ export function Legacy() {
                 </div>
               </div>
 
-              {/* REVIVED CARD */}
+              {/* revived card */}
               <RevivedCard visible={visualInView} onHover={setRevivedHovered} />
 
-              {/* Connector to future */}
+              {/* future connector */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={visualInView ? { opacity: 1, scaleY: 1 } : {}}
@@ -683,13 +670,13 @@ export function Legacy() {
                 }}
               />
 
-              {/* FUTURE NODE */}
+              {/* future node */}
               <FutureNode visible={visualInView} />
             </div>
           </div>
         </div>
 
-        {/* Epilogue */}
+        {/* epilogue */}
         <div ref={epilogueRef} className="mt-36 md:mt-48 flex flex-col items-center text-center">
           <motion.div
             initial={{ scaleX: 0, opacity: 0 }}
@@ -746,7 +733,7 @@ export function Legacy() {
         </div>
       </div>
 
-      {/* Bottom fade */}
+      {/* bottom fade */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-48 z-10"
         style={{ background: "linear-gradient(to top, #0a0a0f 0%, transparent 100%)" }}

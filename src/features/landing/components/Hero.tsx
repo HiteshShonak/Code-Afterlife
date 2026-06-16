@@ -64,16 +64,16 @@ export function Hero() {
     };
 
     const animate = () => {
-      // Buttery smooth lerping towards mouse target
+      // smooth lerp
       currentX += (targetX - currentX) * 0.05;
       currentY += (targetY - currentY) * 0.05;
 
       if (bgRef.current) {
-        // Ultra-subtle background shift
+        // background shift
         bgRef.current.style.transform = `translate(${currentX * -0.3}%, ${currentY * -0.3}%)`;
       }
       if (panelsRef.current) {
-        // Slight foreground shift for subtle depth
+        // foreground shift
         panelsRef.current.style.transform = `translate(${currentX * -0.7}%, ${currentY * -0.7}%)`;
       }
 
@@ -91,9 +91,9 @@ export function Hero() {
 
   return (
     <section className="relative isolate flex h-screen min-h-[760px] w-full flex-col items-center justify-center overflow-hidden">
-      {/* Background image with cinematic 40s push and parallax wrapper */}
+      {/* background image */}
       <div className="absolute inset-0 -z-30 bg-background overflow-hidden">
-        {/* Normal inset, slight left translation to center the beam */}
+        {/* inner background */}
         <div ref={bgRef} className="absolute -inset-[5%] -translate-x-[1%]">
           <Image
             src="/hero-image.webp"
@@ -109,18 +109,18 @@ export function Hero() {
 
       <Particles />
 
-      {/* Atmospheric Fog Layers */}
+      {/* fog layers */}
       <div className="pointer-events-none absolute inset-0 -z-20 overflow-hidden">
-        {/* Deep background color burn/fog */}
+        {/* deep background fog */}
         <div className="absolute bottom-0 left-[-20%] h-[80%] w-[140%] ca-fog-drift-1 bg-gradient-to-t from-background via-accent/10 to-transparent blur-3xl opacity-80 mix-blend-screen" />
-        {/* Foreground sweeping fog */}
+        {/* foreground fog */}
         <div className="absolute bottom-[-10%] left-[-10%] h-[60%] w-[120%] ca-fog-drift-2 bg-gradient-to-t from-background via-background/80 to-transparent blur-2xl opacity-90" />
       </div>
 
-      {/* Holographic Ruins / Abandoned Panels */}
+      {/* panels */}
       <div className="pointer-events-none absolute inset-0 -z-10 [perspective:1000px]">
         <div ref={panelsRef} className="absolute inset-0">
-          {/* Panel 1 - Mid left, tilted inward */}
+          {/* panel 1 */}
           <div 
             className="absolute left-[12%] top-[30%] w-48 h-64 border border-accent/20 bg-background/5 backdrop-blur-md rounded-2xl ca-panel-float shadow-[0_0_30px_rgba(139,92,246,0.1)] opacity-70"
             style={{ "--tw-panel-rx": "12deg", "--tw-panel-ry": "28deg", "--tw-panel-duration": "18s" } as React.CSSProperties}
@@ -136,7 +136,7 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Panel 2 - Lower right, larger, tilted aggressively */}
+          {/* panel 2 */}
           <div 
             className="absolute right-[8%] top-[50%] w-64 h-44 border border-white/10 bg-background/10 backdrop-blur-lg rounded-2xl ca-panel-float shadow-[0_0_20px_rgba(255,255,255,0.05)] opacity-50"
             style={{ "--tw-panel-rx": "-15deg", "--tw-panel-ry": "-35deg", "--tw-panel-duration": "24s" } as React.CSSProperties}
@@ -150,7 +150,7 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Panel 3 - Distant top right */}
+          {/* panel 3 */}
           <div 
             className="absolute right-[30%] top-[15%] w-32 h-32 border border-accent/10 bg-accent/5 backdrop-blur-sm rounded-xl ca-panel-float opacity-30 blur-[3px]"
             style={{ "--tw-panel-rx": "5deg", "--tw-panel-ry": "15deg", "--tw-panel-duration": "32s" } as React.CSSProperties}
@@ -158,13 +158,13 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Base lighting & vignettes */}
+      {/* lighting */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent via-background/80 to-background" />
         <div className="ca-pulse-glow absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 mix-blend-screen" />
         <div className="ca-grain absolute inset-0 opacity-40 mix-blend-overlay" />
-        {/* Core text shadow protector */}
+        {/* text shadow */}
         <div className="absolute left-1/2 top-1/2 h-[520px] w-[1100px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/30 blur-3xl" />
       </div>
 
@@ -194,7 +194,7 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Scroll cue */}
+      {/* scroll cue */}
       <div className="absolute bottom-10 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-3">
         <span className="font-mono text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
           Scroll to excavate

@@ -18,13 +18,7 @@ interface GraveyardCanvasProps {
   isAuthenticated: boolean;
 }
 
-/**
- * Adapter layer between real DB data and the 3D canvas component.
- * Maps Prisma Project shape → MockProject shape that OriginalGraveyardCanvas expects.
- * Manages resurrection modal state.
- *
- * This preserves the 3D cinematic experience while using real data.
- */
+// graveyard canvas adapter
 export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasProps) {
   const [resurrectionTarget, setResurrectionTarget] = useState<{
     id: string;
@@ -33,12 +27,9 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
     lineageDepth: number;
   } | null>(null);
 
-  /** Map Prisma project → mock shape for the existing 3D canvas */
+  // map project
   const mappedProjects: MockProject[] = projects.map((p): MockProject => {
-    // Tombstone epitaph priority:
-    // 1. deathReason — user-written or AI-generated at archive time
-    // 2. description excerpt — fallback for older projects without deathReason
-    // 3. Cinematic default
+    // epitaph priority
     const rawReason = (p as any).deathReason as string | null | undefined;
     const quote = rawReason
       ? `"${rawReason}"`

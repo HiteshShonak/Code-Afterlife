@@ -39,16 +39,12 @@ function scrollToTop() {
   }
 }
 
-/**
- * NavClient — all nav interactivity lives here.
- * Receives user prop from server Nav component.
- * Shows UserMenu when authenticated, SignInButton when not.
- */
+// nav client
 export function NavClient({ user }: NavClientProps) {
   return (
     <nav className="fixed top-0 z-50 w-full mix-blend-difference">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 md:px-10">
-        {/* Logo */}
+        {/* logo */}
         <button
           onClick={scrollToTop}
           className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-foreground"
@@ -56,7 +52,7 @@ export function NavClient({ user }: NavClientProps) {
           Code Afterlife
         </button>
 
-        {/* Desktop nav */}
+        {/* desktop nav */}
         <div className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((link) => (
             <button
@@ -70,7 +66,7 @@ export function NavClient({ user }: NavClientProps) {
 
           <span className="h-3 w-px bg-foreground/30" />
 
-          {/* Explore — always visible so unauthenticated users can enter the app */}
+          {/* explore */}
           <Link
             href="/explore"
             className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:text-foreground"
@@ -78,7 +74,7 @@ export function NavClient({ user }: NavClientProps) {
             Explore
           </Link>
 
-          {/* Dashboard link — only when signed in */}
+          {/* dashboard link */}
           {user && (
             <Link
               href="/dashboard"
@@ -88,7 +84,7 @@ export function NavClient({ user }: NavClientProps) {
             </Link>
           )}
 
-          {/* Auth control */}
+          {/* auth control */}
           {user ? (
             <UserMenu name={user.name ?? null} username={user.username ?? null} image={user.image ?? null} />
           ) : (

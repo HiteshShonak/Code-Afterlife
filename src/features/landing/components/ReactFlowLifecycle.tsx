@@ -7,7 +7,7 @@ import { LifecycleNode } from './LifecycleNode';
 import { LifecycleEdge } from './LifecycleEdge';
 import { Handle, Position } from '@xyflow/react';
 
-// Invisible ghost nodes for the infinite entry/exit edges
+// ghost nodes
 const GhostNode = () => (
   <div className="h-4 w-4 opacity-0">
     <Handle type="target" position={Position.Top} className="!opacity-0" />
@@ -20,8 +20,8 @@ const edgeTypes = { cinematic: LifecycleEdge };
 
 const STAGES = ["Born", "Active", "Stalled", "Dead", "Flatline"];
 const Y_SPACING = 250;
-const NODE_WIDTH = 256; // w-64
-const NODE_HEIGHT = 96; // h-24
+const NODE_WIDTH = 256;
+const NODE_HEIGHT = 96;
 
 function CameraFocus({ activeIndex }: { activeIndex: number }) {
   const { setCenter } = useReactFlow();
@@ -31,7 +31,7 @@ function CameraFocus({ activeIndex }: { activeIndex: number }) {
     const targetX = NODE_WIDTH / 2;
     const targetY = (activeIndex * Y_SPACING) + (NODE_HEIGHT / 2);
     
-    // Snap instantly on the very first render, then glide smoothly afterwards
+    // smooth snap
     const duration = isInitialMount.current ? 0 : 1200;
     setCenter(targetX, targetY, { zoom: 1.2, duration });
     
@@ -57,7 +57,7 @@ export function ReactFlowLifecycle({ activeIndex }: { activeIndex: number }) {
       selectable: false
     }));
 
-    // Add infinite entry/exit ghost nodes
+    // ghost nodes
     mainNodes.unshift({
       id: 'node-entry',
       type: 'ghost',
@@ -92,7 +92,7 @@ export function ReactFlowLifecycle({ activeIndex }: { activeIndex: number }) {
       animated: false 
     }));
 
-    // Add entry and exit edges pulling from/into the void
+    // entry exit edges
     mainEdges.unshift({
       id: 'edge-entry',
       source: 'node-entry',

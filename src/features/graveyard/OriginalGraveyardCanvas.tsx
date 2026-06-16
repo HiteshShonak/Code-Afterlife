@@ -17,11 +17,7 @@ import { GraveyardHeader, type GraveyardFilters } from "./GraveyardHeader";
 
 const simplex = new SimplexNoise();
 
-// ─── SUPPRESS R3F INTERNAL THREE.Clock DEPRECATION ────────────────────────────
-// THREE r183 deprecated THREE.Clock in favour of THREE.Timer.
-// @react-three/fiber v9.x still uses THREE.Clock internally — this is a known
-// upstream issue tracked at https://github.com/pmndrs/react-three-fiber/issues/3415
-// The fix will land in R3F v10. Until then, suppress only this specific warning.
+// suppress warning
 if (typeof window !== "undefined") {
   const _origWarn = console.warn.bind(console);
   console.warn = (...args: unknown[]) => {
@@ -33,11 +29,9 @@ if (typeof window !== "undefined") {
 // ─── TERRAIN HEIGHT ───────────────────────────────────────────────────────────
 
 function getTerrainHeight(x: number, z: number) {
-  // Broader, taller rolling hills
+  // terrain noise
   const height = simplex.noise(x * 0.04, z * 0.04) * 1.5;
-  // Mid-frequency bumps
   const mid = simplex.noise(x * 0.15, z * 0.15) * 0.3;
-  // Micro details
   const micro = simplex.noise(x * 0.6, z * 0.6) * 0.05;
   return height + mid + micro;
 }
@@ -46,35 +40,31 @@ function getTerrainHeight(x: number, z: number) {
 
 const VISIBLE_ROUNDED = 55; // Enough for a dense field
 
-// Fog zone: clear inside FOG_NEAR, gradual fade to FOG_FAR
-// FOG_FAR is ~1.2X the old value so the fog wall is pushed out
+// fog zone
 const FOG_NEAR = 12;
 const FOG_FAR = 36;
 
-// Directional recycling: a stone only recycles when it is BEHIND the camera
-// AND further than RECYCLE_DIST away. Stones in front NEVER recycle
-// regardless of distance — this eliminates visible despawn.
+// directional recycling
 const RECYCLE_DIST = 75;
 
-// Spawning: strictly past the fog wall so spawning is always invisible
-const SPAWN_MIN = FOG_FAR + 8;  // 44 — well past fog
-const SPAWN_MAX = FOG_FAR + 30; // 66 — deep blind zone
+// spawning
+const SPAWN_MIN = FOG_FAR + 8;
+const SPAWN_MAX = FOG_FAR + 30;
 
-// Spacing: MIN = no-overlap, MAX = 1.3×MIN ensures no isolated lone stones
+// spacing
 const MIN_DIST_ROUNDED = 10;
-const MAX_DIST_ROUNDED = 13; // 1.3× MIN
+const MAX_DIST_ROUNDED = 13;
 
 // Proximity required to interact with a tombstone
 const INTERACT_DIST = 21;
 
 // Hovered stone always gets text regardless of distance
 
-// Chunk system (grass/bush detail)
+// chunk system
 const CHUNK_SIZE = 80;
-const CHUNK_GRID = 3; // 3x3 around camera
+const CHUNK_GRID = 3;
 
-// ─── SHARED GLOBAL COLLISION REGISTRY ────────────────────────────────────────
-// All tomb types register here so they never overlap each other
+// collision grid
 
 class CollisionGrid {
   private cells = new Map<string, THREE.Vector3[]>();
@@ -111,7 +101,7 @@ class CollisionGrid {
   isTooClose(x: number, z: number, minDist: number): boolean {
     const cx = Math.floor(x / this.cellSize);
     const cz = Math.floor(z / this.cellSize);
-    // Check own cell and 8 neighbors
+    // check neighbors
     for (let dx = -1; dx <= 1; dx++) {
       for (let dz = -1; dz <= 1; dz++) {
         const k = `${cx + dx},${cz + dz}`;
@@ -127,8 +117,7 @@ class CollisionGrid {
     return false;
   }
 
-  // Returns true if any registered position is within maxDist of (x, z)
-  // Used to enforce cluster constraint (no lone isolated tombstones)
+  // check neighbor
   hasNeighborWithin(x: number, z: number, maxDist: number): boolean {
     const cx = Math.floor(x / this.cellSize);
     const cz = Math.floor(z / this.cellSize);
@@ -165,9 +154,7 @@ class RoundedTombstoneGeometry extends THREE.BufferGeometry {
   }
 }
 
-// ─── POLAR SPAWN HELPER ────────────────────────────────────────────────────────
-// Guarantees spawn is between SPAWN_MIN and SPAWN_MAX from camera
-// in a wide arc in front of camera. NEVER inside the visible zone.
+// polar spawn
 
 const _rotY = new THREE.Matrix4();
 const _dir = new THREE.Vector3();
@@ -193,7 +180,7 @@ interface ActiveTombstone {
   dataIndex: number; // -1 for decorative
 }
 
-// Tombstone faces the camera position at spawn time — text is always readable
+// face camera
 function makeFacingQuat(tombPos: THREE.Vector3, camPos: THREE.Vector3): THREE.Quaternion {
   const dx = camPos.x - tombPos.x;
   const dz = camPos.z - tombPos.z;
@@ -207,9 +194,9 @@ function makeFacingQuat(tombPos: THREE.Vector3, camPos: THREE.Vector3): THREE.Qu
 }
 
 function makeRoundedScale(): THREE.Vector3 {
-  // Base size reduced ~2%, tiny ±2% variation so each stone feels unique but uniform
+  // rounded scale
   const s = (1.17 + Math.random() * 0.04) * 5.0;
-  const heightMult = 0.90 + Math.random() * 0.06; // Very narrow height range
+  const heightMult = 0.90 + Math.random() * 0.06;
   return new THREE.Vector3(s, s * heightMult, s);
 }
 
@@ -229,7 +216,7 @@ function createInitialItem(
   camPos: THREE.Vector3
 ): ActiveTombstone | null {
   for (let attempt = 0; attempt < 500; attempt++) {
-    // Spread across a wide disc matching RECYCLE_DIST so all 55 stones fit
+    // spread disc
     const r = 8 + Math.random() * (RECYCLE_DIST - 10);
     const a = Math.random() * Math.PI * 2;
     const x = camX + Math.cos(a) * r;
@@ -247,7 +234,7 @@ function createInitialItem(
   return null;
 }
 
-// Boundary box type for camera clamping in all directions
+// boundary box
 interface BoundaryBox {
   minX: number; maxX: number;
   minZ: number; maxZ: number;
@@ -277,7 +264,7 @@ function TreadmillTombstones({
       const item = createInitialItem(0, 0, MIN_DIST_ROUNDED, i % TOTAL_DATA_DYNAMIC, makeRoundedScale, CAM_START);
       if (item) arr.push(item);
     }
-    // Fill remaining slots (hidden) so instancedMesh always has VISIBLE_ROUNDED entries
+    // fill hidden slots
     while (arr.length < VISIBLE_ROUNDED) {
       arr.push({
         position: new THREE.Vector3(0, -100, 0), // buried below ground
@@ -289,13 +276,12 @@ function TreadmillTombstones({
     return arr;
   });
 
-  // Recycle check throttle — run every 3rd frame to halve CPU cost.
-  // Stone movement is smooth so skipping frames is imperceptible.
+  // throttle recycle
   const recycleFrameRef = useRef(0);
   const _recycleForward = useMemo(() => new THREE.Vector3(), []);
   const _recycleToStone = useMemo(() => new THREE.Vector3(), []);
 
-  // dataIndexRef loops forever through all projects
+  // data index ref
   const dataIndexRef = useRef(VISIBLE_ROUNDED);
 
   // Refs for instanced meshes
@@ -328,7 +314,7 @@ function TreadmillTombstones({
   }, []);
 
   useFrame(({ camera }) => {
-    // Throttle: only run recycle logic every 3rd frame
+    // throttle
     recycleFrameRef.current++;
     if (recycleFrameRef.current % 3 !== 0) return;
 
@@ -337,8 +323,7 @@ function TreadmillTombstones({
     _recycleForward.y = 0;
     _recycleForward.normalize();
 
-    // Directional recycle: only recycle stones that are clearly BEHIND the
-    // camera AND beyond RECYCLE_DIST. Stones in front are never touched.
+    // check behind
     let roundedDirty = false;
     const newRounded = roundedItems.map(item => {
       _recycleToStone.set(
@@ -347,10 +332,10 @@ function TreadmillTombstones({
       const dist = _recycleToStone.length();
       if (dist < 1) return item;
       const dot = _recycleToStone.clone().normalize().dot(_recycleForward);
-      // Keep if in front, or within RECYCLE_DIST behind
+      // keep if front
       if (dot > -0.2 || dist <= RECYCLE_DIST) return item;
 
-      // Recycle: find a new position AHEAD past the fog, no cluster constraint
+      // recycle ahead
       const oldPos = item.position.clone();
       globalGrid.remove(item.position);
       let newPos: THREE.Vector3 | null = null;
@@ -427,9 +412,7 @@ function TreadmillTombstones({
   );
 }
 
-// ─── TOMBSTONE TEXT ────────────────────────────────────────────────────────────
-// LOD: text rendered only for stones within LOD_TEXT_DIST — massive GPU savings.
-// Checked every 5 frames via throttled useFrame, not every frame.
+// tombstone text
 
 function TombstoneText({ hoveredId, items, projects }: {
   hoveredId: number | null;
@@ -487,9 +470,7 @@ function TombstoneText({ hoveredId, items, projects }: {
   );
 }
 
-// ─── CINEMATIC ENGRAVED TEXT ──────────────────────────────────────────────────
-// Full hierarchy: Name, Born/Died, Epitaph, "Rest in Code."
-// Rendered on BOTH sides of the stone for maximum readability
+// engraved text
 
 function TombstoneTextItem({ isHovered, item, project }: {
   isHovered: boolean;
@@ -529,7 +510,7 @@ function TombstoneTextItem({ isHovered, item, project }: {
   const backZ = new THREE.Vector3(0, 0, -item.scale.z * 0.11).applyQuaternion(item.quaternion);
   const upOffset = new THREE.Vector3(0, item.scale.y * 0.42, 0);
   const frontPos = item.position.clone().add(frontZ).add(upOffset);
-  // Back face: rotated 180° around Y
+  // back face
   const backQuat = item.quaternion.clone().multiply(
     new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0))
   );
@@ -537,7 +518,7 @@ function TombstoneTextItem({ isHovered, item, project }: {
 
   const sx = item.scale.x;
   const isResurrected = project.status === "RESURRECTED";
-  // Emissive tint: electric blue for normal, divine gold for resurrected
+  // emissive tint
   const nameEmissive = isResurrected ? "#fcd34d" : "#60a5fa"; // Highly saturated for bloom
   const dateEmissive = isResurrected ? "#facc15" : "#3b82f6";
   const quoteEmissive = isResurrected ? "#eab308" : "#2563eb";
@@ -569,7 +550,7 @@ function TombstoneTextItem({ isHovered, item, project }: {
         </Text>
       </group>
 
-      {/* ── BACK FACE — mirrored text, same animated refs ── */}
+      {/* back face */}
       <group position={backPos} quaternion={backQuat} scale={sx}>
         <Text position={[0, 0.22, 0]} fontSize={0.08} maxWidth={0.5} textAlign="center" anchorX="center" anchorY="middle" letterSpacing={0.02} fontWeight={700}>
           <meshStandardMaterial ref={nameRefB} toneMapped={false} color="#0a1020" emissive={nameEmissive} emissiveIntensity={0.6} roughness={1} metalness={0} depthWrite={false} polygonOffset polygonOffsetFactor={-4} polygonOffsetUnits={-4} />
@@ -598,7 +579,7 @@ function CinematicMoonLight() {
   const dirRef = useRef<THREE.DirectionalLight>(null);
   const moonRef = useRef<THREE.Group>(null);
 
-  // Fixed cinematic offset from camera — high-left rear angle
+  // camera offset
   const OFFSET = useMemo(() => new THREE.Vector3(-35, 28, 55), []);
   const MOON_OFFSET = useMemo(() => new THREE.Vector3(-25, 22, 55), []);
 
@@ -686,7 +667,7 @@ function GroundFog() {
     if (mat1.current) mat1.current.uniforms.time.value = t;
     if (mat2.current) mat2.current.uniforms.time.value = t + 30;
     if (groupRef.current) {
-      // Snap to camera position in chunks to avoid jitter, or just follow smoothly
+      // snap camera
       groupRef.current.position.x = Math.round(camera.position.x);
       groupRef.current.position.z = Math.round(camera.position.z);
     }
@@ -763,7 +744,7 @@ function GrassChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
       const z = oz + (Math.random() - 0.5) * CHUNK_SIZE;
       const n = simplex.noise(x * 0.15, z * 0.15);
       if (n < -0.3) {
-        // empty patch — place a dummy identity matrix
+        // empty patch
         dummy.position.set(x, -100, z); // sink below ground
         dummy.scale.set(0, 0, 0);
         dummy.updateMatrix();
@@ -796,8 +777,7 @@ function GrassChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
   );
 }
 
-// ─── SEAMLESS GROUND TERRAIN ──────────────────────────────────────────────────────
-// Dynamically tracking mesh that deforms its vertices to exactly match getTerrainHeight.
+// seamless ground
 // This ensures the ground is bumpy and physically aligned with all grass and tombstones.
 
 const GROUND_PLANE_SIZE = 140; // Beyond FOG_FAR (36 * 2)
@@ -819,7 +799,7 @@ function SeamlessGround() {
       meshRef.current.position.x = cx;
       meshRef.current.position.z = cz;
       
-      // Deform vertices to match procedural height perfectly
+      // deform vertices
       const posAttr = geomRef.current.attributes.position;
       for (let i = 0; i < posAttr.count; i++) {
         const localX = posAttr.getX(i);
@@ -869,9 +849,9 @@ function InfiniteWorld() {
 
   return (
     <group>
-      {/* Seamless ground — single giant tracked plane, zero seams */}
+      {/* seamless ground */}
       <SeamlessGround />
-      {/* Grass + bush detail chunks on top */}
+      {/* grass and bushes */}
       {chunks.map(({ cx, cz }) => (
         <group key={`${cx},${cz}`}>
           <GrassChunk chunkX={cx} chunkZ={cz} />
@@ -882,9 +862,7 @@ function InfiniteWorld() {
   );
 }
 
-// ─── PROCEDURAL BUSH CLUSTERS ──────────────────────────────────────────────────
-// Low dark silhouette bushes scattered naturally across the terrain
-// Adds life and atmosphere without visual clutter
+// bush clusters
 
 function BushChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
   const ox = chunkX * CHUNK_SIZE;
@@ -892,7 +870,7 @@ function BushChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
   const BUSH_COUNT = 40;
 
   const bushGeo = useMemo(() => {
-    // Simple bush: 2-3 merged spheres for organic silhouette
+    // simple bush
     const s1 = new THREE.SphereGeometry(0.5, 6, 5);
     const s2 = new THREE.SphereGeometry(0.38, 6, 5); s2.translate(0.35, 0.15, 0.2);
     const s3 = new THREE.SphereGeometry(0.3, 6, 5); s3.translate(-0.3, 0.1, -0.15);
@@ -908,7 +886,7 @@ function BushChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
     for (let i = 0; i < BUSH_COUNT; i++) {
       const x = ox + (Math.random() - 0.5) * CHUNK_SIZE;
       const z = oz + (Math.random() - 0.5) * CHUNK_SIZE;
-      // Only place bushes in certain noise bands (natural clustering)
+      // bush clustering
       const n = simplex.noise(x * 0.06, z * 0.06);
       if (n < 0.15 || n > 0.55) continue;
       const y = getTerrainHeight(x, z);
@@ -927,7 +905,7 @@ function BushChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
   );
 }
 
-// ─── WASD CONTROLS ────────────────────────────────────────────────────────────
+// wasd controls
 
 function WASDControls({
   controlsRef,
@@ -948,7 +926,7 @@ function WASDControls({
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
   }, []);
 
-  // Timer: banner stays visible for 3 seconds after last boundary touch
+  // banner timer
   const bannerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const _WASD_fwd = useMemo(() => new THREE.Vector3(), []);
@@ -978,7 +956,7 @@ function WASDControls({
       
       const objPos = controlsRef.current.object.position;
       
-      // Calculate separate X and Z movements for sliding collision
+      // xz collision
       _WASD_moveX.copy(_WASD_move); _WASD_moveX.z = 0;
       _WASD_moveZ.copy(_WASD_move); _WASD_moveZ.x = 0;
 
@@ -987,7 +965,7 @@ function WASDControls({
 
       _WASD_finalPos.copy(objPos);
 
-      // Camera collision with tombstones (radius 2.5 units)
+      // camera collision
       if (!globalGrid.hasNeighborWithin(_WASD_newPosX.x, _WASD_newPosX.z, 2.5)) {
         _WASD_finalPos.x = _WASD_newPosX.x;
       }
@@ -995,7 +973,7 @@ function WASDControls({
         _WASD_finalPos.z = _WASD_newPosZ.z;
       }
       
-      // Clamp inside boundary box in ALL directions
+      // clamp boundary
       let clamped = false;
       if (boundary) {
         if (_WASD_finalPos.x < boundary.minX) { _WASD_finalPos.x = boundary.minX; clamped = true; }
@@ -1004,7 +982,7 @@ function WASDControls({
         if (_WASD_finalPos.z > boundary.maxZ) { _WASD_finalPos.z = boundary.maxZ; clamped = true; }
       }
 
-      // Show banner immediately on boundary hit; hide after 3 seconds of no touch
+      // show banner
       if (clamped) {
         setAtBoundary(true);
         if (bannerTimer.current) clearTimeout(bannerTimer.current);
@@ -1021,7 +999,7 @@ function WASDControls({
   return null;
 }
 
-// ─── EXHAUSTION BANNER ────────────────────────────────────────────────────────
+// exhaustion banner
 
 function BoundaryBanner({ atBoundary }: { atBoundary: boolean }) {
   return (
@@ -1069,7 +1047,7 @@ function BoundaryBanner({ atBoundary }: { atBoundary: boolean }) {
   );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// main component
 
 interface OriginalGraveyardCanvasProps {
   projects: Project[];
@@ -1083,21 +1061,18 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [atBoundary, setAtBoundary] = useState(false);
 
-  // ── Filter / search / sort state ────────────────────────────────
+  // filters
   const [filters, setFilters] = useState<GraveyardFilters>({
     search: '',
     techs: [],
     sort: 'trending',
   });
 
-  /**
-   * Filter projects based on search query and tech selection.
-   * Sort is applied after filtering.
-   */
+  // filter projects
   const filteredProjects = useMemo(() => {
     let result = [...projects];
 
-    // Search: match name or quote
+    // search
     if (filters.search.trim()) {
       const q = filters.search.toLowerCase();
       result = result.filter(
@@ -1107,7 +1082,7 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
       );
     }
 
-    // Sort
+    // sort
     if (filters.sort === 'newest') {
       result = result.sort((a, b) => b.diedAt - a.diedAt);
     } else if (filters.sort === 'oldest') {
@@ -1115,44 +1090,39 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
     } else if (filters.sort === 'most_connections') {
       result = result.sort((a, b) => b.soulConnections - a.soulConnections);
     }
-    // 'trending' = default order
+    // default order
 
     return result;
   }, [projects, filters]);
 
-  // ── Filter transition: flash the black overlay then remount treadmill ──
-  // When filteredProjects changes (user applied a filter) we:
-  //   1. Instantly show the black screen (same one used on initial load)
-  //   2. Increment filterKey after 350 ms — React remounts <TreadmillTombstones>
-  //      which re-initialises ALL tombstones with the new filtered array
-  //   3. After another 150 ms, clear isFiltering so the overlay fades out
+  // filter transition
   const [filterKey, setFilterKey] = useState(0);
   const [isFiltering, setIsFiltering] = useState(false);
   const isFirstRender = useRef(true);
   const filterTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  // Tracks whether the CURRENT fade-out is from a filter change (1.2s) vs initial load (1.8s)
+  // filter fade
   const isFilterFade = useRef(false);
 
   useEffect(() => {
-    // Skip the very first render — initial load is handled by `loaded` state
+    // skip first render
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
 
-    // Clear any in-flight timers from a rapid filter change
+    // clear timers
     filterTimers.current.forEach(clearTimeout);
     filterTimers.current = [];
 
-    // Step 1: close stale sidebar + show black screen immediately
+    // show black screen
     setSelectedProjectId(null);
     setIsFiltering(true);
-    isFilterFade.current = true; // mark this as a filter-triggered fade
+    isFilterFade.current = true; // filter fade
 
-    // Step 2: remount the treadmill (globalGrid.clear() runs in its cleanup)
+    // remount treadmill
     const t1 = setTimeout(() => setFilterKey((k) => k + 1), 350);
 
-    // Step 3: fade overlay out after treadmill has initialised
+    // fade overlay
     const t2 = setTimeout(() => setIsFiltering(false), 500);
 
     filterTimers.current = [t1, t2];
@@ -1168,10 +1138,10 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#030611", overflow: "hidden", position: "relative" }}>
 
-      {/* Glassmorphic header with filter/search/sort */}
+      {/* header */}
       <GraveyardHeader filters={filters} onChange={setFilters} />
 
-      {/* Filtered count notice */}
+      {/* filtered count */}
       {(filters.search || filters.techs.length > 0) && (
         <div
           className="pointer-events-none absolute bottom-8 left-1/2 z-40 -translate-x-1/2"
@@ -1202,43 +1172,43 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
       >
         <BakeShadows />
 
-        {/* Layered fog — clear zone 0–8, graceful fade 8–28, wall at 28 */}
+        {/* layered fog */}
         <color attach="background" args={["#04060d"]} />
         <fog attach="fog" args={["#050814", FOG_NEAR, FOG_FAR]} />
 
-        {/* Ambient hemisphere */}
+        {/* ambient light */}
         <hemisphereLight args={["#1e2a4f", "#060912", 0.45]} />
 
-        {/* Accent fill lights (world-space, always close enough with fog) */}
+        {/* accent lights */}
         <pointLight position={[-8, 0.2, -10]} intensity={1.5} distance={9} color="#45548a" />
         <pointLight position={[12, 0.3, -15]} intensity={1.2} distance={11} color="#5a378a" />
 
-        {/* Cinematic rim (purple) */}
+        {/* cinematic rim */}
         <directionalLight position={[-30, 20, 60]} color="#6b409c" intensity={1.0} />
 
-        {/* Moon + directional moonbeam — both track camera */}
+        {/* moonlight */}
         <CinematicMoonLight />
 
-        {/* Volumetric ground fog layers */}
+        {/* ground fog */}
         <GroundFog />
 
-        {/* Seamless terrain + grass detail */}
+        {/* terrain */}
         <InfiniteWorld />
 
-        {/* Dark path strip */}
+        {/* path strip */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
           <planeGeometry args={[3, 80]} />
           <meshStandardMaterial color="#05070a" transparent opacity={0.5} roughness={0.9} />
         </mesh>
 
-        {/* Treadmill tombstones — key forces full remount when filter changes */}
+        {/* tombstones */}
         <TreadmillTombstones
           key={filterKey}
           onSelectProject={setSelectedProjectId}
           projects={filteredProjects}
         />
 
-        {/* Camera-attached exploration light */}
+        {/* camera light */}
         <CinematicCameraLight />
 
 
@@ -1263,12 +1233,7 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
         </EffectComposer>
       </Canvas>
 
-      {/* Black overlay — used for initial load and filter transitions.
-           Variants control the direction separately:
-             · 'visible'  → opacity:1, duration:0   (instant snap to black)
-             · 'hidden'   → opacity:0, duration:1.2 (cinematic fade-out)
-           Initial load uses the same 'visible'→'hidden' path, just slower (1.8s).
-      */}
+      {/* black overlay */}
       <motion.div
         className="pointer-events-none absolute inset-0 z-50 bg-[#030611]"
         initial="visible"

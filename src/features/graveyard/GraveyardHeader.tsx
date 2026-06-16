@@ -143,13 +143,13 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
   const [sortOpen, setSortOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
 
-  // `draft` tracks what the user is typing — only committed to filters.search on Enter
+  // search draft
   const [draft, setDraft] = useState('');
 
   const searchRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on outside click; collapse search bar if nothing was committed
+  // outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -165,7 +165,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [filters.search]);
 
-  // Focus input and pre-fill with committed search when bar opens
+  // focus input
   useEffect(() => {
     if (searchExpanded) {
       setDraft(filters.search);
@@ -174,7 +174,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchExpanded]);
 
-  /* Commit draft to filters (triggers tombstone transition) */
+  // commit search
   const commitSearch = useCallback(() => {
     const trimmed = draft.trim();
     if (trimmed !== filters.search) {
@@ -182,13 +182,13 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
     }
   }, [draft, filters, onChange]);
 
-  /* Clear both draft and committed search */
+  // clear search
   const clearSearch = useCallback(() => {
     setDraft('');
     if (filters.search) onChange({ ...filters, search: '' });
   }, [filters, onChange]);
 
-  /* Collapse the search bar (keep committed search active as a dot indicator) */
+  // collapse search
   const collapseSearch = useCallback(() => {
     setSearchExpanded(false);
     setDraft('');
@@ -212,7 +212,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
 
   const activeFiltersCount = filters.techs.length + (filters.search ? 1 : 0);
 
-  /* Shared button styles */
+  // btn styles
   const btnBase =
     'relative flex items-center gap-2 rounded-xl border border-white/[0.1] bg-[#07090f]/60 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.2] hover:text-foreground/80 hover:bg-white/[0.06]';
   const btnActive =
@@ -220,7 +220,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
 
   const currentSort = SORT_OPTIONS.find((s) => s.value === filters.sort)!;
 
-  // Show "↵ Enter" hint only when draft has text that hasn't been committed yet
+  // show enter hint
   const showEnterHint = draft.trim().length > 0 && draft.trim() !== filters.search;
 
   return (
@@ -247,7 +247,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
           </AnimatePresence>
         </div>
 
-        {/* ── Center: Search — fires on Enter only ── */}
+        {/* center search */}
         <div className="relative">
           <AnimatePresence mode="wait" initial={false}>
             {searchExpanded ? (
@@ -275,17 +275,17 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
                     } else if (e.key === 'Escape') {
                       e.preventDefault();
                       if (draft) {
-                        // First Esc: clear draft (and committed search if any)
+                        // clear draft
                         clearSearch();
                       } else {
-                        // Second Esc (empty draft): collapse bar
+                        // collapse bar
                         collapseSearch();
                       }
                     }
                   }}
                 />
 
-                {/* "↵ Enter" hint when user has typed something new */}
+                {/* enter hint */}
                 <AnimatePresence>
                   {showEnterHint && (
                     <motion.span
@@ -301,7 +301,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
                   )}
                 </AnimatePresence>
 
-                {/* Single X button — clears if there's text, collapses if empty */}
+                {/* x btn */}
                 <button
                   onClick={() => {
                     if (draft || filters.search) {
@@ -327,7 +327,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
               >
                 <Search className="h-3.5 w-3.5" />
                 <span>Search</span>
-                {/* Purple dot = active committed search */}
+                {/* active search dot */}
                 {filters.search && <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />}
               </motion.button>
             )}
@@ -349,7 +349,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
           </AnimatePresence>
         </div>
 
-        {/* Active filter badge — clears all, hidden while search bar is open */}
+        {/* active filter badge */}
         <AnimatePresence>
           {activeFiltersCount > 0 && !searchExpanded && (
             <motion.button

@@ -1,7 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 import { motion } from 'framer-motion';
 
-// Define cinematic visual configurations for each of the 5 stages
+// stage configs
 const STAGE_CONFIGS = {
   0: { // Born
     baseColor: "rgba(255, 255, 255, 1)",
@@ -66,7 +66,7 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
 
   return (
     <div className="relative flex items-center justify-center">
-      {/* Cinematic Aura / Pulse (Only when active and alive) */}
+      {/* cinematic aura */}
       {isActive && config.pulseDuration > 0 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -77,7 +77,7 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
         />
       )}
       
-      {/* Enlarged Cinematic Node Body */}
+      {/* node body */}
       <motion.div 
         animate={{ 
           borderColor: isActive ? config.baseColor : isPast ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.05)",
@@ -90,7 +90,7 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
           {data.label}
         </span>
         
-        {/* Sub-label for extra technical aesthetics */}
+        {/* sub label */}
         <motion.div 
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: isActive ? 1 : 0, height: isActive ? 'auto' : 0 }}
