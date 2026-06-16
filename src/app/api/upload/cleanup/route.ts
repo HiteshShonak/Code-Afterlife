@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { deleteCloudinaryImages } from '@/lib/cloudinary.server';
 
-/**
- * POST /api/upload/cleanup
- * Deletes a list of Cloudinary public_ids as orphan cleanup.
- * Called when project creation fails AFTER images were already uploaded.
- *
- * Body: { publicIds: string[] }
- * Only the authenticated user can trigger cleanup (prevents abuse).
- */
+// delete orphaned images
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {

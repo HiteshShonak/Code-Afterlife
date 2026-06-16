@@ -5,11 +5,7 @@ import { requireAuth } from '@/lib/auth-guard';
 import { socialService } from '@/services/social.service';
 import { createCommentSchema } from '@/schemas/comment.schema';
 
-/**
- * GET /api/projects/[id]/comments
- * List comments, newest first, cursor-paginated.
- * Query: ?cursor=<commentId>
- */
+// get comments
 export const GET = asyncHandler(async (req: NextRequest, ctx?: RouteContext) => {
   const { id: projectId } = await ctx!.params;
   const cursor = req.nextUrl.searchParams.get('cursor') ?? undefined;
@@ -18,11 +14,7 @@ export const GET = asyncHandler(async (req: NextRequest, ctx?: RouteContext) => 
   return apiResponse.success(result);
 });
 
-/**
- * POST /api/projects/[id]/comments
- * Create a comment. Requires auth.
- * Body: { content: string }
- */
+// create comment
 export const POST = asyncHandler(async (req: NextRequest, ctx?: RouteContext) => {
   const user = await requireAuth();
   const { id: projectId } = await ctx!.params;

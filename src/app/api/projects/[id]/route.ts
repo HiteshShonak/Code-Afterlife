@@ -7,7 +7,7 @@ import { projectService } from '@/services/project.service';
 import { updateProjectSchema } from '@/schemas/project.schema';
 import { getHealthBucket } from '@/lib/health-calculator';
 
-/** Get full project detail with health bucket info. */
+// get project details
 export const GET = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
     const { id } = await context!.params;
@@ -23,7 +23,7 @@ export const GET = asyncHandler(
   }
 );
 
-/** Update project metadata. Requires ownership. */
+// update project
 export const PATCH = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
     const { id } = await context!.params;

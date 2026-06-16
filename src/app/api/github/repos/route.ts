@@ -16,7 +16,7 @@ export interface GithubRepoItem {
   isPrivate: boolean;
 }
 
-/** Returns the authenticated user's own GitHub repositories, sorted by most recently updated. */
+// get user repos
 export const GET = asyncHandler(async (_request: NextRequest) => {
   const user = await requireAuth();
 

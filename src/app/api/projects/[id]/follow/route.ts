@@ -4,11 +4,7 @@ import { asyncHandler, type RouteContext } from '@/lib/async-handler';
 import { requireAuth } from '@/lib/auth-guard';
 import { socialService } from '@/services/social.service';
 
-/**
- * POST /api/projects/[id]/follow
- * Toggle following a project. Auth required.
- * Returns: { following: boolean }
- */
+// toggle follow
 export const POST = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const user = await requireAuth();
   const { id: projectId } = await ctx!.params;
@@ -17,10 +13,7 @@ export const POST = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) =
   return apiResponse.success(result, result.following ? 'Following project' : 'Unfollowed project');
 });
 
-/**
- * GET /api/projects/[id]/follow
- * Returns whether the current user follows this project.
- */
+// get follow status
 export const GET = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const { id: projectId } = await ctx!.params;
 

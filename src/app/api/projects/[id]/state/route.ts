@@ -9,10 +9,7 @@ import type { ProjectState } from '@prisma/client';
 
 /* ── AI-generated death reason (optional, best-effort) ─────────────────── */
 
-/**
- * Asks Groq to write a short cinematic epitaph based on the project's details.
- * Falls back gracefully to null if the API key is missing or the call fails.
- */
+// generate epitaph
 async function generateDeathReason(
   title: string,
   description: string | null,
@@ -63,7 +60,7 @@ Return ONLY the sentence. No quotes. No punctuation after the period. No explana
 
 /* ── Route handler ─────────────────────────────────────────────────────── */
 
-/** Transition a project to a new lifecycle state. Validates ownership and state machine rules. */
+// update state
 export const PATCH = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
     const { id } = await context!.params;

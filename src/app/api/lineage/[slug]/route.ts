@@ -5,7 +5,7 @@ import { asyncHandler, type RouteContext } from '@/lib/async-handler';
 import { projectService } from '@/services/project.service';
 import { lineageService } from '@/services/lineage.service';
 
-/** Get the lineage tree and React Flow graph for a project by slug. */
+// get lineage
 export const GET = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
     const { slug } = await context!.params;

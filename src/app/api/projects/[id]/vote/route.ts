@@ -10,12 +10,7 @@ const voteSchema = z.object({
   vote: z.enum(['WILL_SHIP', 'WILL_DIE']),
 });
 
-/**
- * POST /api/projects/[id]/vote
- * Cast or toggle a vote (WILL_SHIP | WILL_DIE).
- * - Same vote again → removes it
- * - Different vote → changes to new type
- */
+// cast vote
 export const POST = asyncHandler(async (req: NextRequest, ctx?: RouteContext) => {
   const user = await requireAuth();
   const { id: projectId } = await ctx!.params;
@@ -26,10 +21,7 @@ export const POST = asyncHandler(async (req: NextRequest, ctx?: RouteContext) =>
   return apiResponse.success(result, 'Vote recorded');
 });
 
-/**
- * GET /api/projects/[id]/vote
- * Returns vote stats + user's current vote (or null if unauth).
- */
+// get vote stats
 export const GET = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const { id: projectId } = await ctx!.params;
 

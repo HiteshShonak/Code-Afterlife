@@ -6,7 +6,7 @@ import { projectService } from '@/services/project.service';
 import { createProjectSchema } from '@/schemas/project.schema';
 import type { ProjectState } from '@prisma/client';
 
-/** List all projects, optionally filtered by state or userId. */
+// list projects
 export const GET = asyncHandler(async (request: NextRequest) => {
   const { searchParams } = request.nextUrl;
   const state = searchParams.get('state') as ProjectState | null;
@@ -20,7 +20,7 @@ export const GET = asyncHandler(async (request: NextRequest) => {
   return apiResponse.success(projects);
 });
 
-/** Create a new project. Requires authentication. */
+// create project
 export const POST = asyncHandler(async (request: NextRequest) => {
   const user = await requireAuth();
   const body = await request.json();

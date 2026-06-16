@@ -5,7 +5,7 @@ import { healthService } from '@/services/health.service';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env';
 
-/** Recalculate all project health scores. Protected by CRON_SECRET. */
+// recalculate health
 export const POST = asyncHandler(async (request: NextRequest) => {
   const authHeader = request.headers.get('authorization');
   const expectedToken = `Bearer ${env.CRON_SECRET}`;

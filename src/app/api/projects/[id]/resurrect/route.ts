@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth-guard';
 import { resurrectionService } from '@/services/resurrection.service';
 import { resurrectProjectSchema } from '@/schemas/project.schema';
 
-/** Resurrect a dead project. Creates a new child project with lineage link. */
+// resurrect project
 export const POST = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
     const { id } = await context!.params;

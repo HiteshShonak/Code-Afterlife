@@ -5,10 +5,7 @@ import { asyncHandler, type RouteContext } from '@/lib/async-handler';
 import { requireAuth } from '@/lib/auth-guard';
 import { socialService } from '@/services/social.service';
 
-/**
- * DELETE /api/projects/[id]/comments/[commentId]
- * Delete a comment. Only the comment author can delete their own comment.
- */
+// delete comment
 export const DELETE = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const user = await requireAuth();
   const { commentId } = await ctx!.params;

@@ -5,11 +5,7 @@ import { asyncHandler, type RouteContext } from '@/lib/async-handler';
 import { requireAuth } from '@/lib/auth-guard';
 import { socialService } from '@/services/social.service';
 
-/**
- * POST /api/projects/[id]/like
- * Toggle like/unlike for the authenticated user.
- * Returns: { liked: boolean; likeCount: number }
- */
+// toggle like
 export const POST = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const user = await requireAuth();
   const { id: projectId } = await ctx!.params;
@@ -18,11 +14,7 @@ export const POST = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) =
   return apiResponse.success(result, result.liked ? 'Liked' : 'Unliked');
 });
 
-/**
- * GET /api/projects/[id]/like
- * Returns whether the current user has liked this project.
- * Returns { liked: false } for unauthenticated users.
- */
+// get like status
 export const GET = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const { id: projectId } = await ctx!.params;
 
