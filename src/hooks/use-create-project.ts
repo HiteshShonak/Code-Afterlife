@@ -26,12 +26,7 @@ const INITIAL: FormState = {
   stack:       [],
 };
 
-/**
- * Encapsulates create-project form state and submission logic.
- * Screenshots are managed externally by the ImageUploader component
- * and passed in via screenshotUrls at submit time.
- * Orphan cleanup is called if the server action fails after upload.
- */
+// create project hook
 export function useCreateProject(onSuccess: () => void) {
   const router  = useRouter();
   const [form, setForm]               = useState<FormState>(INITIAL);
@@ -54,17 +49,12 @@ export function useCreateProject(onSuccess: () => void) {
     []
   );
 
-  /**
-   * Register the cleanup function from ImageUploader.
-   * Called if project creation fails after images are uploaded.
-   */
+  // register cleanup
   const registerCleanup = useCallback((fn: () => Promise<void>) => {
     cleanupRef.current = fn;
   }, []);
 
-  /**
-   * Submit the form. screenshotUrls comes from ImageUploader's current state.
-   */
+  // submit form
   const submit = useCallback((screenshotUrls: string[]) => {
     setServerError(null);
 
@@ -84,7 +74,7 @@ export function useCreateProject(onSuccess: () => void) {
         router.push(`/project/${result.data.slug}`);
         router.refresh();
       } else {
-        // Project creation failed — delete uploaded images (orphan cleanup)
+        // orphan cleanup
         if (screenshotUrls.length > 0 && cleanupRef.current) {
           await cleanupRef.current();
         }

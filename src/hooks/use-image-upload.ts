@@ -6,30 +6,27 @@ import { compressToWebP, formatFileSize } from '@/lib/compress-image';
 export type UploadStatus = 'idle' | 'compressing' | 'uploading' | 'done' | 'error';
 
 export interface UploadedImage {
-  /** Cloudinary delivery URL for display */
+  // url
   url:           string;
-  /** Cloudinary public_id — needed for orphan cleanup */
+  // public id
   publicId:      string;
-  /** Local preview ObjectURL pointing at the compressed WebP blob */
+  // preview
   preview:       string;
-  /** Original filename (pre-compression) */
+  // name
   name:          string;
   status:        UploadStatus;
-  /** Original file size before compression */
+  // size
   originalSize?: number;
-  /** Compressed file size (WebP) — shown in UI for feedback */
+  // comp size
   compressedSize?: number;
   error?:        string;
 }
 
-// Pre-validation limits (applied BEFORE compression)
+// pre validate limits
 const MAX_RAW_SIZE_MB = 20;           // 20MB raw input is the absolute ceiling
 const ALLOWED_TYPES   = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-/**
- * Upload a single (already-compressed) file to Cloudinary via signed upload.
- * Gets a fresh signature from our API before each upload.
- */
+// upload to cloudinary
 async function uploadToCloudinary(file: File): Promise<{ url: string; publicId: string }> {
   const sigRes = await fetch('/api/upload/sign');
   if (!sigRes.ok) throw new Error('Failed to get upload signature');
@@ -57,10 +54,7 @@ async function uploadToCloudinary(file: File): Promise<{ url: string; publicId: 
   return { url: data.secure_url, publicId: data.public_id };
 }
 
-/**
- * Fire-and-forget orphan cleanup.
- * Deletes Cloudinary images when project creation fails after upload.
- */
+// cleanup orphans
 async function cleanupOrphans(publicIds: string[]): Promise<void> {
   if (!publicIds.length) return;
   try {
@@ -70,22 +64,11 @@ async function cleanupOrphans(publicIds: string[]): Promise<void> {
       body:    JSON.stringify({ publicIds }),
     });
   } catch {
-    // Fail silently — orphan cleanup must never block the user
+    // silent fail
   }
 }
 
-/**
- * Manages up to N image uploads for the create project modal.
- *
- * Pipeline per file:
- *   1. Validate type + raw size
- *   2. Compress to WebP locally (Canvas API, 1440×1080 max, quality 0.82)
- *   3. Show compressed preview
- *   4. Upload compressed WebP directly to Cloudinary
- *   5. Store returned URL + publicId
- *
- * Provides cleanup() for orphan deletion on project creation failure.
- */
+// image upload hook
 export function useImageUpload(maxImages = 5) {
   const [images, setImages] = useState<UploadedImage[]>([]);
 
@@ -96,7 +79,7 @@ export function useImageUpload(maxImages = 5) {
   const addFiles = useCallback(async (files: FileList | File[]) => {
     const fileArr = Array.from(files);
 
-    // ── 1. Pre-validation (type + raw size) ──
+    // pre validation
     const valid: File[]   = [];
     const errors: string[] = [];
 
@@ -113,21 +96,20 @@ export function useImageUpload(maxImages = 5) {
     }
 
     if (errors.length) {
-      // Non-blocking: surface first error as a toast-style alert
-      // (could be swapped for a proper toast system in Phase 2B)
+      // show error toast
       alert(errors.join('\n'));
     }
 
-    // Respect slot limit
+    // slot limit
     const slots     = maxImages - images.length;
     const toProcess = valid.slice(0, slots);
     if (!toProcess.length) return;
 
-    // ── 2. Register pending entries immediately (triggers progress UI) ──
+    // register pending
     const pending: UploadedImage[] = toProcess.map((file) => ({
       url:          '',
       publicId:     '',
-      preview:      URL.createObjectURL(file), // replaced with WebP preview after compression
+      preview:      URL.createObjectURL(file), // temp preview
       name:         file.name,
       originalSize: file.size,
       status:       'compressing' as const,
@@ -136,16 +118,16 @@ export function useImageUpload(maxImages = 5) {
     setImages((prev) => [...prev, ...pending]);
     const startIndex = images.length;
 
-    // ── 3. Compress + upload each file in parallel ──
+    // parallel upload
     await Promise.all(
       toProcess.map(async (rawFile, i) => {
         const idx = startIndex + i;
 
         try {
-          // ── Compression ──
+          // compress
           const compressed = await compressToWebP(rawFile);
 
-          // Update preview to the compressed WebP blob
+          // set preview
           const compressedPreview = URL.createObjectURL(compressed);
           updateImage(idx, {
             preview:        compressedPreview,
@@ -154,11 +136,10 @@ export function useImageUpload(maxImages = 5) {
             status:         'uploading',
           });
 
-          // ── Upload ──
+          // upload
           const { url, publicId } = await uploadToCloudinary(compressed);
 
-          // Revoke the old raw preview now that we have the Cloudinary URL
-          // (the compressed preview stays until the modal is closed)
+          // revoke raw preview
           updateImage(idx, { url, publicId, status: 'done' });
 
         } catch (err) {
@@ -186,7 +167,7 @@ export function useImageUpload(maxImages = 5) {
     });
   }, []);
 
-  /** Delete all uploaded images from Cloudinary. Call when project creation fails. */
+  // delete on fail
   const cleanup = useCallback(async () => {
     const publicIds = images
       .filter((img) => img.status === 'done' && img.publicId)

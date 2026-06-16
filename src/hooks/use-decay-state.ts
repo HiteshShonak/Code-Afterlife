@@ -4,10 +4,7 @@ import { useMemo } from 'react';
 import { getDecayState } from '@/lib/health-calculator';
 import type { DecayState } from '@/types/health';
 
-/**
- * Derives the decay state and health label from a numeric health score.
- * Memoized — only recalculates when `health` changes.
- */
+// decay state hook
 export function useDecayState(health: number): {
   decayState: DecayState;
   healthLabel: string;

@@ -12,10 +12,7 @@ interface ResurrectFormState {
   stack: string[];
 }
 
-/**
- * Form state and submission logic for resurrecting a dead project.
- * Separated from UI component per engineering-patterns rule 8 (hooks encapsulate state logic).
- */
+// resurrect project hook
 export function useResurrectProject(
   deadProjectId: string,
   deadProjectStack: string[],

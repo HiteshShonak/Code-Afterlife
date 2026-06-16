@@ -19,11 +19,7 @@ interface UseSearchFiltersReturn {
   reset:       () => void;
 }
 
-/**
- * URL-synced filter state for the Search page.
- * Reads initial state from URL search params so filters survive refresh
- * and are shareable as links.
- */
+// search filters hook
 export function useSearchFilters(): UseSearchFiltersReturn {
   const router      = useRouter();
   const pathname    = usePathname();

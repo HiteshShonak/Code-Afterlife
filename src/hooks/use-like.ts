@@ -2,18 +2,7 @@
 
 import { useState, useTransition } from 'react';
 
-/**
- * useLike — Optimistic like/unlike toggle.
- *
- * Pattern per engineering-patterns.md:
- *   - Optimistic update immediately on click
- *   - Reverts on server error
- *   - No full page reload
- *
- * @param projectId  - ID of the project (NOT slug)
- * @param initialLiked  - Server-rendered initial state
- * @param initialCount  - Server-rendered initial count
- */
+// use like hook
 export function useLike(
   projectId: string,
   initialLiked: boolean,
@@ -26,7 +15,7 @@ export function useLike(
   const toggle = () => {
     if (isPending) return;
 
-    // Optimistic update
+    // optim update
     const nextLiked = !liked;
     setLiked(nextLiked);
     setLikeCount((c) => c + (nextLiked ? 1 : -1));
@@ -36,11 +25,11 @@ export function useLike(
         const res = await fetch(`/api/projects/${projectId}/like`, { method: 'POST' });
         if (!res.ok) throw new Error('Like failed');
         const json = await res.json();
-        // Sync with server truth
+        // sync server truth
         setLiked(json.data.liked);
         setLikeCount(json.data.likeCount);
       } catch {
-        // Revert on error
+        // revert on error
         setLiked(!nextLiked);
         setLikeCount((c) => c + (nextLiked ? -1 : 1));
       }

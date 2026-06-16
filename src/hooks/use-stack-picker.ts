@@ -14,7 +14,7 @@ export function useStackPicker({ selected, onChange }: UseStackPickerProps) {
   const [query, setQuery]   = useState('');
   const inputRef            = useRef<HTMLInputElement>(null);
 
-  // Suggestions: filter full list by query, exclude already-selected
+  // get suggestions
   const suggestions = useMemo(() => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
@@ -23,7 +23,7 @@ export function useStackPicker({ selected, onChange }: UseStackPickerProps) {
       .slice(0, 8);
   }, [query, selected]);
 
-  // Whether the exact custom value is addable (not in list, not already selected)
+  // check add custom
   const canAddCustom = useMemo(() => {
     const trimmed = query.trim();
     if (!trimmed) return false;
@@ -58,11 +58,11 @@ export function useStackPicker({ selected, onChange }: UseStackPickerProps) {
       e.preventDefault();
       const trimmed = query.trim();
       if (!trimmed) return;
-      // If there's an exact match in suggestions, pick first
+      // add match
       if (suggestions.length > 0) {
         add(suggestions[0]);
       } else if (canAddCustom) {
-        add(trimmed); // add as custom
+        add(trimmed); // custom
       }
     }
     if (e.key === 'Backspace' && !query && selected.length > 0) {

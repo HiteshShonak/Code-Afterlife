@@ -4,11 +4,7 @@ import { useState, useTransition } from 'react';
 import type { VoteType } from '@prisma/client';
 import type { VoteStats } from '@/services/social.service';
 
-/**
- * useVote — Optimistic vote toggle (WILL_SHIP | WILL_DIE).
- * Clicking same vote type removes it.
- * Clicking different type changes the vote.
- */
+// use vote hook
 export function useVote(projectId: string, initialStats: VoteStats) {
   const [stats, setStats]        = useState<VoteStats>(initialStats);
   const [isPending, startTransition] = useTransition();
@@ -16,7 +12,7 @@ export function useVote(projectId: string, initialStats: VoteStats) {
   const castVote = (vote: VoteType) => {
     if (isPending) return;
 
-    // Optimistic update
+    // optim update
     const prev = stats;
     setStats((s) => {
       const isToggleOff = s.userVote === vote;
@@ -29,7 +25,7 @@ export function useVote(projectId: string, initialStats: VoteStats) {
           userVote: null,
         };
       }
-      // Change vote or add new vote
+      // update vote
       const removingOld  = s.userVote !== null;
       return {
         ...s,
@@ -55,7 +51,7 @@ export function useVote(projectId: string, initialStats: VoteStats) {
         const json = await res.json();
         setStats(json.data);
       } catch {
-        setStats(prev); // Revert
+        setStats(prev); // revert
       }
     });
   };

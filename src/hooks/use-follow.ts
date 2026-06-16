@@ -2,9 +2,7 @@
 
 import { useState, useTransition } from 'react';
 
-/**
- * useFollow — Optimistic project follow toggle.
- */
+// use follow hook
 export function useFollow(projectId: string, initialFollowing: boolean, initialFollowerCount: number = 0) {
   const [following, setFollowing] = useState(initialFollowing);
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
@@ -24,7 +22,7 @@ export function useFollow(projectId: string, initialFollowing: boolean, initialF
         const json = await res.json();
         setFollowing(json.data.following);
       } catch {
-        setFollowing(!next); // Revert
+        setFollowing(!next); // revert
         setFollowerCount(prev => !next ? prev + 1 : Math.max(0, prev - 1));
       }
     });

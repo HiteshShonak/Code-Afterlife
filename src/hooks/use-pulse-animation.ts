@@ -5,11 +5,7 @@ import { useAnimationControls } from 'framer-motion';
 import { ANIMATION_TIMING } from '@/config/animations';
 import type { DecayState } from '@/types/health';
 
-/**
- * Drives a looping pulse scale animation based on the project's decay state.
- * Thriving = fast pulse, Unstable = slow/weak pulse, Dead = no pulse.
- * Encapsulates animation logic so components stay lean.
- */
+// pulse anim hook
 export function usePulseAnimation(decayState: DecayState) {
   const controls = useAnimationControls();
   const prevState = useRef<DecayState | null>(null);
@@ -31,7 +27,7 @@ export function usePulseAnimation(decayState: DecayState) {
     controls.start({
       scale: [1, decayState === 'thriving' ? 1.08 : decayState === 'stable' ? 1.04 : 1.02, 1],
       transition: {
-        duration, // config stores seconds directly (Framer Motion convention)
+        duration, // in seconds
         repeat: Infinity,
         ease: 'easeInOut',
       },

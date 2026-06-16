@@ -21,15 +21,10 @@ interface UseGithubReposReturn {
   loading: boolean;
   error: string | null;
   errorType: RepoErrorType | null;
-  /** Call this when the Repository step becomes visible — lazy loads once */
-  load: () => void;
+  // load repos
 }
 
-/**
- * Lazily fetches the user's own GitHub repositories.
- * Only hits the API once per modal open; subsequent calls to `load()` are no-ops.
- * Returns structured error types so the UI can show targeted messages.
- */
+// get gh repos
 export function useGithubRepos(): UseGithubReposReturn {
   const [repos, setRepos] = useState<GithubRepoItem[]>([]);
   const [loading, setLoading] = useState(false);
