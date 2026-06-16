@@ -32,9 +32,9 @@ export function FinalCta() {
       ref={containerRef}
       className="relative overflow-hidden border-t border-border/60 px-6 pt-24 pb-20 md:pt-32 md:pb-28"
     >
-      {/* â”€â”€ BACKGROUND ATMOSPHERE â”€â”€ */}
+      {/* background atmosphere */}
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-        {/* Subtle Depth Glow â€” ultra-faint cold radial glow behind headline */}
+        {/* subtle depth glow */}
         <motion.div
           className="absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
@@ -48,7 +48,7 @@ export function FinalCta() {
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* Microscopic atmospheric motion â€” extremely slow moving faint noise/haze */}
+        {/* atmospheric motion */}
         <motion.div
           className="absolute inset-0"
           animate={{ x: [0, -20, 0], y: [0, 10, 0] }}
@@ -68,7 +68,7 @@ export function FinalCta() {
       </div>
 
       <div className="mx-auto flex flex-col items-center text-center">
-        {/* Headline container â€” narrowed by using max-w-4xl instead of max-w-5xl */}
+        {/* headline container */}
         <motion.div
           className="max-w-4xl"
           initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
@@ -81,14 +81,14 @@ export function FinalCta() {
           </h2>
         </motion.div>
 
-        {/* Buttons */}
+        {/* buttons */}
         <motion.div
           className="mt-16 flex flex-col items-center justify-center gap-4 md:flex-row md:gap-5"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 2.5, delay: 0.4, ease: CINEMATIC_EASE }}
         >
-          {/* Primary Button */}
+          {/* primary button */}
           <Link
             href="/graveyard"
             className="group relative inline-flex items-center gap-2 rounded-full bg-foreground px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-background transition-all duration-700 ease-out hover:-translate-y-[1px] hover:bg-[#f1f5f9] hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.15)]"
@@ -97,7 +97,7 @@ export function FinalCta() {
             <span className="transition-transform duration-700 ease-out group-hover:translate-x-1">→</span>
           </Link>
 
-          {/* Secondary Button */}
+          {/* secondary button */}
           <Link
             href="/explore"
             className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-transparent px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground transition-all duration-700 ease-out hover:-translate-y-[1px] hover:border-foreground/30 hover:bg-foreground/[0.02]"
@@ -106,7 +106,7 @@ export function FinalCta() {
           </Link>
         </motion.div>
 
-        {/* Randomized Philosophy Line */}
+        {/* randomized philosophy line */}
         <motion.div
           className="mt-12 md:mt-16"
           initial={{ opacity: 0 }}
@@ -116,7 +116,7 @@ export function FinalCta() {
           <p
             className="font-mono text-[11px] uppercase tracking-[0.35em]"
             style={{ 
-              color: "rgba(203,213,225,0.55)", // Brighter, more readable grey-blue
+              color: "rgba(203,213,225,0.55)",
               letterSpacing: "0.35em"
             }}
           >

@@ -29,7 +29,7 @@ export function CinematicSpacer({
         background: `linear-gradient(to bottom, ${topColor} 0%, ${bottomColor} 100%)`,
       }}
     >
-      {/* ── AMBIENT GLOW (The "Color Mixing") ── */}
+      {/* ambient glow */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={inView ? { opacity: 1, scale: 1 } : {}}
@@ -40,7 +40,7 @@ export function CinematicSpacer({
         }}
       />
 
-      {/* ── TINY SCROLL PARTICLES ── */}
+      {/* scroll particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
         {Array.from({ length: 6 }).map((_, i) => (
           <motion.div

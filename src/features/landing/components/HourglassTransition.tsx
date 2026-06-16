@@ -6,19 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
-/**
- * HourglassTransition — Scroll-Scrubbed Video
- *
- * TECHNIQUE: requestVideoFrameCallback + all-keyframe video
- *
- * Why this beats image sequences (203 JPEGs = 11MB):
- *  - Uses a single optimized WebM/MP4 (~1-2MB, 80% smaller)
- *  - Video is encoded with gop=1 so every frame is a keyframe
- *  - Browser can seek to ANY frame instantly, no decoding lag
- *  - requestVideoFrameCallback fires after each frame is decoded,
- *    letting us draw it to canvas for pixel-perfect timing
- *  - IntersectionObserver avoids loading until near viewport
- */
+// hourglass video transition
 export function HourglassTransition() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef   = useRef<HTMLVideoElement>(null);
@@ -28,7 +16,7 @@ export function HourglassTransition() {
     const video = videoRef.current;
     if (!video) return;
 
-    // 1. Setup ScrollTrigger for playing/pausing when in view
+    // setup scroll trigger
     const initScroll = () => {
       ScrollTrigger.create({
         trigger: sectionRef.current,
@@ -44,12 +32,11 @@ export function HourglassTransition() {
       });
     };
 
-    // 2. Setup IntersectionObserver to lazy-load the video
-    // This prevents the 1.9MB video from blocking initial page load
+    // setup intersection observer
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Preload the video when it gets within 1 viewport height
+          // preload video
           video.load();
           
           if (video.readyState >= 1) {
@@ -58,11 +45,11 @@ export function HourglassTransition() {
             video.addEventListener("loadedmetadata", initScroll, { once: true });
           }
           
-          // Unobserve once loaded
+          // unobserve
           observer.disconnect();
         }
       },
-      // Load it when it's 100% (one screen height) away
+      // root margin
       { rootMargin: "100% 0px" } 
     );
 
@@ -89,12 +76,12 @@ export function HourglassTransition() {
           className="absolute inset-0 block w-full h-full object-cover"
           muted
           playsInline
-          // Lazy loading optimization: don't load data until observer triggers
+          // lazy load
           preload="none" 
           style={{ filter: "brightness(0.9) contrast(1.05)" }}
         />
 
-        {/* Radial vignette */}
+        {/* vignette */}
         <div
           className="pointer-events-none absolute inset-0 z-10"
           style={{
@@ -102,12 +89,12 @@ export function HourglassTransition() {
           }}
         />
 
-        {/* Top edge blend → previous section */}
+        {/* top blend */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-32 z-20"
           style={{ background: "linear-gradient(to bottom, #030508 0%, transparent 100%)" }}
         />
-        {/* Bottom edge blend → next section */}
+        {/* bottom blend */}
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-32 z-20"
           style={{ background: "linear-gradient(to top, #030508 0%, transparent 100%)" }}

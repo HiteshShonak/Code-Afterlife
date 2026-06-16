@@ -9,18 +9,18 @@ import {
 } from "framer-motion";
 import { CINEMATIC_EASE } from "@/lib/utils/animation";
 
-// ─── DOMAIN TYPES ─────────────────────────────────────────────────────────────
+// types
 
-/** Scroll-driven awakening phase of the observatory (0=dormant 1=waking 2=alive) */
+// phase type
 type ObservatoryPhase = 0 | 1 | 2;
 
-/** Which scroll phase triggers a transmission's first appearance */
+// scroll reveal type
 type ScrollRevealPhase = 1 | 2;
 
-/** Waveform morphing path key */
+// waveform key type
 type WFKey = "dormant" | "waking" | "alive";
 
-/** A single floating transmission signal rendered around the orb */
+// transmission interface
 interface TransmissionConfig {
   readonly text: string;
   readonly sz: number;           // font-size in px
@@ -35,7 +35,7 @@ interface TransmissionConfig {
   readonly scrollReveal: ScrollRevealPhase;
 }
 
-/** A single ambient micro-particle drifting upward */
+// particle interface
 interface ParticleConfig {
   readonly l: string;    // CSS left
   readonly t: string;    // CSS top
@@ -47,104 +47,104 @@ interface ParticleConfig {
   readonly warm: boolean; // amber warm (true) vs cold grey (false)
 }
 
-/** Props shared by all phase-aware observatory sub-components */
+// phase props
 interface PhaseProps {
   phase: ObservatoryPhase;
 }
 
-/** Props for FloatingTransmission — extends the data shape so they stay in sync */
+// floating transmission props
 interface FloatingTransmissionProps extends TransmissionConfig {
   phase: ObservatoryPhase;
 }
 
-/** Props for LeftTypography */
+// left typography props
 interface LeftTypographyProps {
   inView: boolean;
 }
 
 const WF: Record<WFKey, string> = {
-  // Flat flatline — barely alive
+  // dormant
   dormant:
     "M0,25 C18,25 32,25 50,25 C68,25 82,25 100,25 C118,25 132,25 150,25 C168,25 182,25 200,25 C218,25 232,25 250,25 C268,25 282,25 300,25",
-  // Shallow imperfect wave — waking, irregular
+  // waking
   waking:
     "M0,25 C14,21 30,22 50,25 C71,28 83,31 100,25 C115,19 131,21 150,25 C170,29 184,30 200,25 C216,21 233,22 250,25 C269,28 283,29 300,25",
-  // Organic breathing wave — alive, not perfectly symmetric
+  // alive
   alive:
     "M0,25 C16,10 31,10 50,25 C70,40 84,41 100,25 C117,10 130,9 150,25 C171,41 185,40 200,25 C217,10 232,11 250,25 C271,40 284,39 300,25",
 };
 
-// ─── FLOATING TRANSMISSIONS ───────────────────────────────────────────────────
+// floating transmissions
 // Carefully designed for organic scatter — varying size, opacity, blur, timing.
 // scrollReveal: which scroll phase triggers appearance (1 = early, 2 = later)
 const TRANSMISSIONS: readonly TransmissionConfig[] = [
-  // Human signal — the emotional touch, almost invisible, drifts slowly
+  // human signal
   {
     text: "someone is still listening",
     sz: 10,    op: 0.28, blur: 0.4, dur: 26, delay: 0,   dy: -11, dx: 3,
     x: "12%", y: "58%", scrollReveal: 1,
   },
-  // Brighter: the first strong signal
+  // bright signal
   {
     text: "revival signal detected",
     sz: 11.5,  op: 0.55, blur: 0,   dur: 20, delay: 1.4, dy: -19, dx: 0,
     x: "68%", y: "16%", scrollReveal: 1,
   },
-  // Very faint, farther away
+  // faint signal
   {
     text: "archive movement observed",
     sz: 9.5,   op: 0.22, blur: 0.8, dur: 28, delay: 4.2, dy: -14, dx: -4,
     x: "82%", y: "72%", scrollReveal: 2,
   },
-  // Medium — nearby to core
+  // medium signal
   {
     text: "afterlife ai observing",
     sz: 10,    op: 0.35, blur: 0.2, dur: 18, delay: 2.8, dy: -17, dx: 0,
     x: "6%",  y: "34%", scrollReveal: 1,
   },
-  // Almost invisible — deep background
+  // deep background
   {
     text: "fork activity detected",
     sz: 9,     op: 0.18, blur: 1.2, dur: 32, delay: 6.0, dy: -9,  dx: 2,
     x: "56%", y: "88%", scrollReveal: 2,
   },
-  // Medium
+  // medium
   {
     text: "dormant project reacting",
     sz: 10.5,  op: 0.32, blur: 0,   dur: 22, delay: 3.6, dy: -22, dx: -2,
     x: "24%", y: "80%", scrollReveal: 2,
   },
-  // Slightly larger — feels closer
+  // closer
   {
     text: "weak pulse recovered",
     sz: 11,    op: 0.42, blur: 0,   dur: 17, delay: 0.8, dy: -16, dx: 0,
     x: "76%", y: "40%", scrollReveal: 1,
   },
-  // Tiny distant whisper
+  // distant whisper
   {
     text: "contributor echo detected",
     sz: 9,     op: 0.20, blur: 1.0, dur: 24, delay: 8.5, dy: -10, dx: 3,
     x: "44%", y: "6%",  scrollReveal: 2,
   },
-  // Partially buried low
+  // buried low
   {
     text: "signal stability increasing",
     sz: 10,    op: 0.26, blur: 0.3, dur: 30, delay: 5.5, dy: -13, dx: 0,
     x: "4%",  y: "72%", scrollReveal: 2,
   },
-  // Human metric — slightly clearer
+  // clear human metric
   {
     text: "482 builders responding to signal",
     sz: 10,    op: 0.34, blur: 0,   dur: 19, delay: 2.2, dy: -18, dx: -3,
     x: "62%", y: "54%", scrollReveal: 1,
   },
-  // Final — very faint, bottom-right
+  // final faint
   {
     text: "resurrection momentum increasing",
     sz: 9.5,   op: 0.20, blur: 0.6, dur: 25, delay: 9.5, dy: -12, dx: 1,
     x: "80%", y: "86%", scrollReveal: 2,
   },
-  // Tiny, very close to edge
+  // tiny edge
   {
     text: "a new contributor appeared",
     sz: 9,     op: 0.24, blur: 0.5, dur: 21, delay: 7.0, dy: -10, dx: -2,
@@ -152,7 +152,7 @@ const TRANSMISSIONS: readonly TransmissionConfig[] = [
   },
 ];
 
-// ─── AI WHISPER POOL ──────────────────────────────────────────────────────────
+// ai whispers
 const WHISPERS = [
   "architecture integrity remains stable",
   "community resonance detected",
@@ -166,7 +166,7 @@ const WHISPERS = [
   "core still intact after dormancy",
 ];
 
-// ─── AMBIENT PARTICLES ────────────────────────────────────────────────────────
+// ambient particles
 // Kept lean — 16 particles, deterministic positions, GPU-only (opacity + transform)
 const PARTICLES: readonly ParticleConfig[] = [
   { l:"7%",  t:"11%", s:1.0, op:0.038, dur:16, dl:0.0, rise:28, warm:false },
@@ -187,7 +187,7 @@ const PARTICLES: readonly ParticleConfig[] = [
   { l:"76%", t:"92%", s:1.1, op:0.036, dur:20, dl:2.9, rise:22, warm:false },
 ];
 
-// ─── CSS KEYFRAMES ────────────────────────────────────────────────────────────
+// keyframes
 // All ring animations are CSS-driven (no JS RAF) — GPU composited, zero CPU cost
 const KEYFRAMES = `
   @keyframes obs-ring-a { to { transform: rotate(360deg);  } }
@@ -222,11 +222,11 @@ const KEYFRAMES = `
   }
 `;
 
-// ─── OBSERVATORY ORB ──────────────────────────────────────────────────────────
+// observatory orb
 function ObservatoryOrb({ phase }: PhaseProps) {
   const CYAN = "#38bdf8";
 
-  // All values transition with the phase — treated as CSS targets via motion
+  // transition values
   const ringOp   = phase === 0 ? 0.05 : phase === 1 ? 0.15 : 0.26;
   const coreOp   = phase === 0 ? 0.10 : phase === 1 ? 0.42 : 0.78;
   const sweepOp  = phase === 0 ? 0.00 : phase === 1 ? 0.09 : 0.16;
@@ -241,7 +241,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
     <>
       <style suppressHydrationWarning>{KEYFRAMES}</style>
 
-      {/* Outer atmospheric halo — blurred, purely decorative */}
+      {/* outer halo */}
       <motion.div
         className="pointer-events-none absolute inset-0 rounded-full"
         style={{ inset: -40, filter: "blur(55px)", zIndex: 0 }}
@@ -249,7 +249,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
         transition={{ duration: 4.0, ease: "easeInOut" }}
       />
 
-      {/* Second softer inner halo — creates depth illusion */}
+      {/* inner halo */}
       <motion.div
         className="pointer-events-none absolute rounded-full"
         style={{
@@ -275,30 +275,30 @@ function ObservatoryOrb({ phase }: PhaseProps) {
         aria-hidden
       >
         <defs>
-          {/* Soft glow filter for rings and dots */}
+          {/* soft glow */}
           <filter id="obs-glow" x="-60%" y="-60%" width="220%" height="220%">
             <feGaussianBlur stdDeviation="3.5" result="b" />
             <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
-          {/* Heavier glow for core fill */}
+          {/* heavier glow */}
           <filter id="obs-softglow" x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="8" result="b" />
             <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
-          {/* Core gradient — breathing energy */}
+          {/* core gradient */}
           <radialGradient id="obs-core-grad" cx="50%" cy="42%" r="50%">
             <stop offset="0%"   stopColor={CYAN} stopOpacity={coreOp} />
             <stop offset="38%"  stopColor={CYAN} stopOpacity={coreOp * 0.28} />
             <stop offset="100%" stopColor={CYAN} stopOpacity="0" />
           </radialGradient>
-          {/* Slightly offset secondary core — creates internal movement illusion */}
+          {/* offset core */}
           <radialGradient id="obs-core-2" cx="56%" cy="56%" r="50%">
             <stop offset="0%"   stopColor={CYAN} stopOpacity={coreOp * 0.35} />
             <stop offset="100%" stopColor={CYAN} stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        {/* ── RING A — outermost, very slow CW, slightly dashed ── */}
+        {/* ring a */}
         <motion.circle
           className="obs-ring-a"
           cx="200" cy="200" r="182"
@@ -311,7 +311,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           transition={{ duration: 3.0 }}
         />
 
-        {/* ── RING B — mid, slow CCW — different dash rhythm for organic feel ── */}
+        {/* ring b */}
         <motion.circle
           className="obs-ring-b"
           cx="200" cy="200" r="150"
@@ -324,7 +324,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           transition={{ duration: 3.0 }}
         />
 
-        {/* ── RING C — inner, slow CW, pulsing opacity ── */}
+        {/* ring c */}
         <motion.circle
           className="obs-ring-c"
           cx="200" cy="200" r="118"
@@ -345,7 +345,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           }}
         />
 
-        {/* ── SOLID INNER RING — breathing slowly ── */}
+        {/* inner ring */}
         <motion.circle
           cx="200" cy="200" r="84"
           fill="none"
@@ -364,7 +364,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           }}
         />
 
-        {/* ── RADAR SWEEP — subconscious, extremely faint ── */}
+        {/* radar sweep */}
         {phase > 0 && (
           <motion.line
             className="obs-sweep"
@@ -378,7 +378,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           />
         )}
 
-        {/* ── CARDINAL NODE DOTS at r = 84 — asynchronous breathing ── */}
+        {/* cardinal nodes */}
         {[0, 90, 180, 270].map((deg, i) => {
           const rad = (deg * Math.PI) / 180;
           const cx2 = +(200 + Math.cos(rad) * 84).toFixed(1);
@@ -397,7 +397,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
                 opacity: {
                   duration: pulseDur * 0.88,
                   repeat: Infinity,
-                  delay: i * 0.55, // stagger for asynchrony
+                  delay: i * 0.55,
                   ease: "easeInOut",
                 },
               }}
@@ -405,7 +405,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           );
         })}
 
-        {/* ── DIAGONAL TICK MARKS — imperfect feel ── */}
+        {/* tick marks */}
         {[38, 142, 218, 322].map((deg, i) => {
           const rad = (deg * Math.PI) / 180;
           const x1 = +(200 + Math.cos(rad) * 90).toFixed(1);
@@ -425,7 +425,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           );
         })}
 
-        {/* ── CORE AMBIENT FILL — primary breathing light ── */}
+        {/* core fill */}
         <motion.circle
           cx="200" cy="200" r="72"
           fill="url(#obs-core-grad)"
@@ -447,7 +447,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           }}
         />
 
-        {/* ── SECONDARY CORE — offset gradient for internal depth ── */}
+        {/* secondary core */}
         <motion.circle
           cx="200" cy="200" r="55"
           fill="url(#obs-core-2)"
@@ -465,7 +465,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           }}
         />
 
-        {/* ── CORE BORDER ── */}
+        {/* core border */}
         <motion.circle
           cx="200" cy="200" r="44"
           fill="none"
@@ -489,7 +489,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           }}
         />
 
-        {/* ── CROSSHAIR — very subtle ── */}
+        {/* crosshair */}
         {[
           { x1: 183, y1: 200, x2: 217, y2: 200 },
           { x1: 200, y1: 183, x2: 200, y2: 217 },
@@ -507,7 +507,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           />
         ))}
 
-        {/* ── CENTER DOT — the heartbeat ── */}
+        {/* center dot */}
         <motion.circle
           cx="200" cy="200" r="2.8"
           filter="url(#obs-glow)"
@@ -525,7 +525,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
           }}
         />
 
-        {/* ── OUTWARD RIPPLE RINGS — phase 2 only, staggered, infinite ── */}
+        {/* ripple rings */}
         {phase === 2 && [0, 1, 2].map((i) => (
           <motion.circle
             key={`ripple-${i}`}
@@ -546,7 +546,7 @@ function ObservatoryOrb({ phase }: PhaseProps) {
         ))}
       </svg>
 
-      {/* Observatory state label — faint mono below orb */}
+      {/* state label */}
       <motion.p
         className="absolute whitespace-nowrap font-mono"
         style={{
@@ -576,14 +576,14 @@ function ObservatoryOrb({ phase }: PhaseProps) {
   );
 }
 
-// ─── WAVEFORM BAND ────────────────────────────────────────────────────────────
+// waveform band
 function WaveformBand({ phase }: PhaseProps) {
   const wfKey: WFKey = phase === 0 ? "dormant" : phase === 1 ? "waking" : "alive";
   const CYAN = "#38bdf8";
 
-  // Opacity levels per phase
+  // opacity
   const baseOp = phase === 0 ? 0.16 : phase === 1 ? 0.38 : 0.62;
-  // Breathing duration — slower when dormant, more alive when active
+  // breath duration
   const dur    = phase === 0 ? 12   : phase === 1 ? 7    : 5;
 
   return (
@@ -604,14 +604,14 @@ function WaveformBand({ phase }: PhaseProps) {
             <feGaussianBlur stdDeviation="1.8" result="b" />
             <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
-          {/* Slightly heavier glow for occasional strong pulse */}
+          {/* pulse glow */}
           <filter id="wf-pulse-glow" x="-30%" y="-150%" width="160%" height="400%">
             <feGaussianBlur stdDeviation="3.5" result="b" />
             <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
 
-        {/* Wide glow layer — slightly different shape for organic feel */}
+        {/* wide glow */}
         <motion.path
           fill="none"
           strokeWidth="7"
@@ -626,7 +626,7 @@ function WaveformBand({ phase }: PhaseProps) {
           transition={{ d: { duration: 2.8, ease: "easeInOut" } }}
         />
 
-        {/* Primary waveform line — organic breathing opacity */}
+        {/* primary wave */}
         <motion.path
           fill="none"
           strokeWidth="0.9"
@@ -645,7 +645,7 @@ function WaveformBand({ phase }: PhaseProps) {
           }}
         />
 
-        {/* Traveling signal dot — only when waking or alive */}
+        {/* traveling dot */}
         {phase > 0 && (
           <circle r="2.0" fill={CYAN} filter="url(#wf-glow)">
             <animateMotion
@@ -662,7 +662,7 @@ function WaveformBand({ phase }: PhaseProps) {
           </circle>
         )}
 
-        {/* Occasional stronger pulse — only when alive — travels at half frequency */}
+        {/* stronger pulse */}
         {phase === 2 && (
           <circle r="3.2" fill={CYAN} filter="url(#wf-pulse-glow)">
             <animateMotion dur="11s" repeatCount="indefinite" path={WF.alive} begin="5.5s" />
@@ -680,12 +680,12 @@ function WaveformBand({ phase }: PhaseProps) {
   );
 }
 
-// ─── FLOATING TRANSMISSION ────────────────────────────────────────────────────
+// floating transmission
 // Each transmission has unique sz, opacity, blur, motion — no two are alike.
 // scrollReveal 1 = appears at phase 1+, scrollReveal 2 = appears only at phase 2.
 function FloatingTransmission({ text, sz, op, blur, dur, delay, dy, dx, x, y, scrollReveal, phase }: FloatingTransmissionProps) {
   const isVisible = phase >= scrollReveal;
-  // During phase 1 transmissions appear at half max opacity, full at phase 2
+  // phase op
   const targetOp = !isVisible ? 0 : scrollReveal === 1 && phase === 1 ? op * 0.45 : op;
 
   return (
@@ -707,7 +707,7 @@ function FloatingTransmission({ text, sz, op, blur, dur, delay, dy, dx, x, y, sc
           letterSpacing: "0.34em",
           color: "rgba(148,163,184,0.92)",
           whiteSpace: "nowrap",
-          // Depth blur — distant signals are slightly out of focus
+          // depth blur
           filter: blur > 0 ? `blur(${blur}px)` : undefined,
         }}
         animate={{ y: [0, dy, 0], x: [0, dx, 0] }}
@@ -716,7 +716,7 @@ function FloatingTransmission({ text, sz, op, blur, dur, delay, dy, dx, x, y, sc
           repeat: Infinity,
           ease: "easeInOut",
           delay: delay,
-          // All motions are fully independent
+          // independent motion
           times: [0, 0.5, 1],
         }}
       >
@@ -726,7 +726,7 @@ function FloatingTransmission({ text, sz, op, blur, dur, delay, dy, dx, x, y, sc
   );
 }
 
-// ─── AI WHISPER CYCLE ─────────────────────────────────────────────────────────
+// ai whisper cycle
 function AIWhisper({ phase }: PhaseProps) {
   const [idx, setIdx] = useState(0);
   const [showing, setShowing] = useState(true);
@@ -751,7 +751,7 @@ function AIWhisper({ phase }: PhaseProps) {
       animate={{ opacity: phase === 0 ? 0 : 1 }}
       transition={{ duration: 3.0, delay: 2.0, ease: CINEMATIC_EASE }}
     >
-      {/* Amber accent dot — the one warm light in a cold observatory */}
+      {/* amber dot */}
       <motion.div
         className="shrink-0 rounded-full"
         style={{ width: 3.5, height: 3.5, backgroundColor: "rgba(251,191,36,0.52)" }}
@@ -776,40 +776,40 @@ function AIWhisper({ phase }: PhaseProps) {
   );
 }
 
-// ─── OBSERVATORY PANEL ────────────────────────────────────────────────────────
+// observatory panel
 function ObservatoryPanel({ phase }: PhaseProps) {
   return (
     <div className="relative flex flex-col items-center gap-10 lg:gap-14 w-full">
 
-      {/* Depth layer: background transmissions (scattered freely) */}
+      {/* background transmissions */}
       <div
         className="relative flex items-center justify-center"
         style={{ width: "min(420px, 88vw)", height: "min(420px, 88vw)" }}
       >
-        {/* All floating transmissions — positioned in absolute space around orb */}
+        {/* floating transmissions */}
         {TRANSMISSIONS.map((t, i) => (
           <FloatingTransmission key={i} {...t} phase={phase} />
         ))}
 
-        {/* Observatory orb — foreground */}
+        {/* orb */}
         <ObservatoryOrb phase={phase} />
       </div>
 
-      {/* Waveform — below core */}
+      {/* waveform */}
       <WaveformBand phase={phase} />
 
-      {/* AI whisper line — final atmospheric element */}
+      {/* ai whisper */}
       <AIWhisper phase={phase} />
     </div>
   );
 }
 
-// ─── LEFT TYPOGRAPHY ──────────────────────────────────────────────────────────
+// left typography
 function LeftTypography({ inView }: LeftTypographyProps) {
   return (
     <div className="flex flex-col justify-center" style={{ gap: "clamp(2.5rem,4.5vw,4.5rem)" }}>
 
-      {/* Eyebrow — ultra-faint label */}
+      {/* eyebrow */}
       <motion.div
         className="flex items-center gap-4"
         initial={{ opacity: 0, x: -16 }}
@@ -828,7 +828,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         </span>
       </motion.div>
 
-      {/* Headline — "still" ghost-like: very soft, not weak, just another texture */}
+      {/* headline */}
       <motion.h2
         initial={{ opacity: 0, y: 22, filter: "blur(16px)" }}
         animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
@@ -836,25 +836,21 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         style={{
           fontSize: "clamp(2.6rem,4.0vw,3.7rem)",
           fontWeight: 800,
-          // Tighter optical tracking for premium feel
+          // tighter tracking
           letterSpacing: "-0.040em",
           lineHeight: 1.05,
-          // Slightly warmer white for cinematic feel
+          // warmer white
           color: "rgba(235,240,245,0.95)",
         }}
       >
         The archive
         <br />
-        {/*
-          "still" — ghost-like: not faded, not weak.
-          A different material: thin weight, very soft italic, slightly warmer.
-          The contrast with "listens." is intentional.
-        */}
+        {/* still ghost-like */}
         <span
           style={{
             fontWeight: 200,
             fontStyle: "italic",
-            // Slightly warmer and more dimensional than a simple opacity reduction
+            // warmer dimension
             color: "rgba(180,196,214,0.45)",
             letterSpacing: "-0.018em",
           }}
@@ -864,7 +860,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         <span style={{ letterSpacing: "-0.044em" }}>listens.</span>
       </motion.h2>
 
-      {/* Thin rule — grows from left */}
+      {/* thin rule */}
       <motion.div
         className="h-px origin-left"
         style={{
@@ -876,7 +872,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         transition={{ duration: 2.4, delay: 0.42, ease: CINEMATIC_EASE }}
       />
 
-      {/* Body — atmospheric, philosophical, NOT product copy */}
+      {/* body */}
       <motion.p
         initial={{ opacity: 0, y: 14 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -891,7 +887,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         thinking, and distant activity — long after the last commit.
       </motion.p>
 
-      {/* Secondary — quieter still */}
+      {/* secondary */}
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -906,7 +902,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         The system does not stop watching when you do.
       </motion.p>
 
-      {/* Amber anchor — the one human signal on the left side */}
+      {/* amber anchor */}
       <motion.div
         className="flex items-start gap-4"
         initial={{ opacity: 0 }}
@@ -935,12 +931,12 @@ function LeftTypography({ inView }: LeftTypographyProps) {
   );
 }
 
-// ─── ATMOSPHERIC BACKGROUND ───────────────────────────────────────────────────
+// atmospheric background
 function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden>
 
-      {/* Deep space base — rich navy, not pure black */}
+      {/* deep space base */}
       <div
         className="absolute inset-0"
         style={{
@@ -949,7 +945,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         }}
       />
 
-      {/* Observatory ambient glow — right hemisphere, very subtle */}
+      {/* ambient glow */}
       <motion.div
         className="absolute"
         style={{ right: "-5%", top: "8%", width: 640, height: 640 }}
@@ -965,7 +961,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         />
       </motion.div>
 
-      {/* Second diffuse glow — different angle, creates spatial depth */}
+      {/* diffuse glow */}
       <motion.div
         className="absolute"
         style={{ left: "10%", bottom: "15%", width: 380, height: 280 }}
@@ -981,7 +977,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         />
       </motion.div>
 
-      {/* Faint vertical light shaft — behind the observatory, barely visible */}
+      {/* faint shaft */}
       <motion.div
         className="absolute inset-y-0"
         style={{
@@ -994,7 +990,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         transition={{ duration: 5, ease: "easeInOut" }}
       />
 
-      {/* Second subtle shaft — slightly offset for dimension */}
+      {/* offset shaft */}
       <motion.div
         className="absolute inset-y-0"
         style={{
@@ -1007,7 +1003,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         transition={{ duration: 5.5, ease: "easeInOut" }}
       />
 
-      {/* Slow horizontal haze drift — cinematic atmospheric layer */}
+      {/* horizontal haze */}
       <motion.div
         className="absolute inset-0"
         animate={{ x: [0, 22, 0], y: [0, -12, 0] }}
@@ -1018,7 +1014,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         }}
       />
 
-      {/* Counter-drift — adds subtle interference feel */}
+      {/* counter drift */}
       <motion.div
         className="absolute inset-0"
         animate={{ x: [0, -14, 0], y: [0, 8, 0] }}
@@ -1029,7 +1025,7 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         }}
       />
 
-      {/* Ambient micro-particles — only opacity + transform, GPU-friendly */}
+      {/* ambient micro-particles */}
       {PARTICLES.map((p, i) => (
         <motion.div
           key={i}
@@ -1057,20 +1053,20 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
   );
 }
 
-// ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
+// main export
 export function ProjectPulse() {
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef    = useRef<HTMLDivElement>(null);
 
   const leftInView = useInView(leftRef, { once: true, margin: "-80px" });
 
-  // Track scroll progress through section — drives the awakening phase
+  // track scroll
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
   });
 
-  // Spring-smoothed progress — prevents phase flickering on micro-scrolls
+  // smooth progress
   const smooth = useSpring(scrollYProgress, { stiffness: 24, damping: 16 });
 
   const [phase, setPhase] = useState<0 | 1 | 2>(0);
@@ -1091,17 +1087,17 @@ export function ProjectPulse() {
       className="relative overflow-hidden"
       style={{ background: "#030810" }}
     >
-      {/* ── ATMOSPHERIC BACKGROUND ── */}
+      {/* background */}
       <AtmosphericBg phase={phase} />
 
-      {/* ── TOP TRANSITION from Legacy ── */}
+      {/* top transition */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10" aria-hidden>
-        {/* Gradient bleed from Legacy's dark #030508 */}
+        {/* gradient bleed */}
         <div
           className="absolute inset-x-0 top-0 h-44"
           style={{ background: "linear-gradient(to bottom, #030508 0%, transparent 100%)" }}
         />
-        {/* Three residual particles rising from Legacy's inheritance line — the inherited signal */}
+        {/* residual particles */}
         {[
           { l: "49.2%", dur: 18, dl: 0.0, op: 0.09, rise: 88 },
           { l: "50.5%", dur: 24, dl: 3.2, op: 0.06, rise: 66 },
@@ -1117,19 +1113,19 @@ export function ProjectPulse() {
         ))}
       </div>
 
-      {/* ── MAIN CONTENT ── */}
+      {/* main content */}
       <div
         className="relative mx-auto max-w-7xl px-6 py-32 md:py-44 lg:px-12"
         style={{ zIndex: 1 }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-20 lg:gap-10 items-center">
 
-          {/* LEFT — editorial typography */}
+          {/* left */}
           <div ref={leftRef} className="order-2 lg:order-1">
             <LeftTypography inView={leftInView} />
           </div>
 
-          {/* RIGHT — observatory system */}
+          {/* right */}
           <div className="order-1 lg:order-2 flex justify-center items-center">
             <ObservatoryPanel phase={phase} />
           </div>
@@ -1137,7 +1133,7 @@ export function ProjectPulse() {
         </div>
       </div>
 
-      {/* ── BOTTOM FADE into next section ── */}
+      {/* bottom fade */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-44 z-10"
         style={{ background: "linear-gradient(to top, #0a0a0f 0%, transparent 100%)" }}

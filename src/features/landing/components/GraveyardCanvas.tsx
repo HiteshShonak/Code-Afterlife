@@ -11,7 +11,7 @@ import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js"
 // @ts-ignore
 import { SimplexNoise } from "three/addons/math/SimplexNoise.js";
 
-// ─── TERRAIN ──────────────────────────────────────────────────────────────────
+// terrain
 
 const simplex = new SimplexNoise();
 
@@ -23,7 +23,7 @@ function getTerrainHeight(x: number, z: number): number {
   );
 }
 
-// ─── TOMBSTONE GEOMETRY ───────────────────────────────────────────────────────
+// tombstone geometry
 
 class RoundedTombstoneGeometry extends THREE.BufferGeometry {
   constructor(width = 0.6, height = 1.0, depth = 0.2) {
@@ -39,24 +39,22 @@ class RoundedTombstoneGeometry extends THREE.BufferGeometry {
   }
 }
 
-// ─── STONE DATA ───────────────────────────────────────────────────────────────
-// showText: only the two mid stones (left/right) are readable.
-// All far stones and background silhouettes have no text → pure dark shapes.
+// stone data
 
 interface TombstoneDef {
   x: number; z: number; scale: number; rotY: number;
   name: string; born: string; died: string; epitaph: string;
-  readable?: boolean; // true = mid-ground readable pair
+  readable?: boolean; // readable
 }
 
 const STONES: TombstoneDef[] = [
-  // ── READABLE PAIR ── (one each side, primary midground)
+  // readable pair
   { x: -12, z: -9,  scale: 5.8, rotY: 0.18,  readable: true,
     name: "StudyFlow", born: "Mar 2022", died: "Aug 2023", epitaph: "Calendar sync was working." },
   { x:  12, z: -10, scale: 5.4, rotY: -0.22, readable: true,
     name: "QuickNote", born: "Jun 2023", died: "Jan 2024", epitaph: "The migration script did not." },
 
-  // ── SILHOUETTES — no text, darker material, fade into fog ──
+  // silhouettes
   { x: -22, z: -18, scale: 4.2, rotY: 0.3,  name: "", born: "", died: "", epitaph: "" },
   { x:  22, z: -19, scale: 4.0, rotY: -0.3, name: "", born: "", died: "", epitaph: "" },
   { x: -32, z: -28, scale: 3.2, rotY: 0.5,  name: "", born: "", died: "", epitaph: "" },
@@ -65,13 +63,12 @@ const STONES: TombstoneDef[] = [
   { x:   6, z: -32, scale: 2.5, rotY: 0.2,  name: "", born: "", died: "", epitaph: "" },
 ];
 
-// ─── TOMBSTONE ────────────────────────────────────────────────────────────────
+// tombstone
 
 function Tombstone({ def }: { def: TombstoneDef }) {
   const geom = useMemo(() => new RoundedTombstoneGeometry(), []);
 
-  // Readable stones: slightly lighter so moonlight catches them.
-  // Silhouettes: nearly black so they dissolve into the night.
+  // stone material
   const mat = useMemo(() => new THREE.MeshStandardMaterial({
     color: def.readable ? 0x2e3d58 : 0x151c28,
     roughness: 0.92,
@@ -83,7 +80,7 @@ function Tombstone({ def }: { def: TombstoneDef }) {
   const epiRef  = useRef<THREE.MeshStandardMaterial>(null);
   const hovered = useRef(false);
 
-  // Idle glow targets — readable stones have a soft resting glow; silhouettes have none.
+  // idle glow targets
   const idleN = def.readable ? 0.45 : 0;
   const idleD = def.readable ? 0.25 : 0;
   const idleE = def.readable ? 0.16 : 0;
@@ -141,9 +138,7 @@ function Tombstone({ def }: { def: TombstoneDef }) {
   );
 }
 
-// ─── CINEMATIC CAMERA ─────────────────────────────────────────────────────────
-// Extremely slow, 25-second loop. Three overlapping sine waves at prime-ratio
-// frequencies ensure the motion never feels repetitive or mechanical.
+// cinematic camera
 
 function CinematicCamera() {
   const { camera } = useThree();
@@ -153,8 +148,7 @@ function CinematicCamera() {
   const BASE_TARGET = useMemo(() => new THREE.Vector3(0, 1.2, -10), []);
 
   useFrame((_, delta) => {
-    // t advances at ~0.04 rad/s → full 2π cycle ≈ 157 s (very slow)
-    // Each motion uses a different prime-ratio multiplier so they never sync
+    // camera motion
     t.current += delta * 0.042;
 
     const lateral = Math.sin(t.current * 1.0)  * 0.22;   // ±0.22 units, ~150s cycle
@@ -173,7 +167,7 @@ function CinematicCamera() {
   return null;
 }
 
-// ─── GROUND ───────────────────────────────────────────────────────────────────
+// ground
 
 function GroundMesh() {
   const geom = useMemo(() => {
@@ -194,11 +188,7 @@ function GroundMesh() {
   );
 }
 
-// ─── FOG LAYERS ───────────────────────────────────────────────────────────────
-// Three planes of varying depth:
-//   Layer 1: ground-level, light, covers the whole near field
-//   Layer 2: mid-level, covers midground, slightly heavier
-//   Layer 3: deep background only — heavy, kills far silhouettes
+// fog layers
 
 const fogVert = `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
 const fogFrag = `
@@ -217,11 +207,11 @@ function FogLayers() {
   const m2 = useRef<THREE.ShaderMaterial>(null);
   const m3 = useRef<THREE.ShaderMaterial>(null);
 
-  // Layer 1: shallow ground mist — subtle blue-grey
+  // layer 1
   const u1 = useMemo(() => ({ time: { value: 0 },  color: { value: new THREE.Color("#0c1c30") }, opacity: { value: 0.32 } }), []);
-  // Layer 2: midground drift — slightly cooler
+  // layer 2
   const u2 = useMemo(() => ({ time: { value: 22 }, color: { value: new THREE.Color("#0e1b2d") }, opacity: { value: 0.22 } }), []);
-  // Layer 3: deep background — heavy, pushes far tombstones into darkness
+  // layer 3
   const u3 = useMemo(() => ({ time: { value: 44 }, color: { value: new THREE.Color("#070c18") }, opacity: { value: 0.68 } }), []);
 
   useFrame(({ clock }) => {
@@ -243,7 +233,7 @@ function FogLayers() {
         <shaderMaterial ref={m2} uniforms={u2} vertexShader={fogVert} fragmentShader={fogFrag}
           transparent depthWrite={false} blending={THREE.NormalBlending} />
       </mesh>
-      {/* Background fog — elevated and positioned deep so it buries far stones */}
+      {/* background fog */}
       <mesh position={[0, 3.0, -26]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[130, 70]} />
         <shaderMaterial ref={m3} uniforms={u3} vertexShader={fogVert} fragmentShader={fogFrag}
@@ -253,14 +243,11 @@ function FogLayers() {
   );
 }
 
-// ─── MOON HAZE ────────────────────────────────────────────────────────────────
-// A very large, extremely faint billboard plane behind the tombstones
-// creates the impression of a cold sky brightening around the moon.
-// The haze sits in world-space so the camera breathing creates parallax.
+// moon haze
 
 function MoonHaze() {
   return (
-    // Positioned behind the scene, angled towards camera
+    // position haze
     <mesh position={[-14, 18, -60]} rotation={[0.18, 0.22, 0]}>
       <planeGeometry args={[80, 55]} />
       <meshBasicMaterial
@@ -275,7 +262,7 @@ function MoonHaze() {
   );
 }
 
-// ─── MOON ─────────────────────────────────────────────────────────────────────
+// moon
 
 const moonVertShader = `varying vec3 vN; void main() { vN = normal; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
 const moonFragShader = `varying vec3 vN; void main() { vec3 c = vec3(0.74,0.82,0.98); gl_FragColor = vec4(c * (0.72 + 0.28 * vN.y), 1.0); }`;
@@ -288,12 +275,12 @@ function Moon() {
       <mesh material={moonMat}>
         <sphereGeometry args={[5.5, 32, 32]} />
       </mesh>
-      {/* Inner soft halo */}
+      {/* inner halo */}
       <mesh>
         <sphereGeometry args={[7.5, 16, 16]} />
         <meshBasicMaterial color="#5070b8" transparent opacity={0.055} side={THREE.BackSide} depthWrite={false} />
       </mesh>
-      {/* Outer diffuse corona */}
+      {/* outer corona */}
       <mesh>
         <sphereGeometry args={[12, 12, 12]} />
         <meshBasicMaterial color="#304878" transparent opacity={0.022} side={THREE.BackSide} depthWrite={false} />
@@ -302,12 +289,12 @@ function Moon() {
   );
 }
 
-// ─── LIGHTING ─────────────────────────────────────────────────────────────────
+// lighting
 
 function Moonlight() {
   return (
     <>
-      {/* Primary moonlight — cold blue-white, moderate intensity */}
+      {/* primary moonlight */}
       <directionalLight
         color="#8aaae6"
         intensity={1.6}
@@ -322,18 +309,15 @@ function Moonlight() {
         shadow-camera-bottom={-35}
         shadow-bias={-0.001}
       />
-      {/* Sky ambient — very dark cold fill */}
+      {/* sky ambient */}
       <ambientLight color="#141f38" intensity={0.5} />
-      {/* Ground hemisphere — near-black so foreground stays dark */}
+      {/* ground hemisphere */}
       <hemisphereLight color="#1e2e48" groundColor="#080e10" intensity={0.28} />
     </>
   );
 }
 
-// ─── MOONLIGHT POOL ───────────────────────────────────────────────────────────
-// A faint rectangular fill light behind the central text area.
-// Creates the impression that the moon is illuminating the sky behind the heading.
-// Kept at near-zero intensity so it never competes with the text.
+// moonlight pool
 
 function MoonlightPool() {
   return (
@@ -347,9 +331,7 @@ function MoonlightPool() {
   );
 }
 
-// ─── DUST MOTES ───────────────────────────────────────────────────────────────
-// 16 particles max. Very slow drift. Extremely low opacity.
-// Represent dust illuminated by cold moonlight — NOT magic sparkles.
+// dust motes
 
 function DustMotes() {
   const COUNT = 16;
@@ -376,7 +358,7 @@ function DustMotes() {
     const t = clock.getElapsedTime();
     const attr = geoRef.current.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < COUNT; i++) {
-      // Slow vertical sine + very subtle horizontal drift
+      // particle motion
       attr.setY(i, orig[i * 3 + 1] + Math.sin(t * speeds[i]           + phases[i]) * 0.30);
       attr.setX(i, orig[i * 3 + 0] + Math.sin(t * speeds[i] * 0.55    + phases[i]) * 0.18);
     }
@@ -388,15 +370,13 @@ function DustMotes() {
       <bufferGeometry ref={geoRef}>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      {/* Very small, very transparent — dust, not fireflies */}
+      {/* dust particles */}
       <pointsMaterial color="#88aad8" size={0.055} sizeAttenuation transparent opacity={0.22} depthWrite={false} />
     </points>
   );
 }
 
-// ─── POST FX ──────────────────────────────────────────────────────────────────
-// Deliberately restrained: gentle bloom only on bright emissives,
-// strong vignette to frame the scene, and a whisper of grain.
+// post fx
 
 function PostFX() {
   return (
@@ -413,7 +393,7 @@ function PostFX() {
   );
 }
 
-// ─── SCENE ────────────────────────────────────────────────────────────────────
+// scene
 
 function GraveyardScene() {
   return (
@@ -430,13 +410,13 @@ function GraveyardScene() {
         <Tombstone key={i} def={def} />
       ))}
       <PostFX />
-      {/* Three.js scene fog — exponential density from z=25 onwards */}
+      {/* scene fog */}
       <fog attach="fog" args={["#050c1a", 25, 85]} />
     </>
   );
 }
 
-// ─── CANVAS ───────────────────────────────────────────────────────────────────
+// canvas
 
 export function GraveyardCanvas() {
   return (
