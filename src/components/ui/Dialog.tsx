@@ -26,10 +26,7 @@ const panelVariants = {
   exit:    { opacity: 0, scale: 0.96, y: 8,  transition: { duration: 0.18 } },
 };
 
-/**
- * Cinematic modal dialog with backdrop blur and Framer Motion enter/exit.
- * Locks body scroll while open. Closes on Escape key and backdrop click.
- */
+// dialog component
 export function Dialog({ open, onClose, title, description, children, className }: DialogProps) {
   const [mounted, setMounted] = useState(false);
   
@@ -37,14 +34,14 @@ export function Dialog({ open, onClose, title, description, children, className 
     setMounted(true);
   }, []);
 
-  // Lock body scroll
+  // lock scroll
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  // Escape key
+  // escape key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
@@ -57,7 +54,7 @@ export function Dialog({ open, onClose, title, description, children, className 
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Backdrop */}
+          {/* backdrop */}
           <motion.div
             variants={backdropVariants}
             initial="hidden"
@@ -68,7 +65,7 @@ export function Dialog({ open, onClose, title, description, children, className 
             aria-hidden="true"
           />
 
-          {/* Panel */}
+          {/* panel */}
           <motion.div
             variants={panelVariants}
             initial="hidden"
@@ -82,7 +79,7 @@ export function Dialog({ open, onClose, title, description, children, className 
               className
             )}
           >
-            {/* Header */}
+            {/* header */}
             <div className="border-b border-foreground/10 px-6 py-5">
               <h2
                 id="dialog-title"
@@ -95,7 +92,7 @@ export function Dialog({ open, onClose, title, description, children, className 
               )}
             </div>
 
-            {/* Content */}
+            {/* content */}
             <div className="px-6 py-5">{children}</div>
           </motion.div>
         </div>

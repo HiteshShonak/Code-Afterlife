@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { Search, Bell } from 'lucide-react';
@@ -36,7 +36,7 @@ export function AppHeaderClient({ user }: AppHeaderClientProps) {
       ].join(' ')}
     >
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6 md:px-10">
-        {/* Left: Brand + Nav */}
+        {/* left side */}
         <div className="flex items-center gap-10">
           <Link
             href="/search"
@@ -52,7 +52,7 @@ export function AppHeaderClient({ user }: AppHeaderClientProps) {
           </div>
         </div>
 
-        {/* Right: Search, Bell, User */}
+        {/* right side */}
         <div className="flex items-center gap-6">
           <div className="hidden lg:block relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -65,7 +65,7 @@ export function AppHeaderClient({ user }: AppHeaderClientProps) {
           
           <button className="relative text-muted-foreground transition-colors hover:text-foreground">
             <Bell className="h-4 w-4" />
-            {/* Unread indicator placeholder */}
+            {/* unread indicator */}
             <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent" />
           </button>
           

@@ -13,18 +13,14 @@ interface UserMenuProps {
   image:    string | null;
 }
 
-/**
- * User avatar + dropdown menu.
- * Click outside closes the dropdown.
- * Follows engineering-patterns: all state in component, pure JSX render.
- */
+// user menu
 export const UserMenu = ({ name, username, image }: UserMenuProps) => {
   const [open, setOpen]   = useState(false);
   const ref               = useRef<HTMLDivElement>(null);
   const router            = useRouter();
   const displayName       = username ? `@${username}` : (name ?? 'Developer');
 
-  // Close on outside click
+  // close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -66,7 +62,7 @@ export const UserMenu = ({ name, username, image }: UserMenuProps) => {
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-10 z-50 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/40"
           >
-            {/* Identity */}
+            {/* identity */}
             <div className="border-b border-border px-4 py-3">
               <p className="font-mono text-[11px] text-foreground">{displayName}</p>
               <p className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
@@ -74,7 +70,7 @@ export const UserMenu = ({ name, username, image }: UserMenuProps) => {
               </p>
             </div>
 
-            {/* Menu items */}
+            {/* menu items */}
             <div className="py-1">
               {username && (
                 <MenuLink href={`/u/${username}`} onClick={() => setOpen(false)}>

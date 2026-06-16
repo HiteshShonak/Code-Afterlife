@@ -12,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 import { SignInButton } from '@/components/auth/SignInButton';
 
-/* ────────────────────────────────── types ───────────────────────────────── */
+// types
 
 interface NavItemDef {
   href:  string;
@@ -20,7 +20,7 @@ interface NavItemDef {
   icon:  LucideIcon;
 }
 
-/* ────────────────────────────────── nav config ──────────────────────────── */
+// nav config
 
 const PRIMARY_NAV: NavItemDef[] = [
   { href: '/explore',  label: 'Explore',        icon: Compass },
@@ -35,7 +35,7 @@ const SECONDARY_NAV: NavItemDef[] = [
   { href: '/contact', label: 'Contact Us', icon: Mail       },
 ];
 
-/* ────────────────────────────────── CSS ─────────────────────────────────── */
+// css keyframes
 
 const SIDEBAR_STYLES = `
 @keyframes guest-sidebar-slide-in {
@@ -44,7 +44,7 @@ const SIDEBAR_STYLES = `
 }
 `;
 
-/* ────────────────────────────────── NavItem ─────────────────────────────── */
+// nav item
 
 function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boolean }) {
   return (
@@ -76,7 +76,7 @@ function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boo
   );
 }
 
-/* ────────────────────────────────── main component ─────────────────────── */
+// main component
 
 export function GuestSidebarClient() {
   const pathname = usePathname();
@@ -91,10 +91,10 @@ export function GuestSidebarClient() {
   const isActive = (item: NavItemDef) =>
     pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-  /* ───────── shared sidebar body ───────── */
+  // sidebar body
   const SidebarBody = () => (
     <div className="flex h-full flex-col">
-      {/* Brand */}
+      {/* brand */}
       <div className="mb-10 px-5 pt-4">
         <Link href="/" className="flex items-center gap-3 group">
           <Image
@@ -112,12 +112,12 @@ export function GuestSidebarClient() {
         </Link>
       </div>
 
-      {/* Sign-in action */}
+      {/* sign in */}
       <div className="mx-3 mb-8">
         <SignInButton variant="sidebar" label="Sign In with GitHub" />
       </div>
 
-      {/* Primary nav */}
+      {/* primary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">
         Navigation
       </p>
@@ -133,7 +133,7 @@ export function GuestSidebarClient() {
 
       <div className="mx-5 my-6 border-t border-white/[0.06]" />
 
-      {/* Secondary nav */}
+      {/* secondary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">
         More
       </p>
@@ -145,7 +145,7 @@ export function GuestSidebarClient() {
 
       <div className="flex-1" />
 
-      {/* Footer hint */}
+      {/* footer hint */}
       <div className="px-5 pb-6">
         <div className="mx-0 my-4 border-t border-white/[0.06]" />
         <p className="font-mono text-[10px] text-muted-foreground/30 leading-relaxed">
@@ -158,10 +158,10 @@ export function GuestSidebarClient() {
 
   return (
     <>
-      {/* Inject CSS keyframes once */}
+      {/* inject css keyframes */}
       <style dangerouslySetInnerHTML={{ __html: SIDEBAR_STYLES }} />
 
-      {/* ── Desktop sidebar ── */}
+      {/* desktop sidebar */}
       <aside
         key={sidebarKey}
         className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
@@ -173,7 +173,7 @@ export function GuestSidebarClient() {
         <SidebarBody />
       </aside>
 
-      {/* ── Mobile hamburger ── */}
+      {/* mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
         className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/80 text-muted-foreground shadow-lg backdrop-blur-md transition-colors hover:text-foreground lg:hidden"
@@ -182,7 +182,7 @@ export function GuestSidebarClient() {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* ── Mobile drawer ── */}
+      {/* mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>

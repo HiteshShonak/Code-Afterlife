@@ -4,11 +4,11 @@ import { signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
 
 interface SignInButtonProps {
-  /** Optional class overrides. Defaults to nav-style mono link. */
+  // custom classes
   className?: string;
-  /** Label shown on the button. */
+  // button text
   label?: string;
-  /** Visual variant — 'nav' for inline text link, 'cta' for accented button, 'sidebar' for full-width sidebar button */
+  // visual style
   variant?: 'nav' | 'cta' | 'sidebar';
 }
 
@@ -48,7 +48,7 @@ export function SignInButton({
     );
   }
 
-  // Default: nav variant — plain text link style
+  // default nav
   return (
     <button
       onClick={handleSignIn}

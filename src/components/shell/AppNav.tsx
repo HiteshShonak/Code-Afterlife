@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -15,7 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/graveyard', label: 'Graveyard' },
 ];
 
-/** Single nav link with animated active underline. */
+// nav link component
 export const NavLink = ({ href, label }: NavItem) => {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
@@ -42,7 +42,7 @@ export const NavLink = ({ href, label }: NavItem) => {
   );
 };
 
-/** Mobile + desktop nav items list. */
+// app nav component
 export function AppNav() {
   return (
     <nav className="flex items-center gap-7">

@@ -30,8 +30,7 @@ interface NavItemDef {
   icon:   LucideIcon;
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ nav config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
+// nav config
 const PRIMARY_NAV: NavItemDef[] = [
   { href: '/explore', label: 'Explore', icon: Compass }, { href: '/search', label: 'Search', icon: Search         },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -43,20 +42,7 @@ const SECONDARY_NAV: NavItemDef[] = [
   { href: '/faq', label: 'FAQ', icon: HelpCircle }, { href: '/about', label: 'About', icon: Info }, { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ CSS keyframes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
-/**
- * Pure CSS keyframe animation for the sidebar slide-in.
- *
- * WHY CSS instead of Framer Motion?
- * Next.js App Router caches layouts and restores them from memory
- * on back/forward navigation (popstate). Framer Motion's initial/animate
- * lifecycle does NOT re-trigger when React restores a cached component
- * tree â€” the component never truly unmounts/remounts from React's
- * perspective. CSS animations, on the other hand, replay every time the
- * element is inserted into the DOM or the animation class is re-applied,
- * which is exactly what we need.
- */
+// css keyframes
 const SIDEBAR_STYLES = `
 @keyframes sidebar-slide-in {
   from {
@@ -70,8 +56,7 @@ const SIDEBAR_STYLES = `
 }
 `;
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ NavItem â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
+// nav item
 function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boolean }) {
   return (
     <Link
@@ -102,24 +87,14 @@ function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boo
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
+// main component
 export function AppSidebarClient({ user }: AppSidebarClientProps) {
   const pathname    = usePathname();
   const router      = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const displayName = user.username ? `@${user.username}` : (user.name ?? 'Developer');
 
-  /**
-   * Sidebar mount state.
-   * We use a key that changes on every pathname so React destroys and
-   * recreates the <aside>, which guarantees the CSS animation replays.
-   * This handles:
-   *   - First load into any app shell page
-   *   - Browser back from 404 / landing / any non-app-shell route
-   *   - In-app navigation (dashboard â†’ explore â†’ profile)
-   *   - Hard reload
-   */
+  // sidebar state
   const [sidebarKey, setSidebarKey] = useState(pathname);
 
   useEffect(() => {
@@ -136,10 +111,10 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
 
-  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ shared sidebar body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  // sidebar body
   const SidebarBody = () => (
     <div className="flex h-full flex-col">
-      {/* Brand */}
+      {/* brand */}
       <div className="mb-10 px-5 pt-4">
         <Link href="/search" className="flex items-center gap-3 group">
           <Image 
@@ -157,7 +132,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
         </Link>
       </div>
 
-      {/* User identity chip */}
+      {/* user chip */}
       <div className="mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 backdrop-blur-sm">
         <div className="relative h-9 w-9 flex-shrink-0">
           <div className="absolute inset-0 rounded-full border border-accent/30 bg-secondary overflow-hidden">
@@ -181,7 +156,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
         </div>
       </div>
 
-      {/* Primary nav */}
+      {/* primary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">
         Navigation
       </p>
@@ -197,7 +172,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
 
       <div className="mx-5 my-6 border-t border-white/[0.06]" />
 
-      {/* Secondary nav */}
+      {/* secondary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">
         More
       </p>
@@ -209,7 +184,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
 
       <div className="flex-1" />
 
-      {/* Sign out */}
+      {/* sign out */}
       <div className="px-3 pb-4">
         <div className="mx-2 my-4 border-t border-white/[0.06]" />
         <button
@@ -225,10 +200,9 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
 
   return (
     <>
-      {/* Inject CSS keyframes once */}
       <style dangerouslySetInnerHTML={{ __html: SIDEBAR_STYLES }} />
 
-      {/* â”€â”€ Desktop sidebar â”€â”€ */}
+      {/* desktop sidebar */}
       <aside
         key={sidebarKey}
         className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
@@ -240,7 +214,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
         <SidebarBody />
       </aside>
 
-      {/* â”€â”€ Mobile hamburger â”€â”€ */}
+      {/* mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
         className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/80 text-muted-foreground shadow-lg backdrop-blur-md transition-colors hover:text-foreground lg:hidden"
@@ -249,7 +223,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* â”€â”€ Mobile drawer â”€â”€ */}
+      {/* mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>

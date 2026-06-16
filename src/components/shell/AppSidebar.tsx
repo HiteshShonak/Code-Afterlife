@@ -1,11 +1,7 @@
 import { auth } from '@/lib/auth';
 import { AppSidebarClient } from './AppSidebarClient';
 
-/**
- * Server component for the app sidebar.
- * Reads auth session and passes user data to client component.
- * Returns null if session is missing (layout already redirects).
- */
+// app sidebar server component
 export async function AppSidebar() {
   const session = await auth();
 

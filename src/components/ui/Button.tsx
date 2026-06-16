@@ -25,10 +25,7 @@ const SIZES: Record<Size, string> = {
   lg: 'px-6 py-2.5 text-[12px]',
 };
 
-/**
- * Cinematic button with Framer Motion press feedback.
- * All variants use the design system tokens — no hardcoded colors.
- */
+// custom button component
 export const Button = memo(
   forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     { variant = 'primary', size = 'md', isLoading = false, className, children, disabled, ...props },
