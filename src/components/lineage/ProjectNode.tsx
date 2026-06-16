@@ -5,13 +5,9 @@ import { Handle, Position } from '@xyflow/react';
 import { StateBadge } from '@/components/StateBadge';
 import type { ProjectState } from '@prisma/client';
 
-/**
- * Data stored on each lineage node.
- * Index signature [key: string]: unknown is REQUIRED by @xyflow/react's
- * Node<T> constraint — T must be assignable to Record<string, unknown>.
- */
+// project node data
 export interface ProjectNodeData extends Record<string, unknown> {
-  label: string;          // project title
+  label: string;          // title
   state: ProjectState;
   health: number;
   username: string | null;
@@ -22,11 +18,7 @@ interface ProjectNodeProps {
   data: ProjectNodeData;
 }
 
-/**
- * Custom React Flow node for a project in the lineage graph.
- * Shows: state badge, title, creator username.
- * Memoized — React Flow re-renders frequently; memo is critical.
- */
+// custom project node
 export const ProjectNode = memo(function ProjectNode({ data }: ProjectNodeProps) {
   const { label, state, username } = data;
 

@@ -18,10 +18,7 @@ interface StateBadgeProps {
   className?: string;
 }
 
-/**
- * Color-coded lifecycle state badge.
- * Memoized — pure display component, no internal state.
- */
+// state badge
 export const StateBadge = memo(function StateBadge({ state, className }: StateBadgeProps) {
   const { label, classes } = STATE_CONFIG[state];
   return (

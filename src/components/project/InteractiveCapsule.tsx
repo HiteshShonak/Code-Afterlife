@@ -20,7 +20,7 @@ import { formatRelativeDate } from '@/lib/utils';
 const CINEMATIC_EASE = [0.16, 1, 0.3, 1] as const;
 const COPPER = "#b87333";
 
-/* ─── NODE COMPONENTS ─── */
+// node components
 
 function ArtifactBase({
   open,
@@ -100,7 +100,7 @@ const NODE_TYPES: NodeTypes = {
   capsuleNode: CapsuleNode,
 };
 
-/* ─── CAPSULE SVG ─── */
+// capsule svg
 
 function CapsuleObject({
   lidRef,
@@ -187,7 +187,7 @@ function CapsuleObject({
       
       <line x1="30" y1="133" x2="250" y2="133" stroke="url(#tc-seam)" strokeWidth="1.5" />
 
-      {/* ─ LID ─ */}
+      {/* lid */}
       <g ref={lidRef as any} style={{ transformOrigin: "140px 132px" }}>
         <rect x="30" y="30" width="220" height="104" rx="8" fill="url(#tc-lid)" />
         {[54, 76, 98].map((y) => (
@@ -214,7 +214,7 @@ function CapsuleObject({
   );
 }
 
-/* ─── MAIN COMPONENT ─── */
+// main component
 
 export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule[], isDead: boolean }) {
   const containerRef  = useRef<HTMLDivElement>(null);
@@ -233,7 +233,7 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
 
   const initialNodes = useMemo(() => {
     return capsules.map((capsule, i) => {
-      // Position them radially around the capsule
+      // position radially
       const angle = (i / capsules.length) * Math.PI * 2;
       const radius = 250;
       return {
@@ -254,7 +254,7 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
-  // Sync open state
+  // sync state
   useEffect(() => {
     setNodes((nds) =>
       nds.map((n) => ({
@@ -266,7 +266,7 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
   }, [isOpen, setNodes]);
 
   const handleToggleOpen = () => {
-    if (!isDead && capsules.length > 0) return; // Only open if dead (or no capsules, just for fun)
+    if (!isDead && capsules.length > 0) return;
     
     const newOpen = !isOpen;
     setIsOpen(newOpen);
@@ -297,22 +297,22 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
   return (
     <div className="relative w-full h-[600px] flex items-center justify-center overflow-hidden rounded-2xl border border-border/40 bg-[#0a0705]">
       
-      {/* Background ambient glow */}
+      {/* background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.05)_0%,transparent_70%)] pointer-events-none" />
 
-      {/* Warm halo behind capsule */}
+      {/* warm halo */}
       <div ref={warmHaloDiv}
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full opacity-0"
         style={{ background: "radial-gradient(ellipse at center,rgba(251,191,36,0.18) 0%,rgba(180,100,20,0.07) 55%,transparent 78%)" }}
       />
 
-      {/* Internal warmth */}
+      {/* internal warmth */}
       <div ref={warmGlowDiv}
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[42%] w-[190px] h-[220px] opacity-0 rounded-b-xl z-20"
         style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }}
       />
 
-      {/* The Capsule SVG */}
+      {/* capsule svg */}
       <div className="relative z-30 flex items-center justify-center pointer-events-auto" style={{ perspective: "900px", perspectiveOrigin: "center 40%" }}>
         <div className="w-[180px] aspect-[280/420]">
           <CapsuleObject
@@ -328,14 +328,14 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
         </div>
       </div>
 
-      {/* Instructions */}
+      {/* instructions */}
       {!isOpen && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 z-40 pointer-events-none">
           {isDead ? "Click the lock to unseal the archive" : "Archive remains sealed while project lives"}
         </div>
       )}
 
-      {/* React Flow Canvas (edges) */}
+      {/* canvas */}
       <div className="absolute inset-0 z-10" style={{ pointerEvents: isOpen ? 'auto' : 'none' }}>
         <ReactFlowProvider>
           <ReactFlow
@@ -356,7 +356,7 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
         </ReactFlowProvider>
       </div>
 
-      {/* Detail Modal */}
+      {/* detail modal */}
       <AnimatePresence>
         {selectedCapsule && (
           <motion.div

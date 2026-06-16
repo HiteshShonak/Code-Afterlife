@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Skull, X, Sparkles } from 'lucide-react';
 import { archiveProjectAction } from '@/actions/project.actions';
 
-/* ─────────────────────── Fallback epitaphs ─────────────────────── */
+// fallback epitaphs
 
 const EPITAPH_SUGGESTIONS = [
   'Lost to scope creep.',
@@ -18,7 +18,7 @@ const EPITAPH_SUGGESTIONS = [
   'The market didn\'t agree.',
 ];
 
-/* ─────────────────────── Props ─────────────────────── */
+// props
 
 interface ArchiveProjectModalProps {
   open: boolean;
@@ -28,7 +28,7 @@ interface ArchiveProjectModalProps {
   onArchived: () => void; // called after success (e.g. router.push('/dashboard'))
 }
 
-/* ─────────────────────── Component ─────────────────────── */
+// component
 
 export function ArchiveProjectModal({
   open,

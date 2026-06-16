@@ -8,14 +8,14 @@ import { usePulseAnimation } from '@/hooks/use-pulse-animation';
 
 interface HealthIndicatorProps {
   health: number;
-  /** Show numeric percentage label */
+  // show label
   showLabel?: boolean;
-  /** Show the decay state text (Thriving / Stable / etc) */
+  // show state
   showStateLabel?: boolean;
   className?: string;
 }
 
-/** CSS variable name for each decay state health color */
+// css variables
 const DECAY_COLOR: Record<string, string> = {
   thriving:  'var(--health-thriving)',
   stable:    'var(--health-stable)',
@@ -24,11 +24,7 @@ const DECAY_COLOR: Record<string, string> = {
   dead:      'var(--health-dead)',
 };
 
-/**
- * Animated health bar with pulse dot.
- * Logic lives in useDecayState + usePulseAnimation hooks.
- * Component is pure presentation — logic-free JSX.
- */
+// health indicator
 export const HealthIndicator = memo(function HealthIndicator({
   health,
   showLabel = false,

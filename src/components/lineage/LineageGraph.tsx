@@ -5,10 +5,7 @@ import { useMemo } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { ProjectNodeData } from './ProjectNode';
 
-/**
- * Dynamic import — @xyflow/react is a heavy bundle (~500KB).
- * Must be SSR=false because it uses browser-only APIs.
- */
+// dynamic import react flow
 const ReactFlowGraph = dynamic(() => import('./ReactFlowGraph'), {
   ssr: false,
   loading: () => (
@@ -25,12 +22,7 @@ interface LineageGraphProps {
   edges: Edge[];
 }
 
-/**
- * Public API for the lineage graph.
- * Handles the SSR dynamic-import boundary.
- * Server pages pass pre-fetched nodes/edges here.
- * Memoizes props to prevent unnecessary ReactFlow re-renders.
- */
+// lineage graph api
 export function LineageGraph({ nodes, edges }: LineageGraphProps) {
   const stableNodes = useMemo(() => nodes, [nodes]);
   const stableEdges = useMemo(() => edges, [edges]);

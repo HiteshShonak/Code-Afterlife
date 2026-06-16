@@ -35,10 +35,7 @@ const cardVariants = {
   hover: { scale: 1.01, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } },
 };
 
-/**
- * Reusable project card. Features a screenshot carousel on hover,
- * decay visual effects, health bar, and social stats.
- */
+// project card
 export const ProjectCard = memo(function ProjectCard({
   slug,
   title,
@@ -60,7 +57,7 @@ export const ProjectCard = memo(function ProjectCard({
   const [isHovered, setIsHovered] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Auto-cycle screenshots when hovered
+  // auto cycle screenshots
   useEffect(() => {
     if (!isHovered || screenshots.length <= 1) return;
     const interval = setInterval(() => {
@@ -69,7 +66,7 @@ export const ProjectCard = memo(function ProjectCard({
     return () => clearInterval(interval);
   }, [isHovered, screenshots.length]);
 
-  // Reset index when mouse leaves
+  // reset index
   useEffect(() => {
     if (!isHovered) setCurrentImageIndex(0);
   }, [isHovered]);
@@ -96,14 +93,14 @@ export const ProjectCard = memo(function ProjectCard({
         className="group relative flex h-full flex-col overflow-hidden rounded-sm border border-border bg-card/60 backdrop-blur-sm transition-colors hover:border-accent/30"
         style={{ boxShadow: `inset 0 0 40px ${DECAY_GLOW[decayState]}` }}
       >
-        {/* Trending Ribbon */}
+        {/* trending ribbon */}
         {isTrending && (
           <div className="absolute -right-12 top-6 z-10 w-40 rotate-45 bg-accent py-1 text-center font-mono text-[9px] font-bold uppercase tracking-widest text-background shadow-lg">
             Trending
           </div>
         )}
 
-        {/* Screenshot Header */}
+        {/* screenshot header */}
         <Link href={`/project/${slug}`} className="relative aspect-video w-full overflow-hidden bg-black/40">
           {screenshots.length > 0 ? (
             <AnimatePresence mode="wait">
@@ -126,7 +123,7 @@ export const ProjectCard = memo(function ProjectCard({
         </Link>
 
         <div className="flex flex-1 flex-col p-5">
-          {/* Header row */}
+          {/* header row */}
           <div className="mb-3 flex items-start justify-between gap-3">
             <Link
               href={`/project/${slug}`}
@@ -140,14 +137,14 @@ export const ProjectCard = memo(function ProjectCard({
             <StateBadge state={state} className="flex-shrink-0" />
           </div>
 
-          {/* Description */}
+          {/* description */}
           {description && (
             <p className="mb-4 line-clamp-2 flex-1 text-[12px] leading-relaxed text-muted-foreground">
               {description}
             </p>
           )}
 
-          {/* Stack tags */}
+          {/* stack tags */}
           {stack.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-1.5">
               {stack.slice(0, 4).map((tech) => (
@@ -166,12 +163,12 @@ export const ProjectCard = memo(function ProjectCard({
             </div>
           )}
 
-          {/* Health bar */}
+          {/* health bar */}
           <div className="mb-4 mt-auto">
             <HealthIndicator health={health} showLabel={false} />
           </div>
 
-          {/* Footer row: Socials + Time */}
+          {/* footer row */}
           <div className="flex items-center justify-between border-t border-border pt-3 font-mono text-[10px] text-muted-foreground/60">
             <div className="flex gap-3">
               <span className="flex items-center gap-1">

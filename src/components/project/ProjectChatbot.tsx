@@ -28,11 +28,11 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  // Keep a stable ref to messages so sendMessage never captures a stale snapshot
+  // stable ref
   const messagesRef = useRef<Message[]>(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
-  // Auto-scroll to bottom on new messages
+  // scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current) {
       const container = messagesEndRef.current.parentElement;
@@ -56,7 +56,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
       content: text
     };
 
-    // Append user message immediately — use functional updater to get current state
+    // append message immediately
     let snapshot: Message[] = [];
     setMessages(prev => {
       snapshot = [...prev, userMessage];
@@ -64,11 +64,11 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
     });
     setIsLoading(true);
 
-    // Placeholder for assistant
+    // placeholder
     const assistantId = `assistant-${Date.now()}`;
     setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
 
-    // Abort any previous request
+    // abort previous
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -80,7 +80,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Use messagesRef (via snapshot) so we always have the freshest history
+          // use messagesRef
           messages: [...messagesRef.current, userMessage].map(m => ({ role: m.role, content: m.content }))
         }),
         signal: controller.signal
@@ -111,8 +111,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
         );
       }
 
-      // If accumulated is empty (e.g. AI SDK streaming protocol), 
-      // try to parse as event-stream
+      // check empty stream
       if (!accumulated) {
         setMessages(prev =>
           prev.map(m =>
@@ -137,7 +136,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
     } finally {
       setIsLoading(false);
       abortControllerRef.current = null;
-      // Refocus input
+      // refocus input
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [input, isLoading, projectId]);
@@ -145,7 +144,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
   if (!isLoggedIn) {
     return (
       <div className="flex flex-col items-center justify-center h-[420px] rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8 text-center relative overflow-hidden">
-        {/* Background glow */}
+        {/* bg glow */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(var(--accent-rgb,245,158,11),0.08)_0%,transparent_65%)] pointer-events-none" />
         
         <div className="relative z-10 flex flex-col items-center">
@@ -171,11 +170,11 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
 
   return (
     <div className="flex flex-col h-[420px] rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm overflow-hidden">
-      {/* Header */}
+      {/* header */}
       <div className="flex items-center gap-3 border-b border-border/50 bg-card/60 px-4 py-3 flex-shrink-0">
         <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 border border-accent/20 text-accent">
           <Bot className="h-4 w-4" />
-          {/* Online indicator */}
+          {/* online indicator */}
           <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 border-2 border-background" />
         </div>
         <div>
@@ -190,7 +189,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
         </div>
       </div>
 
-      {/* Messages */}
+      {/* messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-[11px] md:text-[12px]">
         {messages.map((m) => (
           <div key={m.id} className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -231,7 +230,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* input */}
       <div className="border-t border-border/50 bg-card/60 px-3 py-3 flex-shrink-0">
         <form onSubmit={sendMessage} className="flex gap-2">
           <input
@@ -241,7 +240,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                // Call the core submit logic directly to avoid casting keyboard event
+                // submit logic
                 const form = e.currentTarget.closest('form');
                 if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
               }

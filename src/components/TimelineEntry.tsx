@@ -5,10 +5,7 @@ import { motion } from 'framer-motion';
 import { formatDate } from '@/lib/utils';
 import type { TimelineEntryType } from '@prisma/client';
 
-/**
- * All colors are valid CSS values — no Tailwind class strings mixed in.
- * Using oklch() to stay consistent with the rest of the design system.
- */
+// colors config
 const TYPE_CONFIG: Record<
   TimelineEntryType,
   { label: string; color: string; icon: string }
@@ -25,7 +22,7 @@ interface TimelineEntryProps {
   title: string;
   description?: string | null;
   createdAt: Date;
-  /** Framer Motion stagger index — controls staggered reveal delay */
+  // stagger index
   index?: number;
 }
 
@@ -38,11 +35,7 @@ const entryVariants = {
   }),
 };
 
-/**
- * Single timeline event row.
- * Memoized + staggered Framer Motion reveal via custom variant.
- * Pure presentation — no business logic or hooks.
- */
+// timeline event
 export const TimelineEntry = memo(function TimelineEntry({
   type,
   title,
@@ -60,7 +53,7 @@ export const TimelineEntry = memo(function TimelineEntry({
       custom={index}
       className="relative flex gap-4 pb-6 last:pb-0"
     >
-      {/* Timeline dot + vertical connector */}
+      {/* timeline dot */}
       <div className="relative flex flex-col items-center">
         <span
           className="z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-foreground/10 bg-card font-mono text-sm shadow-sm"
@@ -71,7 +64,7 @@ export const TimelineEntry = memo(function TimelineEntry({
         <div className="mt-1 w-px flex-1 bg-foreground/8 last:hidden" />
       </div>
 
-      {/* Content */}
+      {/* content */}
       <div className="flex-1 pt-0.5">
         <div className="flex items-center gap-2">
           <span

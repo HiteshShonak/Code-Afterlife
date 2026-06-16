@@ -8,19 +8,12 @@ import type { DecayState } from '@/types/health';
 interface DecayVisualsProps {
   decayState: DecayState;
   children: React.ReactNode;
-  /** Override the animation transition duration in seconds */
+  // animation duration
   duration?: number;
   className?: string;
 }
 
-/**
- * Wraps children in a Framer Motion container that applies decay-state visual filters.
- * thriving → saturated + bright
- * dead     → grayscale + faded + slight skew
- *
- * Per engineering-patterns rule: Framer Motion for ALL app animations.
- * The `decayVariants` come from animations/decay.ts (single source of truth).
- */
+// decay visuals
 export const DecayVisuals = memo(function DecayVisuals({
   decayState,
   children,

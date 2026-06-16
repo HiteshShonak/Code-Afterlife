@@ -15,10 +15,7 @@ interface ResurrectionModalProps {
   };
 }
 
-/**
- * Modal to confirm intent to resurrect.
- * Redirects to the fork-setup page for the actual operation.
- */
+// resurrection modal
 export function ResurrectionModal({ open, onClose, deadProject }: ResurrectionModalProps) {
   return (
     <Dialog
@@ -32,7 +29,7 @@ export function ResurrectionModal({ open, onClose, deadProject }: ResurrectionMo
           Resurrecting this project will require you to fork its repository and continue its legacy under your own name.
         </p>
 
-        {/* Lineage note */}
+        {/* lineage note */}
         <p className="rounded-sm border border-accent/20 bg-accent/5 px-3 py-2 font-mono text-[10px] text-muted-foreground">
           This will create a new project linked to{' '}
           <span className="text-foreground">{deadProject.title}</span>{' '}

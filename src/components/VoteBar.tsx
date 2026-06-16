@@ -12,14 +12,7 @@ interface VoteBarProps {
   isLoggedIn:   boolean;
 }
 
-/**
- * VoteBar — "Will Ship 🚀" vs "Will Die 💀" community prediction bar.
- * Per engineering-patterns.md: Framer Motion for all animations.
- * Per design system: accent (violet) for CTA, destructive for danger.
- *
- * WILL_SHIP = blue-teal (hope, momentum)
- * WILL_DIE  = red (decay, death) — matches our DEAD state color
- */
+// vote bar
 export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
   const router = useRouter();
   const { stats, castVote, isPending } = useVote(projectId, initialStats);
@@ -37,7 +30,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
 
   return (
     <div className="space-y-4">
-      {/* Buttons */}
+      {/* buttons */}
       <div className="flex gap-3">
         <button
           onClick={() => handleVote('WILL_SHIP')}
@@ -74,7 +67,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
         </button>
       </div>
 
-      {/* Progress bar */}
+      {/* progress bar */}
       {stats.total > 0 && (
         <div className="space-y-1.5">
           <div className="flex h-2 overflow-hidden rounded-full bg-foreground/[0.06]">

@@ -29,11 +29,7 @@ interface ReactFlowGraphProps {
   edges: Edge[];
 }
 
-/**
- * Actual React Flow renderer — SSR-disabled via dynamic import in LineageGraph.tsx.
- * Uses ProjectNode as the custom node type for project cards.
- * Read-only: no node dragging/editing — lineage is a fixed hierarchy.
- */
+// react flow graph renderer
 export default function ReactFlowGraph({ nodes: initialNodes, edges: initialEdges }: ReactFlowGraphProps) {
   const [nodes, , onNodesChange] = useNodesState<Node<ProjectNodeData>>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);

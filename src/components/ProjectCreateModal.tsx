@@ -18,11 +18,7 @@ interface ProjectCreateModalProps {
   onClose: () => void;
 }
 
-/* ─── Steps ─────────────────────────────────────────────────── */
-// 1. Images   — mandatory, at least 1, NO skip
-// 2. Repo     — pick from GitHub (optional, "Skip" advances)
-// 3. Details  — title (required), description (optional), URL (required only if no repo)
-// 4. Stack    — at least 1 technology
+// steps config
 
 const STEPS = ['Images', 'Repository', 'Details', 'Stack'] as const;
 type Step = typeof STEPS[number];
@@ -33,7 +29,7 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -44 : 44, opacity: 0 }),
 };
 
-/* ─── Repo Card ─────────────────────────────────────────────── */
+// repo card
 function RepoCard({
   repo,
   selected,
@@ -98,7 +94,7 @@ function RepoCard({
   );
 }
 
-/* ─── Main Modal ────────────────────────────────────────────── */
+// main modal
 export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -129,13 +125,13 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
     setStepIndex((i) => Math.max(0, Math.min(STEPS.length - 1, i + dir)));
   };
 
-  // When entering the Repository step, trigger the lazy fetch
+  // trigger lazy fetch
   const currentStep: Step = STEPS[stepIndex];
   useEffect(() => {
     if (currentStep === 'Repository') loadRepos();
   }, [currentStep, loadRepos]);
 
-  // Auto-fill form fields when a repo is selected
+  // auto fill fields
   const handleRepoSelect = useCallback((repo: GithubRepoItem) => {
     if (selectedRepo?.id === repo.id) {
       // Deselect
@@ -155,13 +151,13 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
     }
   }, [selectedRepo, form.title, form.description, setField]);
 
-  /* ── Per-step advance validation ── */
+  // step validation
   const canAdvance = (): boolean => {
-    if (currentStep === 'Images')      return screenshots.length >= 1; // mandatory
-    if (currentStep === 'Repository')  return true;                      // always skippable
+    if (currentStep === 'Images')      return screenshots.length >= 1;
+    if (currentStep === 'Repository')  return true;
     if (currentStep === 'Details') {
       const hasTitle = form.title.trim().length >= 3;
-      // URL required only when no repo was selected
+      // url required check
       const hasUrl   = selectedRepo !== null || form.repoUrl.trim().length > 0;
       return hasTitle && hasUrl;
     }
@@ -175,7 +171,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
     submit(screenshots);
   };
 
-  /* ── Filtered repos ── */
+  // filtered repos
   const filteredRepos = repoQuery.trim()
     ? repos.filter(
         (r) =>
@@ -191,7 +187,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      {/* Backdrop */}
+      {/* backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -199,7 +195,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
       />
 
-      {/* Modal */}
+      {/* modal */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -208,7 +204,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
         className="relative z-10 flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/60"
         style={{ maxHeight: '92vh' }}
       >
-        {/* Header */}
+        {/* header */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
           <div>
             <h2 className="font-mono text-[14px] font-bold text-foreground">Register Project</h2>
@@ -217,7 +213,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
             </p>
           </div>
 
-          {/* Step indicators */}
+          {/* step indicators */}
           <div className="flex items-center gap-2">
             {STEPS.map((s, i) => (
               <div
@@ -239,7 +235,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
           </div>
         </div>
 
-        {/* Step content */}
+        {/* step content */}
         <div
           className="flex-1 overflow-y-auto px-6 py-5"
           style={{ minHeight: '340px' }}
@@ -255,7 +251,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
               transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
             >
 
-              {/* ── Step 1: Images (mandatory) ── */}
+              {/* step 1 images */}
               {currentStep === 'Images' && (
                 <div className="flex flex-col gap-4">
                   <div className="rounded-xl border border-accent/20 bg-accent/5 px-4 py-3 font-mono text-[11px] text-muted-foreground">
@@ -270,7 +266,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                 </div>
               )}
 
-              {/* ── Step 2: Repository Picker ── */}
+              {/* step 2 repository picker */}
               {currentStep === 'Repository' && (
                 <div className="flex flex-col gap-4">
                   <div className="rounded-xl border border-border bg-secondary/30 px-4 py-3">
@@ -284,7 +280,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                     </p>
                   </div>
 
-                  {/* Search box */}
+                  {/* search box */}
                   {repos.length > 0 && (
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40 pointer-events-none" />
@@ -298,7 +294,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                     </div>
                   )}
 
-                  {/* Loading */}
+                  {/* loading */}
                   {reposLoading && (
                     <div className="flex flex-col items-center justify-center gap-3 py-10">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
@@ -306,7 +302,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                     </div>
                   )}
 
-                  {/* Error — two cases */}
+                  {/* error cases */}
                   {reposError && !reposLoading && (
                     reposErrorType === 'reauth_needed' ? (
                       <div className="rounded-xl border border-amber-800/40 bg-amber-950/30 px-4 py-4 flex flex-col gap-3">
@@ -342,7 +338,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                     )
                   )}
 
-                  {/* Repo list */}
+                  {/* repo list */}
                   {!reposLoading && !reposError && filteredRepos.length > 0 && (
                     <div className="flex flex-col gap-2">
                       {filteredRepos.map((repo) => (
@@ -356,7 +352,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                     </div>
                   )}
 
-                  {/* Empty search state */}
+                  {/* empty search */}
                   {!reposLoading && !reposError && repos.length > 0 && filteredRepos.length === 0 && (
                     <div className="flex flex-col items-center gap-2 py-8">
                       <p className="font-mono text-[11px] text-muted-foreground/50">
@@ -365,7 +361,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                     </div>
                   )}
 
-                  {/* No repos at all */}
+                  {/* no repos */}
                   {!reposLoading && !reposError && repos.length === 0 && (
                     <div className="flex flex-col items-center gap-2 py-8">
                       <GitFork className="h-8 w-8 text-muted-foreground/20" />
@@ -375,10 +371,10 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                 </div>
               )}
 
-              {/* ── Step 3: Details ── */}
+              {/* step 3 details */}
               {currentStep === 'Details' && (
                 <div className="flex flex-col gap-4">
-                  {/* Selected repo indicator */}
+                  {/* selected repo */}
                   {selectedRepo && (
                     <div className="flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2.5">
                       <GitFork className="h-3.5 w-3.5 text-accent/60 flex-shrink-0" />
@@ -453,7 +449,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                 </div>
               )}
 
-              {/* ── Step 4: Stack ── */}
+              {/* step 4 stack */}
               {currentStep === 'Stack' && (
                 <div className="flex flex-col gap-4">
                   <div className="rounded-xl border border-border bg-secondary/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">
@@ -471,14 +467,14 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
           </AnimatePresence>
         </div>
 
-        {/* Server error */}
+        {/* server error */}
         {serverError && (
           <div className="mx-6 mb-2 flex-shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 font-mono text-[11px] text-destructive">
             {serverError}
           </div>
         )}
 
-        {/* Footer */}
+        {/* footer */}
         <div className="flex items-center justify-between border-t border-border px-6 py-4 flex-shrink-0">
           <button
             onClick={() => navigate(-1)}
@@ -489,7 +485,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
           </button>
 
           <div className="flex items-center gap-3">
-            {/* Skip button — only on Repository step */}
+            {/* skip button */}
             {currentStep === 'Repository' && (
               <button
                 onClick={() => navigate(1)}
@@ -530,7 +526,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
   );
 }
 
-/* ─── Field wrapper ────────────────────────────────────────── */
+// field wrapper
 function Field({
   label, error, optional, hint, children,
 }: {

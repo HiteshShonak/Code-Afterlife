@@ -9,7 +9,7 @@ import type { CommentWithUser } from '@/services/social.service';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 
-// Extend CommentWithUser to include isPinned
+// extend isPinned
 type CommentWithPinned = CommentWithUser & { isPinned?: boolean };
 
 interface CommentSectionProps {
@@ -23,7 +23,7 @@ interface CommentSectionProps {
 
 const MAX_CHARS = 500;
 
-/* ─────────────── Comment Entry ─────────────────────────────────────────── */
+// comment entry
 
 function CommentEntry({
   comment,
@@ -113,7 +113,7 @@ function CommentEntry({
   );
 }
 
-/* ─────────────── Comment Form ───────────────────────────────────────────── */
+// comment form
 
 function CommentForm({
   projectId,
@@ -219,7 +219,7 @@ function CommentForm({
   );
 }
 
-/* ─────────────── Main Component ─────────────────────────────────────────── */
+// main component
 
 export function CommentSection({
   projectId,

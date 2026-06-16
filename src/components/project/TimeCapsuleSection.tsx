@@ -59,7 +59,7 @@ export function TimeCapsuleSection({
   const [isPending, startTransition] = useTransition();
   const [saveMessage, setSaveMessage] = useState('');
   
-  // Capsule Upload State
+  // upload state
   const [capsules, setCapsules] = useState<TimeCapsule[]>(initialCapsules);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'MESSAGE' | 'IMAGE' | 'VIDEO' | 'AUDIO'>('MESSAGE');
@@ -183,7 +183,7 @@ export function TimeCapsuleSection({
           formData.append('timestamp', timestamp.toString());
           formData.append('signature', signature);
           formData.append('folder', 'time-capsules');
-          // Basic video compression via Cloudinary
+          // cloudinary compression
           if (uploadType === 'VIDEO') {
             formData.append('quality', 'auto');
           }
@@ -218,7 +218,7 @@ export function TimeCapsuleSection({
 
       setUploadProgress(100);
 
-      // 2. Save Capsule to DB
+      // save to db
       const dbRes = await fetch(`/api/projects/${projectId}/time-capsules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -244,12 +244,10 @@ export function TimeCapsuleSection({
     }
   };
 
-  // The testament itself should only be visible to the public if it has been resurrected.
-  // Otherwise, only the owner can see it.
+  // visibility logic
   const showTestament = isOwner || hasBeenResurrected;
 
-  // If visitor and not allowed to see testament, don't show the section at all to save space.
-  // We hide the "Time Capsules" list from visitors entirely because they use the "Unseal" button elsewhere when it's dead.
+  // hide if visitor
   if (!isOwner && (!showTestament || !initialTestament)) {
     return null;
   }
@@ -269,7 +267,7 @@ export function TimeCapsuleSection({
 
       <div className="flex flex-col gap-8">
         
-        {/* TESTAMENT (Visible to Owner, or Public if Resurrected) */}
+        {/* testament section */}
         {showTestament && (
           <div className="relative">
             <h3 className="font-mono text-[11px] font-semibold text-foreground/80 mb-3 flex items-center gap-2">
@@ -317,7 +315,7 @@ export function TimeCapsuleSection({
           </div>
         )}
 
-        {/* TIME CAPSULES (Only Owner can see this list/add button here) */}
+        {/* time capsules */}
         {isOwner && (
           <div className="relative mt-4">
             <div className="flex items-center justify-between mb-4">
@@ -342,7 +340,7 @@ export function TimeCapsuleSection({
           </div>
         )}
 
-        {/* SAVE CONTROLS FOR TESTAMENT */}
+        {/* save controls */}
         <AnimatePresence>
           {isEditing && (
             <motion.div 
@@ -370,7 +368,7 @@ export function TimeCapsuleSection({
         )}
       </div>
 
-      {/* UPLOAD MODAL */}
+      {/* upload modal */}
       <Dialog
         open={isUploadModalOpen}
         onClose={() => { if (!isUploading) setIsUploadModalOpen(false); }}
@@ -428,7 +426,7 @@ export function TimeCapsuleSection({
                   >
                      {file && previewUrl ? (
                         <div className="flex flex-col items-center gap-4 w-full">
-                           {/* Media Preview */}
+                           {/* preview */}
                            {uploadType === 'IMAGE' && (
                              <img src={previewUrl} alt="Preview" className="max-h-[160px] object-contain rounded-md border border-border/50" />
                            )}
@@ -454,7 +452,7 @@ export function TimeCapsuleSection({
                         </div>
                      )}
                      
-                     {/* Upload Progress Bar */}
+                     {/* upload progress */}
                      {isUploading && uploadProgress > 0 && (
                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-background">
                          <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />

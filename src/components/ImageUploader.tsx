@@ -14,15 +14,7 @@ interface ImageUploaderProps {
   maxImages?: number;
 }
 
-/**
- * Drag-and-drop + click image uploader with client-side WebP compression.
- *
- * Pipeline per file:
- *   Compress to WebP (Canvas, 1440×1080) → show local preview → upload to Cloudinary
- *
- * Status overlays:
- *   compressing → uploading → done (green tick + savings badge) | error
- */
+// image uploader
 export const ImageUploader = memo(function ImageUploader({
   onChange, required, error, maxImages = 5,
 }: ImageUploaderProps) {
@@ -66,7 +58,7 @@ export const ImageUploader = memo(function ImageUploader({
         </span>
       </div>
 
-      {/* Image grid — always occupies the same slot so nothing shifts below */}
+      {/* image grid */}
       <div className={cn(
         'grid gap-2',
         images.length > 0 ? 'grid-cols-3' : 'hidden'
@@ -98,7 +90,7 @@ export const ImageUploader = memo(function ImageUploader({
                   </span>
                 )}
 
-                {/* ── Status overlays ── */}
+                {/* overlays */}
 
                 {/* Compressing */}
                 {img.status === 'compressing' && (
@@ -148,7 +140,7 @@ export const ImageUploader = memo(function ImageUploader({
         </AnimatePresence>
       </div>
 
-      {/* Drop zone — fixed height so adding images doesn't shift the modal footer */}
+      {/* drop zone */}
       {canAddMore && (
         <div
           onDrop={onDrop}
@@ -207,7 +199,7 @@ export const ImageUploader = memo(function ImageUploader({
         </p>
       )}
 
-      {/* Global busy indicator */}
+      {/* busy indicator */}
       {isAnyBusy && (
         <div className="flex items-center gap-2">
           <div className="flex gap-1">

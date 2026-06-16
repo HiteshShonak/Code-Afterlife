@@ -13,12 +13,7 @@ interface StackPickerProps {
   error?:    string;
 }
 
-/**
- * Smart stack picker component.
- * Shows 12 popular stacks by default.
- * As user types, filters all 60+ stacks and shows up to 8 suggestions.
- * Enter to pick top suggestion or add custom. Backspace removes last chip.
- */
+// stack picker
 export const StackPicker = memo(function StackPicker({ selected, onChange, error }: StackPickerProps) {
   const {
     query, setQuery, inputRef,
@@ -29,7 +24,7 @@ export const StackPicker = memo(function StackPicker({ selected, onChange, error
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Label */}
+      {/* label */}
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
           Tech Stack
@@ -42,7 +37,7 @@ export const StackPicker = memo(function StackPicker({ selected, onChange, error
         </span>
       </div>
 
-      {/* Selected chips */}
+      {/* selected chips */}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           <AnimatePresence>
@@ -64,7 +59,7 @@ export const StackPicker = memo(function StackPicker({ selected, onChange, error
         </div>
       )}
 
-      {/* Search input */}
+      {/* search input */}
       {!reachedMax && (
         <div className="relative">
           <Hash className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
@@ -78,7 +73,7 @@ export const StackPicker = memo(function StackPicker({ selected, onChange, error
             className="h-9 w-full rounded-md border border-border bg-secondary/50 pl-9 pr-4 font-mono text-[11px] text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-accent/60 focus:ring-1 focus:ring-accent"
           />
 
-          {/* Suggestions dropdown */}
+          {/* suggestions */}
           <AnimatePresence>
             {(suggestions.length > 0 || canAddCustom) && (
               <motion.div
@@ -115,7 +110,7 @@ export const StackPicker = memo(function StackPicker({ selected, onChange, error
         </div>
       )}
 
-      {/* Popular stacks (shown when no query) */}
+      {/* popular stacks */}
       {!query.trim() && !reachedMax && (
         <div>
           <p className="mb-1.5 font-mono text-[9px] uppercase tracking-widest text-muted-foreground/40">
