@@ -21,7 +21,7 @@ interface UseGithubReposReturn {
   loading: boolean;
   error: string | null;
   errorType: RepoErrorType | null;
-  // load repos
+  load: () => Promise<void>;
 }
 
 // get gh repos

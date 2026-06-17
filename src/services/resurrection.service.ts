@@ -17,6 +17,12 @@ export interface ChainProject {
   readonly resurrecter: { username: string | null } | null;
 }
 
+/** Returns a random starting health in the range [42, 58]. */
+function seededInitialHealth(_seed: string): number {
+  const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8
+  return PROJECT_DEFAULTS.initialHealth + offset;     // 42 … 58
+}
+
 export const resurrectionService = {
   // resurrect project
   async resurrect(

@@ -7,16 +7,21 @@ export type ProjectWithUser = Project & {
   user: User;
 };
 
+// parent project shape — always fetched with its owner
+export type ProjectParent = Project & {
+  user: User;
+};
+
 // project + lineage
 export type ProjectWithLineage = Project & {
-  parentProject: Project | null;
+  parentProject: ProjectParent | null;
   children: Project[];
 };
 
 // full project details
 export type ProjectDetail = Project & {
   user: User;
-  parentProject: Project | null;
+  parentProject: ProjectParent | null;
   resurrecter: User | null;
   children: Project[];
   timelineEntries: TimelineEntry[];
