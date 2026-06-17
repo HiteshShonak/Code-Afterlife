@@ -6,9 +6,7 @@ export const metadata: Metadata = {
   description: 'This page was abandoned.',
 };
 
-/**
- * 404 Not Found — cinematic tombstone aesthetic.
- */
+// 404 not found
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-6 text-center">

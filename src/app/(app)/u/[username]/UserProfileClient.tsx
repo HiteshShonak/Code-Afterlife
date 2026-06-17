@@ -19,7 +19,7 @@ interface UserProfileClientProps {
 
 const CINEMATIC_EASE = [0.16, 1, 0.3, 1] as const;
 
-/** Tier configuration for visual theming */
+// tier config
 const TIER_CONFIG: Record<string, {
   label: string;
   color: string;
@@ -57,7 +57,7 @@ const TIER_CONFIG: Record<string, {
   },
 };
 
-/** Animated SVG ring for health score visualization */
+// health ring
 function HealthRing({ score, size = 96 }: { score: number; size?: number }) {
   const radius = (size - 12) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -117,7 +117,7 @@ function HealthRing({ score, size = 96 }: { score: number; size?: number }) {
   );
 }
 
-/** Stat pill with animated count-up effect */
+// stat pill
 function StatPill({
   icon: Icon,
   label,

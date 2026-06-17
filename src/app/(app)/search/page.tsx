@@ -18,10 +18,7 @@ function SearchSkeleton() {
   );
 }
 
-/**
- * Search page — wrapped in Suspense to handle useSearchParams safely during SSR.
- * Public: unauthenticated users still see this page.
- */
+// search page
 export default async function SearchPage() {
   const { projects, nextCursor } = await getSearchPage({ sort: 'TRENDING' });
 

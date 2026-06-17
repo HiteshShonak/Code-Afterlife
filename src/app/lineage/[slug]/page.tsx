@@ -18,10 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-/**
- * Lineage graph page — server component.
- * Fetches the full ancestry tree and passes it to the client-side React Flow graph.
- */
+// lineage graph page
 export default async function LineagePage({ params }: PageProps) {
   const { slug } = await params;
   const project = await projectService.getBySlug(slug);

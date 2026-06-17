@@ -3,8 +3,8 @@
 import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen, Plus, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DecayVisuals } from '@/components/DecayVisuals';
 import { HealthIndicator } from '@/components/HealthIndicator';
 import { StateBadge } from '@/components/StateBadge';
@@ -24,6 +24,7 @@ import { shipProjectAction, permanentDeleteProjectAction } from '@/actions/proje
 import { formatDate, formatRelativeDate } from '@/lib/utils';
 import type { ProjectDetail } from '@/types/project';
 import type { VoteStats, CommentWithUser } from '@/services/social.service';
+import { ImageLightbox } from '@/components/ImageLightbox';
 
 interface ProjectDetailClientProps {
   project:          ProjectDetail;
@@ -44,7 +45,7 @@ const STATE_META = {
   DEAD:    { label: 'Dead',    color: 'oklch(0.52 0.12 25)',  tagline: 'Abandoned — awaiting resurrection' },
 } as const;
 
-/** Stagger animation for sections — delay increments of 0.07s */
+// stagger animation
 const sectionVariant = (delay: number) => ({
   initial:  { opacity: 0, y: 14 },
   animate:  { opacity: 1, y: 0 },
@@ -85,6 +86,12 @@ export function ProjectDetailClient({
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
+  // lightbox state for screenshot gallery
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const screenshots = project.screenshots ?? [];
+  const hasScreenshots = screenshots.length > 0;
+
   // Manual Update Modal State
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateMethod, setUpdateMethod] = useState<'MANUAL' | 'AI'>('MANUAL');
@@ -122,6 +129,18 @@ export function ProjectDetailClient({
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightboxIndex !== null && hasScreenshots && (
+          <ImageLightbox
+            images={screenshots}
+            startIndex={lightboxIndex}
+            projectTitle={project.title}
+            projectSlug={project.slug}
+            onClose={() => setLightboxIndex(null)}
+          />
+        )}
+      </AnimatePresence>
       {/* Permanent Delete Modal */}
       <Dialog
         open={isDeleteConfirmOpen}
@@ -304,15 +323,75 @@ export function ProjectDetailClient({
               {stateMeta.tagline}
             </p>
 
-            {/* Massive Cover Image */}
-            {project.screenshots && project.screenshots.length > 0 && (
-              <div className="mb-6 aspect-video w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl relative">
-                <img 
-                  src={project.screenshots[0]} 
-                  alt={`${project.title} cover`} 
-                  className="w-full h-full object-cover" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
+            {/* Screenshot Gallery */}
+            {hasScreenshots && (
+              <div className="mb-6">
+                {/* Main image — click to zoom */}
+                <div
+                  className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl cursor-zoom-in group"
+                  onClick={() => setLightboxIndex(galleryIndex)}
+                >
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.img
+                      key={galleryIndex}
+                      src={screenshots[galleryIndex]}
+                      alt={`${project.title} screenshot ${galleryIndex + 1}`}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-300"
+                    />
+                  </AnimatePresence>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-70 pointer-events-none" />
+                  {/* Zoom hint */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 px-2.5 py-1.5 font-mono text-[10px] text-white/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <ZoomIn className="h-3 w-3" />
+                    Click to zoom
+                  </div>
+                  {/* Count badge when multiple */}
+                  {screenshots.length > 1 && (
+                    <div className="absolute bottom-3 right-3 rounded-lg border border-white/10 bg-black/50 px-2 py-1 font-mono text-[10px] text-white/50 backdrop-blur-sm">
+                      {galleryIndex + 1} / {screenshots.length}
+                    </div>
+                  )}
+                  {/* Prev/Next arrows on main image */}
+                  {screenshots.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + screenshots.length) % screenshots.length); }}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/50 backdrop-blur-sm text-white/80 opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % screenshots.length); }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/50 backdrop-blur-sm text-white/80 opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Thumbnail strip for additional screenshots */}
+                {screenshots.length > 1 && (
+                  <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {screenshots.map((src, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setGalleryIndex(i)}
+                        className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
+                          i === galleryIndex
+                            ? 'border-accent/80 shadow-[0_0_10px_rgba(245,158,11,0.25)] scale-105'
+                            : 'border-border/40 opacity-50 hover:opacity-80 hover:border-border'
+                        }`}
+                      >
+                        <img src={src} alt={`thumbnail ${i + 1}`} className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -494,27 +573,7 @@ export function ProjectDetailClient({
             </motion.section>
           )}
 
-          {/* ── Screenshots ─────────────────────────────────────── */}
-          {project.screenshots && project.screenshots.length > 1 && (
-            <motion.section {...sectionVariant(0.13)} className="mb-8">
-              <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
-                Additional Screenshots
-              </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {project.screenshots.slice(1).map((url, i) => (
-                  <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                     className="group aspect-video overflow-hidden rounded-xl border border-white/[0.06] bg-black/30">
-                    <img
-                      src={url}
-                      alt={`${project.title} screenshot ${i + 2}`}
-                      className="h-full w-full object-cover opacity-80 transition-all duration-300 group-hover:scale-[1.02] group-hover:opacity-100"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  </a>
-                ))}
-              </div>
-            </motion.section>
-          )}
+
 
           {/* ── Stack ───────────────────────────────────────────── */}
           {project.stack.length > 0 && (

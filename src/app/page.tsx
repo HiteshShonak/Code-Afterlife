@@ -38,7 +38,7 @@ export default function Home() {
 
         <Legacy />
 
-        {/* Legacy → Project Pulse: cold blue fades into deep dark observatory */}
+        {/* transition 1 */}
         <CinematicSpacer
           topColor="#030508"
           bottomColor="#040810"
@@ -48,7 +48,7 @@ export default function Home() {
 
         <ProjectPulse />
 
-        {/* Project Pulse → Final CTA */}
+        {/* transition 2 */}
         <CinematicSpacer
           topColor="#0a0a0f"
           bottomColor="var(--background)"

@@ -9,11 +9,7 @@ export const metadata: Metadata = {
   description: 'A cinematic archive of abandoned software projects. Some await resurrection.',
 };
 
-/**
- * Graveyard page — server component.
- * Fetches real dead projects from DB and auth status.
- * Falls back gracefully if DB is not yet configured.
- */
+// graveyard page
 export default async function GraveyardPage() {
   let deadProjects: Awaited<ReturnType<typeof projectService.getDeadProjects>> = [];
   let isAuthenticated = false;
@@ -27,7 +23,7 @@ export default async function GraveyardPage() {
     deadProjects = projects;
     isAuthenticated = !!session?.user?.id;
   } catch {
-    // DB not configured — render graveyard with empty state
+    // fallback empty state
     deadProjects = [];
     isAuthenticated = false;
   }

@@ -26,11 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-/**
- * Project detail server component — inside (app) shell.
- * Fetches project + social state (likes, votes, follow, comments) server-side.
- * Auth is optional — unauthenticated users see read-only view with no social state.
- */
+// project detail page
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { slug } = await params;
 

@@ -8,11 +8,7 @@ export const metadata: Metadata = {
   description: 'Track and manage your software project lifecycle.',
 };
 
-/**
- * Dashboard server page.
- * Auth is guaranteed by layout — session is always valid here.
- * Fetches user projects and passes to DashboardClient.
- */
+// dashboard page
 export default async function DashboardPage() {
   const { auth } = await import('@/lib/auth');
   const session = await auth();

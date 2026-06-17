@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://codeafterlife.com';
 
-  // Fetch all projects for dynamic routes
+  // get all projects
   const projects = await prisma.project.findMany({
     select: {
       slug: true,
