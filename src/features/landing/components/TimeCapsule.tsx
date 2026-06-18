@@ -635,22 +635,40 @@ export function TimeCapsule() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_28%,rgba(0,0,0,0.9)_100%)]" />
         </div>
 
-        {/* floating dust */}
+        {/* floating dust — CSS-only, zero JS RAF cost */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <motion.div key={i}
-              className="absolute rounded-full bg-amber-400/20"
-              style={{
-                left: `${10 + (i * 71) % 80}%`,
-                bottom: `${(i * 29) % 80}%`,
-                width: 1 + (i % 3) * 0.6,
-                height: 1 + (i % 3) * 0.6,
-              }}
-              animate={{ y: [0, -(35 + (i % 5) * 18), 0], opacity: [0.18, 0.45, 0.18] }}
-              transition={{ duration: 8 + (i * 1.1) % 11, delay: (i * 0.6) % 7, repeat: Infinity, ease: "easeInOut" }}
-            />
-          ))}
+          <style>{`
+            @keyframes tc-dust {
+              0%   { transform: translateY(0)   translateX(0);   opacity: 0.18; }
+              50%  { opacity: 0.45; }
+              100% { transform: translateY(var(--tc-dy)) translateX(var(--tc-dx)); opacity: 0.18; }
+            }
+          `}</style>
+          {Array.from({ length: 18 }).map((_, i) => {
+            const dy = -(35 + (i % 5) * 18);
+            const dx = ((i % 3) - 1) * 8;
+            const dur = 8 + (i * 1.1) % 11;
+            const delay = (i * 0.6) % 7;
+            const sz = 1 + (i % 3) * 0.6;
+            return (
+              <div
+                key={i}
+                className="absolute rounded-full bg-amber-400/20"
+                style={{
+                  left: `${10 + (i * 71) % 80}%`,
+                  bottom: `${(i * 29) % 80}%`,
+                  width: sz,
+                  height: sz,
+                  ["--tc-dy" as string]: `${dy}px`,
+                  ["--tc-dx" as string]: `${dx}px`,
+                  animation: `tc-dust ${dur}s ease-in-out ${delay}s infinite`,
+                  willChange: "transform, opacity",
+                }}
+              />
+            );
+          })}
         </div>
+
 
         {/* capsule canvas area */}
         <div className="relative flex items-center justify-center w-full h-full">

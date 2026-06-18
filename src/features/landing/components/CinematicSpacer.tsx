@@ -20,6 +20,9 @@ export function CinematicSpacer({
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-20%" });
 
+  // Derive glow color at opacity 0.8 for the box-shadow highlight
+  const glowHighlight = glowColor.replace(/,[0-9.]+\)$/, ",0.8)");
+
   return (
     <div
       ref={ref}
@@ -29,7 +32,7 @@ export function CinematicSpacer({
         background: `linear-gradient(to bottom, ${topColor} 0%, ${bottomColor} 100%)`,
       }}
     >
-      {/* ambient glow */}
+      {/* ambient glow — inView-triggered one-shot (Framer OK here, not infinite) */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={inView ? { opacity: 1, scale: 1 } : {}}
@@ -40,10 +43,18 @@ export function CinematicSpacer({
         }}
       />
 
-      {/* scroll particles */}
+      {/* scroll particles — CSS-only, zero JS RAF cost (renders 4× on page = 24 loops saved) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+        <style>{`
+          @keyframes cs-particle {
+            0%, 100% { transform: translateY(0);   opacity: 0; }
+            20%       { opacity: 0.4; }
+            80%       { opacity: 0.4; }
+            50%       { transform: translateY(-40px); }
+          }
+        `}</style>
         {Array.from({ length: 6 }).map((_, i) => (
-          <motion.div
+          <div
             key={i}
             className="absolute rounded-full bg-white"
             style={{
@@ -51,14 +62,9 @@ export function CinematicSpacer({
               top: `${10 + (i * 53) % 80}%`,
               width: 1 + (i % 2) * 0.5,
               height: 1 + (i % 2) * 0.5,
-              boxShadow: `0 0 8px ${glowColor.replace(/,[0-9.]+$/, ",0.8)")}`,
-            }}
-            animate={{ y: [0, -40, 0], opacity: [0, 0.4, 0] }}
-            transition={{
-              duration: 6 + (i % 4) * 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: (i * 0.5) % 2,
+              boxShadow: `0 0 8px ${glowHighlight}`,
+              animation: `cs-particle ${6 + (i % 4) * 2}s ease-in-out ${(i * 0.5) % 2}s infinite`,
+              willChange: "transform, opacity",
             }}
           />
         ))}
@@ -66,3 +72,4 @@ export function CinematicSpacer({
     </div>
   );
 }
+
