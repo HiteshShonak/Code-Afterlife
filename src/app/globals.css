@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap");
+/* Fonts are self-hosted via next/font/google in layout.tsx — no CDN @import needed */
 @import "tailwindcss";
 @source "../";
 
@@ -45,8 +45,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 :root {
@@ -182,8 +182,9 @@
   to { transform: scale(1.12) translateY(-1.5%) rotate(0.2deg); }
 }
 @keyframes ca-pulse-dot {
-  0%, 100% { opacity: 0.55; box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 35%, transparent); }
-  50% { opacity: 1; box-shadow: 0 0 14px 2px color-mix(in oklab, var(--accent) 45%, transparent); }
+  /* Uses filter:drop-shadow() instead of box-shadow — GPU compositable */
+  0%, 100% { opacity: 0.55; filter: drop-shadow(0 0 0px color-mix(in oklab, var(--accent) 35%, transparent)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 7px color-mix(in oklab, var(--accent) 45%, transparent)); }
 }
 @keyframes ca-trace {
   0% { stroke-dashoffset: 200; opacity: 0; }
@@ -205,14 +206,14 @@
   50% { transform: translateY(-15px) rotateX(calc(var(--tw-panel-rx, 0deg) + 2deg)) rotateY(calc(var(--tw-panel-ry, 0deg) - 2deg)) translateZ(20px); }
 }
 
-.ca-float { animation: ca-float 11s ease-in-out infinite; }
-.ca-pulse-glow { animation: ca-pulse-glow 7s ease-in-out infinite; }
-.ca-ken-burns { animation: ca-ken-burns 40s ease-in-out infinite alternate; }
-.ca-pulse-dot { animation: ca-pulse-dot 3.2s ease-in-out infinite; }
-.ca-fog-drift-1 { animation: ca-fog-drift 35s ease-in-out infinite alternate; }
-.ca-fog-drift-2 { animation: ca-fog-drift 45s ease-in-out infinite alternate-reverse; }
-.ca-panel-float { animation: ca-panel-float var(--tw-panel-duration, 15s) ease-in-out infinite; }
-.ca-dust { animation: ca-dust-float var(--tw-dust-duration, 20s) ease-in-out infinite; animation-delay: var(--tw-dust-delay, 0s); }
+.ca-float { animation: ca-float 11s ease-in-out infinite; will-change: transform; }
+.ca-pulse-glow { animation: ca-pulse-glow 7s ease-in-out infinite; will-change: filter, opacity; transform: translateZ(0); }
+.ca-ken-burns { animation: ca-ken-burns 40s ease-in-out infinite alternate; will-change: transform; }
+.ca-pulse-dot { animation: ca-pulse-dot 3.2s ease-in-out infinite; will-change: filter, opacity; }
+.ca-fog-drift-1 { animation: ca-fog-drift 35s ease-in-out infinite alternate; will-change: transform; }
+.ca-fog-drift-2 { animation: ca-fog-drift 45s ease-in-out infinite alternate-reverse; will-change: transform; }
+.ca-panel-float { animation: ca-panel-float var(--tw-panel-duration, 15s) ease-in-out infinite; will-change: transform; }
+.ca-dust { animation: ca-dust-float var(--tw-dust-duration, 20s) ease-in-out infinite; animation-delay: var(--tw-dust-delay, 0s); will-change: transform, opacity; }
 
 .ca-reveal { opacity: 0; transform: translateY(24px); transition: opacity 900ms cubic-bezier(0.16,1,0.3,1), transform 900ms cubic-bezier(0.16,1,0.3,1); }
 .ca-reveal.is-visible { opacity: 1; transform: translateY(0); }
