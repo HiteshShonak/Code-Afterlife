@@ -1,14 +1,20 @@
+import dynamic from "next/dynamic";
 import { Nav } from "@/features/landing/components/Nav";
 import { Hero } from "@/features/landing/components/Hero";
-import { Lifecycle } from "@/features/landing/components/Lifecycle";
-import { Graveyard } from "@/features/landing/components/Graveyard";
-import { TimeCapsule } from "@/features/landing/components/TimeCapsule";
-import { HourglassTransition } from "@/features/landing/components/HourglassTransition";
-import { Legacy } from "@/features/landing/components/Legacy";
-import { ProjectPulse } from "@/features/landing/components/ProjectPulse";
-import { FinalCta } from "@/features/landing/components/FinalCta";
-import { CinematicSpacer } from "@/features/landing/components/CinematicSpacer";
-import { Footer } from "@/features/landing/components/Footer";
+
+// Below-fold sections — code-split via next/dynamic.
+// Their HTML still renders on the server (SSR preserved), but JS is deferred,
+// reducing the initial bundle that causes the 5.0s main-thread parse cost.
+const Lifecycle          = dynamic(() => import("@/features/landing/components/Lifecycle").then(m => m.Lifecycle));
+const Graveyard          = dynamic(() => import("@/features/landing/components/Graveyard").then(m => m.Graveyard));
+const TimeCapsule        = dynamic(() => import("@/features/landing/components/TimeCapsule").then(m => m.TimeCapsule));
+const HourglassTransition = dynamic(() => import("@/features/landing/components/HourglassTransition").then(m => m.HourglassTransition));
+const Legacy             = dynamic(() => import("@/features/landing/components/Legacy").then(m => m.Legacy));
+const ProjectPulse       = dynamic(() => import("@/features/landing/components/ProjectPulse").then(m => m.ProjectPulse));
+const FinalCta           = dynamic(() => import("@/features/landing/components/FinalCta").then(m => m.FinalCta));
+const CinematicSpacer    = dynamic(() => import("@/features/landing/components/CinematicSpacer").then(m => m.CinematicSpacer));
+const Footer             = dynamic(() => import("@/features/landing/components/Footer").then(m => m.Footer));
+
 
 export default function Home() {
   return (
