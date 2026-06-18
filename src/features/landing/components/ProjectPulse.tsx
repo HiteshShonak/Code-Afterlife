@@ -1072,10 +1072,14 @@ export function ProjectPulse() {
   const [phase, setPhase] = useState<0 | 1 | 2>(0);
 
   useEffect(() => {
+    let prevPhase: 0 | 1 | 2 = 0;
     const unsub = smooth.on("change", (v) => {
-      if      (v < 0.16) setPhase(0);
-      else if (v < 0.40) setPhase(1);
-      else               setPhase(2);
+      const next: 0 | 1 | 2 = v < 0.16 ? 0 : v < 0.40 ? 1 : 2;
+      // Only re-render when phase actually changes — not on every scroll frame
+      if (next !== prevPhase) {
+        prevPhase = next;
+        setPhase(next);
+      }
     });
     return () => unsub();
   }, [smooth]);

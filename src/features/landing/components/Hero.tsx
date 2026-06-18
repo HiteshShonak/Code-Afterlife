@@ -57,6 +57,7 @@ export function Hero() {
     let targetY = 0;
     let currentX = 0;
     let currentY = 0;
+    let isVisible = true; // track viewport visibility
 
     const handleMouseMove = (e: MouseEvent) => {
       targetX = (e.clientX / window.innerWidth) * 2 - 1;
@@ -64,6 +65,11 @@ export function Hero() {
     };
 
     const animate = () => {
+      if (!isVisible) {
+        // Section is off-screen — stop the loop, save GPU/CPU
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
       // smooth lerp
       currentX += (targetX - currentX) * 0.05;
       currentY += (targetY - currentY) * 0.05;
@@ -80,12 +86,21 @@ export function Hero() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    // Pause RAF when hero is scrolled out of view
+    const section = bgRef.current?.closest("section");
+    const observer = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    if (section) observer.observe(section);
+
     window.addEventListener("mousemove", handleMouseMove);
     animate();
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
     };
   }, []);
 
