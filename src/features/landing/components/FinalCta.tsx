@@ -32,40 +32,55 @@ export function FinalCta() {
       ref={containerRef}
       className="relative overflow-hidden border-t border-border/60 px-6 pt-24 pb-20 md:pt-32 md:pb-28"
     >
-      {/* background atmosphere */}
+      {/* background atmosphere — CSS-only animations, zero JS RAF cost */}
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <style>{`
+          @keyframes fca-glow-pulse {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
+            50%       { opacity: 1.0; transform: translate(-50%, -50%) scale(1.05); }
+          }
+          @keyframes fca-drift-a {
+            0%, 100% { transform: translate(0, 0); }
+            50%       { transform: translate(-20px, 10px); }
+          }
+          @keyframes fca-drift-b {
+            0%, 100% { transform: translate(0, 0); }
+            50%       { transform: translate(15px, -15px); }
+          }
+        `}</style>
+
         {/* subtle depth glow */}
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        <div
+          className="absolute left-1/2 top-1/2 h-[800px] w-[800px] rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(14,165,233,0.015) 0%, transparent 70%)",
             filter: "blur(60px)",
+            animation: "fca-glow-pulse 18s ease-in-out infinite",
+            willChange: "transform, opacity",
           }}
-          animate={{
-            opacity: [0.6, 1.0, 0.6],
-            scale: [0.95, 1.05, 0.95],
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* atmospheric motion */}
-        <motion.div
+        {/* atmospheric drift A */}
+        <div
           className="absolute inset-0"
-          animate={{ x: [0, -20, 0], y: [0, 10, 0] }}
-          transition={{ duration: 45, repeat: Infinity, ease: "easeInOut" }}
           style={{
             background: "radial-gradient(ellipse 60% 50% at 30% 60%, rgba(255,255,255,0.008) 0%, transparent 60%)",
+            animation: "fca-drift-a 45s ease-in-out infinite",
+            willChange: "transform",
           }}
         />
-        <motion.div
+
+        {/* atmospheric drift B */}
+        <div
           className="absolute inset-0"
-          animate={{ x: [0, 15, 0], y: [0, -15, 0] }}
-          transition={{ duration: 55, repeat: Infinity, ease: "easeInOut" }}
           style={{
             background: "radial-gradient(ellipse 50% 40% at 70% 30%, rgba(255,255,255,0.006) 0%, transparent 60%)",
+            animation: "fca-drift-b 55s ease-in-out infinite",
+            willChange: "transform",
           }}
         />
       </div>
+
 
       <div className="mx-auto flex flex-col items-center text-center">
         {/* headline container */}

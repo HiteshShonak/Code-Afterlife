@@ -113,29 +113,30 @@ function IdeaFragment({
           }}
         />
 
-        {/* chip */}
-        <motion.span
+        {/* chip — uses opacity-only transitions (GPU composited, no paint) */}
+        <span
           className="relative block whitespace-nowrap rounded-full font-mono text-[10px] uppercase tracking-[0.28em] backdrop-blur-md"
-          style={{ padding: "5px 14px" }}
-          animate={{
-            color: glowing
-              ? "rgba(251,191,36,0.90)"
-              : "rgba(251,191,36,0.58)",
-            borderColor: glowing
-              ? "rgba(251,191,36,0.32)"
-              : "rgba(251,191,36,0.16)",
-            boxShadow: glowing
-              ? "0 0 20px rgba(251,191,36,0.18), 0 0 6px rgba(251,191,36,0.10) inset"
-              : "0 0 8px rgba(251,191,36,0.06)",
-            background: glowing
-              ? "rgba(180,83,9,0.16)"
-              : "rgba(180,83,9,0.08)",
+          style={{
+            padding: "5px 14px",
+            color: "rgba(251,191,36,0.90)",
+            borderColor: "rgba(251,191,36,0.32)",
+            background: "rgba(180,83,9,0.16)",
+            transition: "opacity 0.7s ease",
+            opacity: glowing ? 1 : 0.65,
           }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
         >
+          {/* glow overlay — fades via GPU-composited opacity */}
+          <span
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              boxShadow: "0 0 20px rgba(251,191,36,0.18), 0 0 6px rgba(251,191,36,0.10) inset",
+              opacity: glowing ? 1 : 0,
+              transition: "opacity 0.7s ease",
+            }}
+          />
           <span style={{ border: "1px solid", borderColor: "inherit", position: "absolute", inset: 0, borderRadius: "9999px" }} />
           {text}
-        </motion.span>
+        </span>
       </motion.div>
     </motion.div>
   );
@@ -220,7 +221,9 @@ function TransferLine({ visible, hovered }: { visible: boolean; hovered: boolean
     const glow2 = glowRef2.current;
     if (!path || !glow || !glow2) return;
 
-    const len = path.getTotalLength?.() ?? 310;
+    // Path length hardcoded to avoid getTotalLength() forced reflow.
+    // Measured from: M 100 10 C 100 80 55 140 100 200 C 145 240 100 252 100 252
+    const len = 310;
     [path, glow, glow2].forEach((el) => {
       el.style.strokeDasharray  = String(len);
       el.style.strokeDashoffset = String(len);
@@ -553,21 +556,53 @@ export function Legacy() {
         style={{ background: "linear-gradient(to bottom, #030508 0%, transparent 100%)" }}
       />
 
-      {/* background */}
+      {/* background — CSS-only animations, zero JS RAF cost */}
       <div className="pointer-events-none absolute inset-0">
+        <style>{`
+          @keyframes lg-glow-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50%       { opacity: 1.0; transform: scale(1.06); }
+          }
+          @keyframes lg-amber-pulse {
+            0%, 100% { opacity: 0.5; }
+            50%       { opacity: 0.9; }
+          }
+          @keyframes lg-drift-a {
+            0%, 100% { transform: translate(0, 0); }
+            50%       { transform: translate(18px, -12px); }
+          }
+          @keyframes lg-drift-b {
+            0%, 100% { transform: translate(0, 0); }
+            50%       { transform: translate(-14px, 10px); }
+          }
+          @keyframes lg-particle {
+            0%   { transform: translateY(0);              opacity: 0; }
+            20%  { opacity: var(--lg-op); }
+            80%  { opacity: var(--lg-op); }
+            100% { transform: translateY(var(--lg-dy));   opacity: 0; }
+          }
+        `}</style>
+
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 90% 65% at 60% 46%, #081020 0%, #060810 60%, #030508 100%)" }}
         />
-        <motion.div
+
+        {/* blue glow pulse */}
+        <div
           className="absolute"
-          style={{ left: "52%", top: "32%", width: 700, height: 580, transform: "translate(-50%,-50%)" }}
-          animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.06, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            left: "52%", top: "32%", width: 700, height: 580,
+            transform: "translate(-50%,-50%)",
+            animation: "lg-glow-pulse 12s ease-in-out infinite",
+            willChange: "transform, opacity",
+          }}
         >
           <div className="w-full h-full"
             style={{ background: "radial-gradient(ellipse at center, rgba(59,130,246,0.035) 0%, transparent 65%)" }}
           />
-        </motion.div>
+        </div>
+
+        {/* static deep-right glow */}
         <div className="absolute"
           style={{
             left: "70%", top: "60%", width: 500, height: 400,
@@ -575,36 +610,55 @@ export function Legacy() {
             background: "radial-gradient(ellipse at center, rgba(30,58,138,0.025) 0%, transparent 65%)",
           }}
         />
-        <motion.div className="absolute"
-          style={{ left: "8%", top: "5%", width: 450, height: 320 }}
-          animate={{ opacity: [0.5, 0.9, 0.5] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+
+        {/* amber top-left pulse */}
+        <div
+          className="absolute"
+          style={{
+            left: "8%", top: "5%", width: 450, height: 320,
+            animation: "lg-amber-pulse 16s ease-in-out 2s infinite",
+            willChange: "opacity",
+          }}
         >
           <div className="w-full h-full"
-            style={{
-              background: "radial-gradient(ellipse at center, rgba(180,83,9,0.05) 0%, transparent 70%)",
-              filter: "blur(40px)",
-            }}
+            style={{ background: "radial-gradient(ellipse at center, rgba(180,83,9,0.05) 0%, transparent 70%)", filter: "blur(40px)" }}
           />
-        </motion.div>
-        <motion.div className="absolute inset-0"
-          animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
-          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-          style={{ background: "radial-gradient(ellipse 60% 40% at 30% 70%, rgba(8,16,32,0.25) 0%, transparent 70%)" }}
+        </div>
+
+        {/* drift A */}
+        <div className="absolute inset-0"
+          style={{
+            background: "radial-gradient(ellipse 60% 40% at 30% 70%, rgba(8,16,32,0.25) 0%, transparent 70%)",
+            animation: "lg-drift-a 28s ease-in-out infinite",
+            willChange: "transform",
+          }}
         />
-        <motion.div className="absolute inset-0"
-          animate={{ x: [0, -14, 0], y: [0, 10, 0] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 6 }}
-          style={{ background: "radial-gradient(ellipse 50% 35% at 70% 25%, rgba(8,16,32,0.20) 0%, transparent 65%)" }}
+
+        {/* drift B */}
+        <div className="absolute inset-0"
+          style={{
+            background: "radial-gradient(ellipse 50% 35% at 70% 25%, rgba(8,16,32,0.20) 0%, transparent 65%)",
+            animation: "lg-drift-b 22s ease-in-out 6s infinite",
+            willChange: "transform",
+          }}
         />
+
+        {/* bg particles — CSS custom props per particle */}
         {BG_PARTICLES.map((p, i) => (
-          <motion.div key={i} className="absolute rounded-full"
-            style={{ left: p.left, top: p.top, width: p.size, height: p.size, backgroundColor: p.color, opacity: 0 }}
-            animate={{ y: [0, p.dy, 0], opacity: [0, p.op, 0] }}
-            transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
+          <div key={i} className="absolute rounded-full"
+            style={{
+              left: p.left, top: p.top,
+              width: p.size, height: p.size,
+              backgroundColor: p.color,
+              ["--lg-dy" as string]: `${p.dy}px`,
+              ["--lg-op" as string]: String(p.op),
+              animation: `lg-particle ${p.dur}s ease-in-out ${p.delay}s infinite`,
+              willChange: "transform, opacity",
+            }}
           />
         ))}
       </div>
+
 
       {/* main content */}
       <div className="relative mx-auto max-w-7xl px-6 py-28 md:py-40 md:px-10">

@@ -66,7 +66,7 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
 
   return (
     <div className="relative flex items-center justify-center">
-      {/* cinematic aura */}
+      {/* cinematic aura — uses opacity+scale only (GPU composited) */}
       {isActive && config.pulseDuration > 0 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -77,14 +77,25 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
         />
       )}
       
-      {/* node body */}
-      <motion.div 
-        animate={{ 
-          borderColor: isActive ? config.baseColor : isPast ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.05)",
-          backgroundColor: isActive ? config.bgColor : isPast ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0)",
-          opacity: isActive ? 1 : isPast ? 0.6 : 0.3
+      {/* node body — CSS transitions on border-color/bg run on main thread but only
+          fire on discrete stage changes (not every frame). This is acceptable as
+          they are triggered by user scroll events, not a RAF loop. */}
+      <div
+        className={`flex h-24 w-64 flex-col items-center justify-center rounded-xl border bg-transparent backdrop-blur-md ${isActive && config.pulseDuration === 0 ? 'contrast-75' : ''}`}
+        style={{
+          borderColor: isActive
+            ? config.baseColor
+            : isPast
+            ? "rgba(255, 255, 255, 0.15)"
+            : "rgba(255, 255, 255, 0.05)",
+          backgroundColor: isActive
+            ? config.bgColor
+            : isPast
+            ? "rgba(255, 255, 255, 0.02)"
+            : "rgba(0, 0, 0, 0)",
+          opacity: isActive ? 1 : isPast ? 0.6 : 0.3,
+          transition: "opacity 0.8s ease, border-color 1s ease, background-color 1s ease",
         }}
-        className={`flex h-24 w-64 flex-col items-center justify-center rounded-xl border bg-transparent backdrop-blur-md transition-colors duration-1000 ${isActive && config.pulseDuration === 0 ? 'contrast-75' : ''}`}
       >
         <span className={`font-mono text-sm uppercase tracking-[0.3em] transition-colors duration-1000 ${isActive ? config.textClass : 'text-foreground/50'}`}>
           {data.label}
@@ -99,7 +110,7 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
           <span className={`size-1.5 rounded-full ${isActive && config.pulseDuration > 0 ? 'animate-pulse' : ''}`} style={{ backgroundColor: config.baseColor }} />
           <span className="font-mono text-[9px] tracking-widest text-muted-foreground">{config.desc}</span>
         </motion.div>
-      </motion.div>
+      </div>
 
       <Handle type="target" position={Position.Top} className="!opacity-0 !border-none !bg-transparent" />
       <Handle type="source" position={Position.Bottom} className="!opacity-0 !border-none !bg-transparent" />
