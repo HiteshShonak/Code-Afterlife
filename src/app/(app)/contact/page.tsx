@@ -3,7 +3,7 @@ import { ContactForm } from '@/components/ContactForm';
 import { Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Contact Us — Code Afterlife',
+  title: 'Contact Us | Code Afterlife',
   description: 'Reach out to the gravediggers. Bug reports, feature requests, or appreciations.',
 };
 
