@@ -84,7 +84,7 @@ describe('calculateHealth', () => {
   });
 
   it('uses createdAt as fallback when lastActivityAt is null', () => {
-    // BORN project with no activity yet — should not crash
+    // BORN project with no activity yet - should not crash
     const score = calculateHealth({
       createdAt: daysAgo(1),
       lastActivityAt: null,
@@ -95,7 +95,7 @@ describe('calculateHealth', () => {
     expect(score).toBeLessThanOrEqual(100);
   });
 
-  it('caps commit count at maxCommits (100) — does not exceed max activity score', () => {
+  it('caps commit count at maxCommits (100) - does not exceed max activity score', () => {
     const score = calculateHealth({
       createdAt: daysAgo(60),
       lastActivityAt: daysAgo(1),

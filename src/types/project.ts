@@ -7,7 +7,7 @@ export type ProjectWithUser = Project & {
   user: User;
 };
 
-// parent project shape — always fetched with its owner
+// parent project shape - always fetched with its owner
 export type ProjectParent = Project & {
   user: User;
 };

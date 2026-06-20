@@ -51,7 +51,7 @@ describe('stateMachine.canTransition', () => {
     expect(stateMachine.canTransition('STALLED', 'SHIPPED')).toBe(false);
   });
 
-  // SHIPPED — terminal state
+  // SHIPPED - terminal state
   it('SHIPPED → ACTIVE is invalid (terminal)', () => {
     expect(stateMachine.canTransition('SHIPPED', 'ACTIVE')).toBe(false);
   });
@@ -199,7 +199,7 @@ describe('stateMachine.evaluateState', () => {
   });
 
   it('falls back to createdAt when lastActivityAt is null and not BORN', () => {
-    // Project in ACTIVE state but no lastActivityAt — use createdAt
+    // Project in ACTIVE state but no lastActivityAt - use createdAt
     const result = stateMachine.evaluateState({
       state: 'ACTIVE',
       lastActivityAt: null,
