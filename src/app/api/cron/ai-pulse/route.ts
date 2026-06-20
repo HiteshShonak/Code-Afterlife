@@ -103,7 +103,7 @@ export async function GET(request: Request) {
             readme = Buffer.from(readmeData.content, 'base64').toString('utf-8');
           }
         } catch {
-          // README is optional context — continue without it
+          // README is optional context - continue without it
         }
 
         const commitMessages = commits.map((c: any) => c.commit?.message ?? '');

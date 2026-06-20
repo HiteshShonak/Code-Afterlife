@@ -57,7 +57,7 @@ export function useGithubRepos(): UseGithubReposReturn {
 
       setRepos(json.data ?? []);
     } catch {
-      setError('Network error — could not reach the server.');
+      setError('Network error - could not reach the server.');
       setErrorType('network');
     } finally {
       setLoading(false);

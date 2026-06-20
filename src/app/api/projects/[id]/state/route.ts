@@ -37,7 +37,7 @@ async function generateDeathReason(
             role: 'system',
             content: `You are the epitaph writer for Code Afterlife, a graveyard for dead software projects.
 Given a project, write a single short, poetic sentence (max 12 words) explaining why it died or was abandoned.
-Tone: cinematic, wistful, slightly dark — like a tombstone inscription.
+Tone: cinematic, wistful, slightly dark - like a tombstone inscription.
 Examples: "Lost to scope creep and sleepless nights." | "The rewrite never came." | "One push notification away from launch." | "Burned out before the first user arrived."
 Return ONLY the sentence. No quotes. No punctuation after the period. No explanation.`,
           },

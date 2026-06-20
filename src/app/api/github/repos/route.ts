@@ -30,7 +30,7 @@ export const GET = asyncHandler(async (_request: NextRequest) => {
     return apiResponse.error('no_token', 401);
   }
 
-  // Fetch repos — type=owner returns only repos the user owns (not forks or org repos)
+  // Fetch repos - type=owner returns only repos the user owns (not forks or org repos)
   // Do NOT combine type= with affiliation= as they conflict in the GitHub API
   const ghRes = await fetch(
     'https://api.github.com/user/repos?sort=updated&per_page=100&type=owner',

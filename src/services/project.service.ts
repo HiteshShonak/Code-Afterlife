@@ -88,7 +88,7 @@ Return ONLY the sentence. No quotes.`,
 
 /**
  * Returns a random starting health in the range [42, 58].
- * Pure Math.random — different every time a project is created.
+ * Pure Math.random - different every time a project is created.
  */
 function seededInitialHealth(_seed: string): number {
   const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8

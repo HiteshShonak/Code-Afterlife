@@ -18,7 +18,7 @@ export const POST = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) =
 export const GET = asyncHandler(async (_req: NextRequest, ctx?: RouteContext) => {
   const { id: projectId } = await ctx!.params;
 
-  // Try to get session — optional auth
+  // Try to get session - optional auth
   let userId: string | undefined;
   try {
     const { auth } = await import('@/lib/auth');

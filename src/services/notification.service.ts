@@ -43,7 +43,7 @@ export const notificationService = {
           </a>
         </div>
         <p style="margin-top: 40px; font-size: 10px; color: #666; text-transform: uppercase;">
-          Code Afterlife — Software Never Dies.
+          Code Afterlife - Software Never Dies.
         </p>
       </div>
     `;

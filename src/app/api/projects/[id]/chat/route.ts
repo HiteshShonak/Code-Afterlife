@@ -72,12 +72,12 @@ export async function POST(
           }
         }
       } catch {
-        // README fetch is best-effort — silently continue
+        // README fetch is best-effort - silently continue
       }
     }
 
     // Build rich system prompt
-    const systemPrompt = `You are Code Afterlife AI — the resident intelligence of the Code Afterlife platform, built by Hitesh Sharma.
+    const systemPrompt = `You are Code Afterlife AI - the resident intelligence of the Code Afterlife platform, built by Hitesh Sharma.
 
 Code Afterlife is a cinematic digital afterlife for software projects. Projects live, decay, die, and can be resurrected by other developers. Your role is to help visitors understand the specific project they're viewing.
 
@@ -104,7 +104,7 @@ You MUST strictly abide by these lifecycle rules when answering questions. Never
 == RECENT TIMELINE ==
 ${project.timelineEntries.length > 0
   ? project.timelineEntries
-      .map(t => `• ${t.createdAt.toISOString().split('T')[0]} [${t.type}]: ${t.title}${t.description ? ` — ${t.description}` : ''}`)
+      .map(t => `• ${t.createdAt.toISOString().split('T')[0]} [${t.type}]: ${t.title}${t.description ? ` - ${t.description}` : ''}`)
       .join('\n')
   : 'No timeline events recorded yet.'}
 
@@ -147,7 +147,7 @@ function getStateDescription(state: string): string {
     ACTIVE: 'being actively developed',
     STALLED: 'no activity for 1 day',
     SHIPPED: 'successfully completed and launched (immune to decay)',
-    DEAD: 'abandoned — awaiting resurrection (immune to decay)',
+    DEAD: 'abandoned - awaiting resurrection (immune to decay)',
   };
   return map[state] ?? state;
 }
