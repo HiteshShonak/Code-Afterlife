@@ -4,7 +4,7 @@ import { TestamentRevealedClient } from './TestamentRevealedClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Testament Revealed — Code Afterlife',
+  title: 'Testament Revealed | Code Afterlife',
 };
 
 export default async function TestamentRevealedPage({ params }: { params: Promise<{ slug: string }> }) {

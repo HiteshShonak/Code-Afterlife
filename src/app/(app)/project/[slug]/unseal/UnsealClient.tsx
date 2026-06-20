@@ -229,7 +229,7 @@ function CapsuleObject({
 
         <rect className="tc-lock-panel" x="113" y="88" width="54" height="30" rx="3" fill="#0d0804" stroke={COPPER} strokeWidth="0.4" strokeOpacity="0.35" />
         
-        {/* Lock icon body — animated red → green via React ref */}
+        {/* Lock icon body - animated red → green via React ref */}
         <rect ref={lockBodyRef as any} x="132" y="100" width="16" height="11" rx="1.8" fill="none" stroke="#ef4444" strokeWidth="1.1" strokeOpacity="0.85" />
         <path ref={lockHaspRef as any} d="M134.5 100 Q134.5 95.5 140 95.5 Q145.5 95.5 145.5 100" fill="none" stroke="#ef4444" strokeWidth="1.1" strokeLinecap="round" />
         <circle ref={lockDotRef as any} cx="140" cy="106" r="1.8" fill="#ef4444" fillOpacity="0.75" />

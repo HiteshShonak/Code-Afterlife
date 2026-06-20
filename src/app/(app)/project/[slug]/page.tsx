@@ -12,17 +12,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   try {
     const project = await projectService.getBySlug(slug);
-    if (!project) return { title: 'Project Not Found — Code Afterlife' };
+    if (!project) return { title: 'Project Not Found | Code Afterlife' };
     return {
-      title: `${project.title} — Code Afterlife`,
+      title: `${project.title} | Code Afterlife`,
       description: project.description ?? `Track the lifecycle of ${project.title}.`,
       openGraph: {
-        title: `${project.title} — Code Afterlife`,
+        title: `${project.title} | Code Afterlife`,
         description: project.description ?? undefined,
       },
     };
   } catch {
-    return { title: 'Project — Code Afterlife' };
+    return { title: 'Project | Code Afterlife' };
   }
 }
 
@@ -46,7 +46,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     isOwner = false;
   }
 
-  // Fetch social state — all in parallel
+  // Fetch social state - all in parallel
   const [initialLiked, initialFollowing, voteStats, { comments, nextCursor }] =
     await Promise.all([
       userId ? socialService.hasLiked(project.id, userId) : Promise.resolve(false),

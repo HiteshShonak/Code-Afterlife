@@ -42,7 +42,7 @@ const STATE_META = {
   ACTIVE:  { label: 'Active',  color: 'oklch(0.60 0.18 150)', tagline: 'Alive and growing' },
   STALLED: { label: 'Stalled', color: 'oklch(0.72 0.14 60)',  tagline: 'No activity for 1+ day' },
   SHIPPED: { label: 'Shipped', color: 'oklch(0.66 0.18 162)', tagline: 'Successfully completed' },
-  DEAD:    { label: 'Dead',    color: 'oklch(0.52 0.12 25)',  tagline: 'Abandoned — awaiting resurrection' },
+  DEAD:    { label: 'Dead',    color: 'oklch(0.52 0.12 25)',  tagline: 'Abandoned - awaiting resurrection' },
 } as const;
 
 // stagger animation
@@ -69,7 +69,7 @@ export function ProjectDetailClient({
   const [isResurrectOpen, setIsResurrectOpen] = useState(false);
   const stateMeta           = STATE_META[project.state];
 
-  // Track view — AbortController ensures no double-fire on unmount
+  // Track view - AbortController ensures no double-fire on unmount
   useEffect(() => {
     const ctrl = new AbortController();
     fetch(`/api/projects/${project.id}/view`, { method: 'POST', signal: ctrl.signal }).catch(() => {});
@@ -326,7 +326,7 @@ export function ProjectDetailClient({
             {/* Screenshot Gallery */}
             {hasScreenshots && (
               <div className="mb-6">
-                {/* Main image — click to zoom */}
+                {/* Main image - click to zoom */}
                 <div
                   className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl cursor-zoom-in group"
                   onClick={() => setLightboxIndex(galleryIndex)}
@@ -520,7 +520,7 @@ export function ProjectDetailClient({
                   )}
                 </button>
               )}
-              {/* Ship button — for owners on ACTIVE or STALLED */}
+              {/* Ship button - for owners on ACTIVE or STALLED */}
               {isOwner && (project.state === 'ACTIVE' || project.state === 'STALLED') && (
                 <button
                   onClick={handleShip}
