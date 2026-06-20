@@ -5,7 +5,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
-  title: 'Explore — Code Afterlife',
+  title: 'Explore | Code Afterlife',
   description: 'Discover projects across all lifecycle states in a scrolling feed.',
 };
 
@@ -18,7 +18,7 @@ export default async function ExplorePage() {
   const currentUserId = session?.user?.id ?? null;
   const projectIds = projects.map((p) => p.id);
 
-  // Batch-fetch which projects this user has liked/voted — empty sets for guests
+  // Batch-fetch which projects this user has liked/voted - empty sets for guests
   let likedProjectIds: string[] = [];
   let votedProjectIds: string[] = [];
 

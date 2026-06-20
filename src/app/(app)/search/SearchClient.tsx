@@ -37,7 +37,7 @@ const STATE_META: Record<ProjectState, { label: string; tagline: string; color: 
   ACTIVE:  { label: 'Active',  tagline: 'Alive and growing',                     color: 'oklch(0.60 0.18 150)' },
   STALLED: { label: 'Stalled', tagline: 'No activity for 30+ days',              color: 'oklch(0.72 0.14 60)'  },
   SHIPPED: { label: 'Shipped', tagline: 'Made it across the finish line',        color: 'oklch(0.66 0.18 162)' },
-  DEAD:    { label: 'Dead',    tagline: 'Abandoned — waiting to be resurrected', color: 'oklch(0.52 0.12 25)'  },
+  DEAD:    { label: 'Dead',    tagline: 'Abandoned - waiting to be resurrected', color: 'oklch(0.52 0.12 25)'  },
 };
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -144,7 +144,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <div className="mb-12">
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/60 mb-2">
-          Code Afterlife — Search
+          Code Afterlife - Search
         </p>
         <h1 className="font-mono text-3xl font-extrabold tracking-tight text-foreground transition-colors duration-300">
           {state ? (
@@ -154,7 +154,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
           ) : 'All Projects'}
         </h1>
         <p className="mt-2 font-mono text-[12px] text-muted-foreground/70 transition-colors duration-300">
-          {state ? STATE_META[state].tagline : 'Software in every stage of its lifecycle — born, alive, stalled, shipped, and dead.'}
+          {state ? STATE_META[state].tagline : 'Software in every stage of its lifecycle - born, alive, stalled, shipped, and dead.'}
         </p>
       </div>
 
@@ -244,7 +244,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </div>
       </div>
 
-      {/* ── State banner — CSS transition only (no AnimatePresence / unmount) ──
+      {/* ── State banner - CSS transition only (no AnimatePresence / unmount) ──
           AnimatePresence would remove the element from the DOM instantly on exit,
           collapsing its height and shifting the grid below it. Instead we use
           max-height + opacity CSS transition so the space animates smoothly.
@@ -257,7 +257,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
           marginBottom: state ? '24px'  : '0px',
         }}
       >
-        {/* Always in the DOM but hidden — avoids layout jump */}
+        {/* Always in the DOM but hidden - avoids layout jump */}
         <div
           className="flex items-center gap-3 rounded-xl border px-5 py-3.5"
           style={{

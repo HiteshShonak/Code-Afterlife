@@ -176,12 +176,12 @@ function FeedPost({
   const { decayState, healthPercent } = useDecayState(project.health);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Like state — seeded from server so icon is pre-colored on first render
+  // Like state - seeded from server so icon is pre-colored on first render
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(project.likeCount);
   const [likeLoading, setLikeLoading] = useState(false);
 
-  // Vote state — seeded from server (WILL_SHIP only for the fire icon)
+  // Vote state - seeded from server (WILL_SHIP only for the fire icon)
   const [myVote, setMyVote] = useState<'WILL_SHIP' | 'WILL_DIE' | null>(initialVoted ? 'WILL_SHIP' : null);
   const [voteCount, setVoteCount] = useState(project.voteCount);
   const [voteLoading, setVoteLoading] = useState(false);
@@ -428,7 +428,7 @@ function FeedPost({
                 <span className="font-mono text-xs">{project.viewCount}</span>
               </div>
 
-              {/* Ship button — only for owner on ACTIVE state (state machine: ACTIVE → SHIPPED) */}
+              {/* Ship button - only for owner on ACTIVE state (state machine: ACTIVE → SHIPPED) */}
               {isOwner && project.state === 'ACTIVE' && (
                 <button
                   onClick={handleShip}
@@ -531,7 +531,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
           ) : !cursor && projects.length > 0 ? (
             <p className="font-mono text-[11px] text-muted-foreground/20 uppercase tracking-widest">
-              — end of feed —
+              - end of feed -
             </p>
           ) : null}
         </div>
@@ -570,7 +570,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
 
 
           <p className="font-mono text-[9px] text-muted-foreground/20 px-2 leading-relaxed">
-            Software Never Dies. — Code Afterlife
+            Software Never Dies. - Code Afterlife
           </p>
         </div>
       </aside>

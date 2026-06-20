@@ -32,21 +32,21 @@ const TIER_CONFIG: Record<string, {
     color: 'text-violet-400',
     glow: 'shadow-[0_0_30px_rgba(139,92,246,0.3)]',
     icon: Skull,
-    description: 'Master of resurrection — 10+ projects revived',
+    description: 'Master of resurrection - 10+ projects revived',
   },
   'Master Necromancer': {
     label: 'Master Necromancer',
     color: 'text-amber-400',
     glow: 'shadow-[0_0_25px_rgba(245,158,11,0.25)]',
     icon: Flame,
-    description: 'Veteran resurrector — 5+ projects revived',
+    description: 'Veteran resurrector - 5+ projects revived',
   },
   'Adept': {
     label: 'Adept',
     color: 'text-emerald-400',
     glow: 'shadow-[0_0_20px_rgba(52,211,153,0.2)]',
     icon: Zap,
-    description: 'Rising necromancer — 2+ projects revived',
+    description: 'Rising necromancer - 2+ projects revived',
   },
   'Initiate': {
     label: 'Initiate',
@@ -286,7 +286,7 @@ export function UserProfileClient({
                     {tierConfig.label}
                   </span>
                   <span className="font-mono text-[10px] text-muted-foreground/50 hidden sm:block">
-                    — {tierConfig.description}
+                    - {tierConfig.description}
                   </span>
                 </motion.div>
               )}
