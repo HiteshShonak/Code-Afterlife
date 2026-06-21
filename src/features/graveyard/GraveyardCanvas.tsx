@@ -1,17 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { ResurrectionModal } from '@/components/ResurrectionModal';
 import type { Project, User } from '@prisma/client';
+import type { Project as MockProject } from './types';
 
-// Lazy-load the 49KB Three.js canvas — only after hydration
+// Lazy-load the 49KB Three.js canvas - only after hydration
 const OriginalGraveyardCanvas = dynamic(
   () => import('./OriginalGraveyardCanvas').then((m) => m.OriginalGraveyardCanvas),
   { ssr: false, loading: () => null },
 );
-
-import type { Project as MockProject } from './types';
 
 interface GraveyardCanvasProps {
   projects: (Project & { user: User })[];
@@ -27,9 +26,9 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
     lineageDepth: number;
   } | null>(null);
 
-  // map project
-  const mappedProjects: MockProject[] = projects.map((p): MockProject => {
-    // epitaph priority
+  // Memoized map - only recomputes when the projects array reference changes
+  // (i.e. on page load / SSR refresh, not on every React re-render)
+  const mappedProjects = useMemo<MockProject[]>(() => projects.map((p): MockProject => {
     const rawReason = (p as any).deathReason as string | null | undefined;
     const quote = rawReason
       ? `"${rawReason}"`
@@ -51,9 +50,10 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
       voteCount: p.voteCount ?? 0,
       slug: p.slug,
     };
-  });
+  }), [projects]);
 
-  const handleResurrect = (projectId: string) => {
+  // Stable callback - no unnecessary prop-change re-renders in OriginalGraveyardCanvas
+  const handleResurrect = useCallback((projectId: string) => {
     const project = projects.find((p) => p.id === projectId);
     if (!project) return;
     setResurrectionTarget({
@@ -62,7 +62,10 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
       stack: project.stack,
       lineageDepth: project.lineageDepth,
     });
-  };
+  }, [projects]);
+
+  // Stable close callback - avoids new function ref on every render
+  const handleResurrectionClose = useCallback(() => setResurrectionTarget(null), []);
 
   return (
     <>
@@ -75,7 +78,7 @@ export function GraveyardCanvas({ projects, isAuthenticated }: GraveyardCanvasPr
       {resurrectionTarget && (
         <ResurrectionModal
           open={!!resurrectionTarget}
-          onClose={() => setResurrectionTarget(null)}
+          onClose={handleResurrectionClose}
           deadProject={resurrectionTarget}
         />
       )}

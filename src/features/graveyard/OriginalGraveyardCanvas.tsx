@@ -5,7 +5,7 @@ import { OrbitControls, Sparkles, Text, BakeShadows } from "@react-three/drei";
 import * as THREE from "three";
 // @ts-ignore
 import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js";
-import { useMemo, useRef, useState, useEffect, Suspense } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback, Suspense } from "react";
 import { motion } from "framer-motion";
 import { EffectComposer, Bloom, Vignette, Noise } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
@@ -47,9 +47,15 @@ const FOG_FAR = 36;
 // directional recycling
 const RECYCLE_DIST = 75;
 
-// spawning
+// spawning - recycled tombs appear past fog (already correct)
 const SPAWN_MIN = FOG_FAR + 8;
 const SPAWN_MAX = FOG_FAR + 30;
+
+// Initial spawn zone: all starting tombs must be INSIDE the clear visible area
+// so the player sees a populated graveyard immediately on load.
+// Min = just past arm's reach; Max = just inside fog wall.
+const USER_SPAWN_MIN = 10;
+const USER_SPAWN_MAX = FOG_NEAR + 6; // 18 - well inside clear view
 
 // spacing
 const MIN_DIST_ROUNDED = 10;
@@ -63,6 +69,14 @@ const INTERACT_DIST = 21;
 // chunk system
 const CHUNK_SIZE = 80;
 const CHUNK_GRID = 3;
+
+// Text LOD - module-level so it isn’t recomputed inside TombstoneText on every call
+const LOD_SQ = (FOG_FAR + 4) * (FOG_FAR + 4);
+
+// Canvas props hoisted to module level - object identity is stable across renders
+const CANVAS_CAMERA = { position: [0, 5, 14] as [number, number, number], fov: 60 };
+const CANVAS_GL     = { antialias: true, alpha: false };
+const CANVAS_SHADOWS = { type: 3 } as const;
 
 // collision grid
 
@@ -216,8 +230,10 @@ function createInitialItem(
   camPos: THREE.Vector3
 ): ActiveTombstone | null {
   for (let attempt = 0; attempt < 500; attempt++) {
-    // spread disc
-    const r = 8 + Math.random() * (RECYCLE_DIST - 10);
+    // Spawn inside the clear visible zone so all tombs are visible at load.
+    // USER_SPAWN_MIN keeps them out of the player's face;
+    // USER_SPAWN_MAX keeps them before the fog wall.
+    const r = USER_SPAWN_MIN + Math.random() * (USER_SPAWN_MAX - USER_SPAWN_MIN);
     const a = Math.random() * Math.PI * 2;
     const x = camX + Math.cos(a) * r;
     const z = camZ + Math.sin(a) * r;
@@ -249,12 +265,14 @@ function TreadmillTombstones({
 }) {
   const geoms = useMemo(() => ({
     rounded: new RoundedTombstoneGeometry(),
-    // Default stone material — overridden per instance for RESURRECTED status
+    // Default stone material - overridden per instance for RESURRECTED status
     mat: new THREE.MeshStandardMaterial({ color: 0x3a4259, roughness: 0.85, metalness: 0.1 }),
     matResurrected: new THREE.MeshStandardMaterial({ color: 0x3a5068, roughness: 0.78, metalness: 0.15, emissive: new THREE.Color(0x0a2a3a), emissiveIntensity: 0.2 }),
   }), []);
 
-  const CAM_START = new THREE.Vector3(0, 5, 0);
+  // CAM_START is the initial camera position - memoized to avoid
+  // allocating a new Vector3 on every render.
+  const CAM_START = useMemo(() => new THREE.Vector3(0, 5, 0), []);
   // Dynamic TOTAL_DATA: works with any number of projects from API
   const TOTAL_DATA_DYNAMIC = Math.max(1, projects.length);
   const ACTUAL_VISIBLE = Math.min(VISIBLE_ROUNDED, TOTAL_DATA_DYNAMIC);
@@ -290,11 +308,11 @@ function TreadmillTombstones({
   const [hovered, setHovered] = useState<number | null>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const flushMesh = (mesh: THREE.InstancedMesh | null, items: ActiveTombstone[]) => {
+  const flushMesh = useCallback((mesh: THREE.InstancedMesh | null, items: ActiveTombstone[]) => {
     if (!mesh) return;
     items.forEach((item, i) => {
       dummy.position.copy(item.position);
-      dummy.position.y -= 0.2; // Sink deeper so corners don't float on steep slopes
+      dummy.position.y -= 0.2; // Sink deeper so corners don’t float on steep slopes
       dummy.quaternion.copy(item.quaternion);
       dummy.scale.copy(item.scale);
       dummy.updateMatrix();
@@ -302,7 +320,9 @@ function TreadmillTombstones({
     });
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
-  };
+  // dummy is stable (useMemo), so this dep array is correct
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dummy]);
 
   useEffect(() => flushMesh(roundedRef.current, roundedItems), [roundedItems]);
 
@@ -325,6 +345,14 @@ function TreadmillTombstones({
 
     // check behind
     let roundedDirty = false;
+    // Precompute for duplicate guard - done OUTSIDE the .map() so it's
+    // accessible as a stable reference (avoids temporal-dead-zone bug where
+    // `newRounded` would be undefined inside its own .map() callback).
+    const FOG_FAR_SQ = FOG_FAR * FOG_FAR;
+    // Track which dataIndices are assigned THIS recycle tick so multiple
+    // simultaneous recycled stones don't both claim the same index.
+    const usedThisFrame = new Set<number>();
+
     const newRounded = roundedItems.map(item => {
       _recycleToStone.set(
         item.position.x - camPos.x, 0, item.position.z - camPos.z
@@ -349,8 +377,31 @@ function TreadmillTombstones({
       }
       globalGrid.add(newPos);
       roundedDirty = true;
-      const nextIndex = dataIndexRef.current % TOTAL_DATA_DYNAMIC;
+
+      // Duplicate-visibility guard (FIXED):
+      // Check roundedItems (the stable frame-start snapshot, NOT newRounded which
+      // would be in the TDZ here) to find which dataIndices are currently visible
+      // inside the fog zone. Also skip any index claimed earlier in this same tick.
+      let nextIndex = dataIndexRef.current % TOTAL_DATA_DYNAMIC;
+      if (TOTAL_DATA_DYNAMIC > 1) {
+        for (let attempt = 0; attempt < TOTAL_DATA_DYNAMIC; attempt++) {
+          const candidate = (dataIndexRef.current + attempt) % TOTAL_DATA_DYNAMIC;
+          // Already assigned to another stone recycled this frame
+          if (usedThisFrame.has(candidate)) continue;
+          // Check whether any currently-visible stone carries this dataIndex.
+          // "Visible" = within the full fog sphere so the player can see it.
+          const visibleDuplicate = roundedItems.some(other => {
+            if (other.dataIndex !== candidate) return false;
+            const dx = other.position.x - camPos.x;
+            const dz = other.position.z - camPos.z;
+            return dx * dx + dz * dz < FOG_FAR_SQ;
+          });
+          if (!visibleDuplicate) { nextIndex = candidate; break; }
+        }
+      }
+      usedThisFrame.add(nextIndex);
       dataIndexRef.current++;
+
       return {
         ...item,
         position: newPos,
@@ -364,7 +415,7 @@ function TreadmillTombstones({
 
   return (
     <group>
-      {/* Rounded memorials — interactive only within INTERACT_DIST */}
+      {/* Rounded memorials - interactive only within INTERACT_DIST */}
       <instancedMesh
         ref={roundedRef}
         args={[geoms.rounded, geoms.mat, VISIBLE_ROUNDED]}
@@ -388,7 +439,7 @@ function TreadmillTombstones({
       />
       <TombstoneText hoveredId={hovered} items={roundedItems} projects={projects} />
 
-      {/* Hover effects — purple rim light + soul particles at hovered tombstone */}
+      {/* Hover effects - purple rim light + soul particles at hovered tombstone */}
       {hovered !== null && roundedItems[hovered] && (
         <group position={roundedItems[hovered].position}>
           <pointLight
@@ -412,7 +463,7 @@ function TreadmillTombstones({
   );
 }
 
-// tombstone text
+// ─── TOMBSTONE TEXT (LOD-GATED) ───────────────────────────────────────────────
 
 function TombstoneText({ hoveredId, items, projects }: {
   hoveredId: number | null;
@@ -423,20 +474,22 @@ function TombstoneText({ hoveredId, items, projects }: {
   const itemsRef = useRef(items);
   useEffect(() => { itemsRef.current = items; }, [items]);
 
-  // LOD cutoff = FOG_FAR + 4 = 40 units — slightly past fog, so any visible stone gets text
-  const LOD_SQ = (FOG_FAR + 4) * (FOG_FAR + 4);
+  // LOD_SQ is now a module-level constant - no per-call recomputation
   const visibleRef = useRef<Set<number>>(new Set(items.map((_, i) => i)));
   const [visibleSet, setVisibleSet] = useState<Set<number>>(() =>
     new Set(items.map((_, i) => i))
   );
   const frameRef = useRef(0);
+  // Reuse a single Set instead of allocating new Set() every 4 frames
+  const workSetRef = useRef(new Set<number>());
 
   useFrame(() => {
     frameRef.current++;
     if (frameRef.current % 4 !== 0) return;
     const cp = camera.position;
     const cur = itemsRef.current;
-    const next = new Set<number>();
+    const next = workSetRef.current;
+    next.clear();
     for (let i = 0; i < cur.length; i++) {
       const dx = cp.x - cur[i].position.x;
       const dz = cp.z - cur[i].position.z;
@@ -445,7 +498,12 @@ function TombstoneText({ hoveredId, items, projects }: {
     const prev = visibleRef.current;
     let changed = next.size !== prev.size;
     if (!changed) for (const idx of next) { if (!prev.has(idx)) { changed = true; break; } }
-    if (changed) { visibleRef.current = next; setVisibleSet(new Set(next)); }
+    if (changed) {
+      // Clone into a new Set for state - workSetRef is mutated each frame
+      const snapshot = new Set(next);
+      visibleRef.current = snapshot;
+      setVisibleSet(snapshot);
+    }
   });
 
   return (
@@ -458,7 +516,9 @@ function TombstoneText({ hoveredId, items, projects }: {
           if (!visibleSet.has(i) && hoveredId !== i) return null;
           return (
             <TombstoneTextItem
-              key={i}
+              // Use dataIndex as key so React creates a fresh fiber (reset emissive lerp)
+              // when a recycled slot gets a different project - prevents animation bleed.
+              key={`${i}-${item.dataIndex}`}
               isHovered={hoveredId === i}
               item={item}
               project={project}
@@ -481,7 +541,7 @@ function TombstoneTextItem({ isHovered, item, project }: {
   const dateRef = useRef<THREE.MeshStandardMaterial>(null);
   const quoteRef = useRef<THREE.MeshStandardMaterial>(null);
   const footerRef = useRef<THREE.MeshStandardMaterial>(null);
-  // Back face refs — animated identically so hover glows on both sides
+  // Back face refs - animated identically so hover glows on both sides
   const nameRefB = useRef<THREE.MeshStandardMaterial>(null);
   const dateRefB = useRef<THREE.MeshStandardMaterial>(null);
   const quoteRefB = useRef<THREE.MeshStandardMaterial>(null);
@@ -498,37 +558,39 @@ function TombstoneTextItem({ isHovered, item, project }: {
     if (dateRef.current) dateRef.current.emissiveIntensity = THREE.MathUtils.lerp(dateRef.current.emissiveIntensity, dTarget, speed);
     if (quoteRef.current) quoteRef.current.emissiveIntensity = THREE.MathUtils.lerp(quoteRef.current.emissiveIntensity, qTarget, speed);
     if (footerRef.current) footerRef.current.emissiveIntensity = THREE.MathUtils.lerp(footerRef.current.emissiveIntensity, fTarget, speed);
-    // Back face — same targets so both sides animate together
+    // Back face - same targets so both sides animate together
     if (nameRefB.current) nameRefB.current.emissiveIntensity = THREE.MathUtils.lerp(nameRefB.current.emissiveIntensity, nTarget, speed);
     if (dateRefB.current) dateRefB.current.emissiveIntensity = THREE.MathUtils.lerp(dateRefB.current.emissiveIntensity, dTarget, speed);
     if (quoteRefB.current) quoteRefB.current.emissiveIntensity = THREE.MathUtils.lerp(quoteRefB.current.emissiveIntensity, qTarget, speed);
     if (footerRefB.current) footerRefB.current.emissiveIntensity = THREE.MathUtils.lerp(footerRefB.current.emissiveIntensity, fTarget, speed);
   });
 
-  // Compute front and back face positions
-  const frontZ = new THREE.Vector3(0, 0, item.scale.z * 0.11).applyQuaternion(item.quaternion);
-  const backZ = new THREE.Vector3(0, 0, -item.scale.z * 0.11).applyQuaternion(item.quaternion);
-  const upOffset = new THREE.Vector3(0, item.scale.y * 0.42, 0);
-  const frontPos = item.position.clone().add(frontZ).add(upOffset);
-  // back face
-  const backQuat = item.quaternion.clone().multiply(
-    new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0))
-  );
-  const backPos = item.position.clone().add(backZ).add(upOffset);
+  // Memoize all THREE.Vector3/Quaternion allocations so they aren’t recreated on
+  // every render. Recalculate only when item geometry actually changes (position/quaternion/scale).
+  const { frontPos, backPos, backQuat, sx } = useMemo(() => {
+    const frontZ  = new THREE.Vector3(0, 0,  item.scale.z * 0.11).applyQuaternion(item.quaternion);
+    const backZ   = new THREE.Vector3(0, 0, -item.scale.z * 0.11).applyQuaternion(item.quaternion);
+    const upOff   = new THREE.Vector3(0, item.scale.y * 0.42, 0);
+    const fPos    = item.position.clone().add(frontZ).add(upOff);
+    const bPos    = item.position.clone().add(backZ).add(upOff);
+    const bQuat   = item.quaternion.clone().multiply(
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0))
+    );
+    return { frontPos: fPos, backPos: bPos, backQuat: bQuat, sx: item.scale.x };
+  }, [item.position, item.quaternion, item.scale]);
 
-  const sx = item.scale.x;
-  const isResurrected = project.status === "RESURRECTED";
+  const isResurrected = project.status === 'RESURRECTED';
   // emissive tint
-  const nameEmissive = isResurrected ? "#fcd34d" : "#60a5fa"; // Highly saturated for bloom
-  const dateEmissive = isResurrected ? "#facc15" : "#3b82f6";
-  const quoteEmissive = isResurrected ? "#eab308" : "#2563eb";
-  const footerEmissive = isResurrected ? "#ca8a04" : "#1d4ed8";
+  const nameEmissive   = isResurrected ? '#fcd34d' : '#60a5fa'; // Highly saturated for bloom
+  const dateEmissive   = isResurrected ? '#facc15' : '#3b82f6';
+  const quoteEmissive  = isResurrected ? '#eab308' : '#2563eb';
+  const footerEmissive = isResurrected ? '#ca8a04' : '#1d4ed8';
 
   return (
     <group>
       {/* ── FRONT FACE ── */}
       <group position={frontPos} quaternion={item.quaternion} scale={sx}>
-        {/* Project Name — safely inside bounds */}
+        {/* Project Name - safely inside bounds */}
         <Text position={[0, 0.22, 0]} fontSize={0.08} maxWidth={0.5} textAlign="center" anchorX="center" anchorY="middle" letterSpacing={0.02} fontWeight={700}>
           <meshStandardMaterial ref={nameRef} toneMapped={false} color="#0a1020" emissive={nameEmissive} emissiveIntensity={0.6} roughness={1} metalness={0} depthWrite={false} polygonOffset polygonOffsetFactor={-4} polygonOffsetUnits={-4} />
           {project.name}
@@ -721,7 +783,7 @@ function TerrainChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
 function GrassChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
   const ox = chunkX * CHUNK_SIZE;
   const oz = chunkZ * CHUNK_SIZE;
-  const COUNT = 12000; // Halved from 30k — same visual density, half GPU cost
+  const COUNT = 12000; // Halved from 30k - same visual density, half GPU cost
 
   const { geometry, material } = useMemo(() => {
     const bladeGeo = new THREE.ConeGeometry(0.015, 0.05, 3);
@@ -1060,6 +1122,8 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
   const controlsRef = useRef<any>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [atBoundary, setAtBoundary] = useState(false);
+  // Stable callback - avoids creating a new function ref on every render
+  const handleCloseSidebar = useCallback(() => setSelectedProjectId(null), []);
 
   // filters
   const [filters, setFilters] = useState<GraveyardFilters>({
@@ -1159,16 +1223,16 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
         project={selectedProjectId !== null ? filteredProjects[selectedProjectId] ?? null : null}
         isAuthenticated={isAuthenticated}
         onResurrect={onResurrect}
-        onClose={() => setSelectedProjectId(null)}
+        onClose={handleCloseSidebar}
       />
 
       <BoundaryBanner atBoundary={atBoundary} />
 
       <Canvas
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: false }}
-        shadows={{ type: 3 }}
-        camera={{ position: [0, 5, 14], fov: 60 }}
+        gl={CANVAS_GL}
+        shadows={CANVAS_SHADOWS}
+        camera={CANVAS_CAMERA}
       >
         <BakeShadows />
 

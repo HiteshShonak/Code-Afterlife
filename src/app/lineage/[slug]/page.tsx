@@ -11,9 +11,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const project = await projectService.getBySlug(slug);
-  if (!project) return { title: 'Lineage Not Found — Code Afterlife' };
+  if (!project) return { title: 'Lineage Not Found | Code Afterlife' };
   return {
-    title: `Lineage: ${project.title} — Code Afterlife`,
+    title: `Lineage: ${project.title} | Code Afterlife`,
     description: `Resurrection lineage tree for ${project.title}.`,
   };
 }

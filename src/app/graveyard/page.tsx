@@ -5,7 +5,7 @@ import { GraveyardCanvas } from '@/features/graveyard/GraveyardCanvas';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Graveyard — Code Afterlife',
+  title: 'Graveyard | Code Afterlife',
   description: 'A cinematic archive of abandoned software projects. Some await resurrection.',
 };
 
