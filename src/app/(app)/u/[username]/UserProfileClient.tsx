@@ -136,12 +136,12 @@ function StatPill({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: delay ?? 0, ease: CINEMATIC_EASE }}
-      className="flex items-center gap-3 rounded-2xl border border-border/40 bg-card/40 px-5 py-3.5 backdrop-blur-sm"
+      className="flex flex-col lg:flex-row items-center lg:items-start text-center lg:text-left gap-1 lg:gap-3 rounded-2xl border border-border/40 bg-card/40 px-2 py-3 lg:px-5 lg:py-3.5 backdrop-blur-sm min-w-0"
     >
-      <Icon className={`h-4 w-4 flex-shrink-0 ${colorClass}`} />
-      <div>
-        <div className={`font-mono text-xl font-extrabold ${colorClass}`}>{value}</div>
-        <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground/50">{label}</div>
+      <Icon className={`h-5 w-5 lg:h-4 lg:w-4 flex-shrink-0 ${colorClass} mb-1 lg:mb-0`} />
+      <div className="w-full min-w-0">
+        <div className={`font-mono text-lg lg:text-xl font-extrabold ${colorClass} truncate`}>{value}</div>
+        <div className="mt-0.5 lg:mt-0 font-mono text-[8px] lg:text-[9px] uppercase tracking-wider lg:tracking-widest text-muted-foreground/60 truncate" title={label}>{label}</div>
       </div>
     </motion.div>
   );
@@ -294,17 +294,17 @@ export function UserProfileClient({
           </div>
 
           {/* Stat Row */}
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-2 lg:grid-cols-5 gap-4">
             
             {/* Health Ring */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: CINEMATIC_EASE }}
-              className="col-span-2 sm:col-span-1 flex flex-col items-center gap-2 rounded-2xl border border-border/40 bg-card/40 p-4 backdrop-blur-sm"
+              className="col-span-2 lg:col-span-1 flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/40 bg-card/40 p-4 backdrop-blur-sm"
             >
               <HealthRing score={healthScore} size={88} />
-              <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground/50 text-center">
+              <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground/60 text-center">
                 Dev Health
               </div>
             </motion.div>
@@ -341,7 +341,7 @@ export function UserProfileClient({
         </motion.div>
 
         {/* ── TABS ── */}
-        <div className="mb-8 flex border-b border-border/40 font-mono text-[12px] uppercase tracking-widest text-muted-foreground/60 overflow-x-auto scrollbar-none">
+        <div className="mb-8 grid grid-cols-3 border-b border-border/40 font-mono text-[9px] sm:text-[11px] uppercase tracking-wider sm:tracking-widest text-muted-foreground/60">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -349,13 +349,15 @@ export function UserProfileClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex items-center gap-2 px-6 py-4 whitespace-nowrap transition-colors ${
+                className={`relative flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-1 py-3 sm:px-6 sm:py-4 transition-colors ${
                   isActive ? tab.activeColor : 'hover:text-foreground/70'
                 }`}
               >
-                <Icon className="h-3.5 w-3.5" />
-                {tab.label}
-                <span className="ml-1 text-[10px] opacity-60">({tab.count})</span>
+                <Icon className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                <div className="flex items-center gap-1">
+                  <span className="truncate">{tab.label}</span>
+                  <span className="opacity-60">({tab.count})</span>
+                </div>
                 {isActive && (
                   <motion.div
                     layoutId="profile-tab-indicator"

@@ -72,6 +72,21 @@ const FRAGMENTS = [
   },
 ] as const;
 
+interface IdeaFragmentProps {
+  text: string;
+  top: string;
+  left: string;
+  mobileLeft: string;
+  floatDy: number;
+  dur: number;
+  delay: number;
+  initDelay: number;
+  blur: number;
+  baseOp: number;
+  visible: boolean;
+  glowing: boolean;
+}
+
 // idea fragment
 function IdeaFragment({
   text,
@@ -85,7 +100,7 @@ function IdeaFragment({
   baseOp,
   visible,
   glowing,
-}: (typeof FRAGMENTS)[number] & { visible: boolean; glowing: boolean }) {
+}: IdeaFragmentProps) {
   return (
     <motion.div
       className="pointer-events-none absolute"
