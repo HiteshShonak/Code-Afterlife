@@ -47,8 +47,8 @@ function buildNodes(open: boolean): ArtifactNode[] {
         open,
         delay: 0,
         label: "MESSAGE TO FUTURE SELF",
-        content: `"If this works someday, don't remove the weird onboarding — it was the only part users actually remembered."`,
-        author: "— David, Apr 2022",
+        content: `"If this works someday, don't remove the weird onboarding - it was the only part users actually remembered."`,
+        author: "- David, Apr 2022",
       },
       draggable: open,
       selectable: false,
@@ -61,7 +61,7 @@ function buildNodes(open: boolean): ArtifactNode[] {
         open,
         delay: 0.14,
         label: "README.md · v0.4.2",
-        content: `## Vision\nA calm, focused space for deep work.\nNo notifications. No distractions.\nJust you and the task.\n\n## Status\n🟡 Stalled — dependencies broke.`,
+        content: `## Vision\nA calm, focused space for deep work.\nNo notifications. No distractions.\nJust you and the task.\n\n## Status\n🟡 Stalled - dependencies broke.`,
       },
       draggable: open,
       selectable: false,
@@ -75,7 +75,7 @@ function buildNodes(open: boolean): ArtifactNode[] {
         delay: 0.26,
         label: "COMMIT TIMELINE",
         commits: [
-          { hash: "a3f1b2", msg: "Initial commit — here we go", date: "Mar 12, 2021" },
+          { hash: "a3f1b2", msg: "Initial commit - here we go", date: "Mar 12, 2021" },
           { hash: "9c4d71", msg: "First deploy 🚀", date: "Apr 03, 2021" },
           { hash: "e82aa0", msg: "Database rewrite (again)", date: "Nov 14, 2021" },
           { hash: "1f0022", msg: "Final commit", date: "Feb 28, 2022" },
@@ -92,7 +92,7 @@ function buildNodes(open: boolean): ArtifactNode[] {
         open,
         delay: 0.38,
         label: "VOICE RECORDING",
-        title: "Final thoughts — Feb 28",
+        title: "Final thoughts - Feb 28",
         duration: "2:14",
       },
       draggable: open,
@@ -300,7 +300,8 @@ function ArtifactCanvas({ open }: { open: boolean }) {
   // compute viewport
   const [rfViewport, setRfViewport] = useState({ x: 512, y: 300, zoom: 1 });
   useEffect(() => {
-    setRfViewport({ x: window.innerWidth / 2, y: window.innerHeight / 2, zoom: 1 });
+    const isMobile = window.innerWidth < 768;
+    setRfViewport({ x: window.innerWidth / 2, y: window.innerHeight / 2, zoom: isMobile ? 0.45 : 1 });
   }, []);
 
   return (
@@ -635,7 +636,7 @@ export function TimeCapsule() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_28%,rgba(0,0,0,0.9)_100%)]" />
         </div>
 
-        {/* floating dust — CSS-only, zero JS RAF cost */}
+        {/* floating dust - CSS-only, zero JS RAF cost */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <style>{`
             @keyframes tc-dust {
@@ -787,7 +788,7 @@ function PersonalMessageReveal() {
         If someone finds this project again, please keep it open source.
         It was meant to help people{" "}
         <span className="text-amber-400/80 not-italic">focus</span>{" "}
-        — not to be sold for parts.
+        - not to be sold for parts.
         <span className="absolute -bottom-3 -right-3 text-6xl font-serif text-amber-500/12 select-none">"</span>
       </motion.blockquote>
 
@@ -800,7 +801,7 @@ function PersonalMessageReveal() {
         <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-foreground/28">
           Preserved in README.md · Oct 14, 2021
         </span>
-        <span className="font-mono text-[11px] text-foreground/45">— David Chen, creator of ZenithOS</span>
+        <span className="font-mono text-[11px] text-foreground/45">- David Chen, creator of ZenithOS</span>
       </motion.figcaption>
 
       <motion.div initial={{ scaleX: 0, opacity: 0 }}

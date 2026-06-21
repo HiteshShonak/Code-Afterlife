@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
-// Self-hosted via next/font — no external CDN request, no render-blocking
+// Self-hosted via next/font - no external CDN request, no render-blocking
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -19,12 +19,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Code Afterlife — Software Never Dies',
+  title: 'Code Afterlife | Software Never Dies',
   description:
     'A platform for abandoned software projects to be rediscovered, inherited, and revived. Projects decay. Builders disappear. Code survives.',
   keywords: ['open source', 'abandoned projects', 'software revival', 'developer platform'],
   openGraph: {
-    title: 'Code Afterlife — Software Never Dies',
+    title: 'Code Afterlife | Software Never Dies',
     description: 'Rediscover, inherit, and revive abandoned software projects.',
     type: 'website',
   },

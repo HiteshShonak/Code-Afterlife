@@ -210,16 +210,15 @@ export function Graveyard() {
             View Legacy
           </Link>
 
-          {/* scroll indicator */}
-          <motion.div
-            animate={{ y: [0, 5, 0] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-            className="mt-3 flex flex-col items-center gap-1.5 opacity-20"
+          {/* scroll indicator - CSS bob, zero JS RAF */}
+          <div className="mt-3 flex flex-col items-center gap-1.5 opacity-20"
+            style={{ animation: "gy-bob 2.8s ease-in-out infinite", willChange: "transform" }}
           >
+            <style>{`@keyframes gy-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }`}</style>
             <div className="h-7 w-4 rounded-full border border-foreground/35 flex items-start justify-center pt-1.5">
               <div className="h-1.5 w-0.5 rounded-full bg-foreground/50" />
             </div>
-          </motion.div>
+          </div>
         </motion.div>
 
       </div>

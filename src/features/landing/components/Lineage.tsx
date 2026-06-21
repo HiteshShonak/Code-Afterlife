@@ -31,7 +31,7 @@ const NODES = [
   { id: "flow",  name: "FlowState",   year: "2024", gen: 3 as const, cx: 452, cy: 468, note: "Evolved from WorkPulse"       },
 ];
 
-// Bezier edges between nodes — from source (cx, cy+NODE_H/2) to dest (cx, cy-NODE_H/2)
+// Bezier edges between nodes - from source (cx, cy+NODE_H/2) to dest (cx, cy-NODE_H/2)
 const EDGES = [
   { id: "e1", from: "root",  to: "focus", d: "M 300 88  C 300 144 148 144 148 164", gradId: "g-e1", c0: "#4b5563", c1: "#6d6888" },
   { id: "e2", from: "root",  to: "pulse", d: "M 300 88  C 300 144 452 144 452 164", gradId: "g-e2", c0: "#4b5563", c1: "#6d6888" },

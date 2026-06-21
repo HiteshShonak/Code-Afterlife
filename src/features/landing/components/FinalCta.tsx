@@ -32,7 +32,7 @@ export function FinalCta() {
       ref={containerRef}
       className="relative overflow-hidden border-t border-border/60 px-6 pt-24 pb-20 md:pt-32 md:pb-28"
     >
-      {/* background atmosphere — CSS-only animations, zero JS RAF cost */}
+      {/* background atmosphere - CSS-only animations, zero JS RAF cost */}
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
         <style>{`
           @keyframes fca-glow-pulse {

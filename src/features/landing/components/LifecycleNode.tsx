@@ -66,18 +66,27 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
 
   return (
     <div className="relative flex items-center justify-center">
-      {/* cinematic aura — uses opacity+scale only (GPU composited) */}
+      {/* cinematic aura - CSS pulse, zero JS RAF */}
       {isActive && config.pulseDuration > 0 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: [0.3, 0.7, 0.3], scale: config.scale }}
-          transition={{ duration: config.pulseDuration, repeat: Infinity, ease: "easeInOut" }}
-          style={{ backgroundColor: config.glowColor }}
+        <div
+          style={{
+            backgroundColor: config.glowColor,
+            ["--ln-dur" as string]: `${config.pulseDuration}s`,
+            animation: "ln-aura var(--ln-dur) ease-in-out infinite",
+            willChange: "transform, opacity",
+          }}
           className="absolute inset-0 -z-10 rounded-full blur-[30px]"
-        />
+        >
+          <style suppressHydrationWarning>{`
+            @keyframes ln-aura {
+              0%,100% { opacity: 0.3; transform: scale(${config.scale[0] ?? 1}); }
+              50%      { opacity: 0.7; transform: scale(${config.scale[1] ?? 1}); }
+            }
+          `}</style>
+        </div>
       )}
       
-      {/* node body — CSS transitions on border-color/bg run on main thread but only
+      {/* node body - CSS transitions on border-color/bg run on main thread but only
           fire on discrete stage changes (not every frame). This is acceptable as
           they are triggered by user scroll events, not a RAF loop. */}
       <div

@@ -32,7 +32,7 @@ export function CinematicSpacer({
         background: `linear-gradient(to bottom, ${topColor} 0%, ${bottomColor} 100%)`,
       }}
     >
-      {/* ambient glow — inView-triggered one-shot (Framer OK here, not infinite) */}
+      {/* ambient glow - inView-triggered one-shot (Framer OK here, not infinite) */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={inView ? { opacity: 1, scale: 1 } : {}}
@@ -43,7 +43,7 @@ export function CinematicSpacer({
         }}
       />
 
-      {/* scroll particles — CSS-only, zero JS RAF cost (renders 4× on page = 24 loops saved) */}
+      {/* scroll particles - CSS-only, zero JS RAF cost (renders 4× on page = 24 loops saved) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
         <style>{`
           @keyframes cs-particle {

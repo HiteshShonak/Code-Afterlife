@@ -66,7 +66,7 @@ export function Hero() {
 
     const animate = () => {
       if (!isVisible) {
-        // Section is off-screen — stop the loop, save GPU/CPU
+        // Section is off-screen - stop the loop, save GPU/CPU
         animationFrameId = requestAnimationFrame(animate);
         return;
       }

@@ -36,6 +36,7 @@ const FRAGMENTS = [
     // top card
     top: "13%",
     left: "72%",
+    mobileLeft: "55%",
     floatDy: -14,
     dur: 9,
     delay: 0,
@@ -48,6 +49,7 @@ const FRAGMENTS = [
     // mid point
     top: "46%",
     left: "8%",
+    mobileLeft: "15%",
     floatDy: -10,
     dur: 11,
     delay: 2.5,
@@ -60,6 +62,7 @@ const FRAGMENTS = [
     // bottom card
     top: "74%",
     left: "68%",
+    mobileLeft: "50%",
     floatDy: -8,
     dur: 13,
     delay: 5.0,
@@ -96,11 +99,22 @@ function IdeaFragment({
       }
       transition={{ duration: 2.4, delay: initDelay, ease: CINEMATIC_EASE }}
     >
-      {/* floating loop */}
-      <motion.div
-        animate={{ y: [0, floatDy, 0], opacity: [baseOp, baseOp * 0.55, baseOp] }}
-        transition={{ duration: dur, delay, repeat: Infinity, ease: "easeInOut" }}
+      {/* floating loop - CSS, zero JS RAF */}
+      <div
+        style={{
+          ["--lf-dy" as string]: `${floatDy}px`,
+          ["--lf-op" as string]: String(baseOp),
+          ["--lf-op2" as string]: String(baseOp * 0.55),
+          animation: `lf-float ${dur}s ease-in-out ${delay}s infinite`,
+          willChange: "transform, opacity",
+        }}
       >
+        <style suppressHydrationWarning>{`
+          @keyframes lf-float {
+            0%,100% { transform:translateY(0);              opacity:var(--lf-op);  }
+            50%      { transform:translateY(var(--lf-dy));   opacity:var(--lf-op2); }
+          }
+        `}</style>
         {/* outer glow */}
         <motion.span
           className="pointer-events-none absolute inset-0 rounded-full"
@@ -113,7 +127,7 @@ function IdeaFragment({
           }}
         />
 
-        {/* chip — uses opacity-only transitions (GPU composited, no paint) */}
+        {/* chip - uses opacity-only transitions (GPU composited, no paint) */}
         <span
           className="relative block whitespace-nowrap rounded-full font-mono text-[10px] uppercase tracking-[0.28em] backdrop-blur-md"
           style={{
@@ -125,7 +139,7 @@ function IdeaFragment({
             opacity: glowing ? 1 : 0.65,
           }}
         >
-          {/* glow overlay — fades via GPU-composited opacity */}
+          {/* glow overlay - fades via GPU-composited opacity */}
           <span
             className="pointer-events-none absolute inset-0 rounded-full"
             style={{
@@ -137,7 +151,7 @@ function IdeaFragment({
           <span style={{ border: "1px solid", borderColor: "inherit", position: "absolute", inset: 0, borderRadius: "9999px" }} />
           {text}
         </span>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
@@ -370,12 +384,17 @@ function RevivedCard({
           }}
         />
         <div className="mb-4 flex items-center gap-2.5">
-          <motion.div
+          <div
             className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: "#60a5fa", boxShadow: "0 0 8px rgba(96,165,250,0.5)" }}
-            animate={{ opacity: [1, 0.25, 1], scale: [1, 1.3, 1] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-          />
+            style={{
+              backgroundColor: "#60a5fa",
+              boxShadow: "0 0 8px rgba(96,165,250,0.5)",
+              animation: "lg-dot-blue 2.8s ease-in-out infinite",
+              willChange: "transform, opacity",
+            }}
+          >
+            <style suppressHydrationWarning>{`@keyframes lg-dot-blue{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(1.3)}}`}</style>
+          </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.45em]" style={{ color: "rgba(96,165,250,0.60)" }}>
             Revived · 2027
           </span>
@@ -426,12 +445,17 @@ function FutureNode({ visible }: { visible: boolean }) {
         }}
       >
         <div className="flex items-center gap-2.5">
-          <motion.div
+          <div
             className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: "#94a3b8", boxShadow: "0 0 10px rgba(148,163,184,0.5)" }}
-            animate={{ opacity: [1, 0.35, 1], scale: [1, 1.5, 1] }}
-            transition={{ duration: 4.0, repeat: Infinity, ease: "easeInOut" }}
-          />
+            style={{
+              backgroundColor: "#94a3b8",
+              boxShadow: "0 0 10px rgba(148,163,184,0.5)",
+              animation: "lg-dot-slate 4.0s ease-in-out infinite",
+              willChange: "transform, opacity",
+            }}
+          >
+            <style suppressHydrationWarning>{`@keyframes lg-dot-slate{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.5)}}`}</style>
+          </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.45em]" style={{ color: "rgba(148,163,184,0.55)" }}>
             Living · 2030
           </span>
@@ -486,7 +510,7 @@ function LeftNarrative({ inView }: { inView: boolean }) {
       >
         <p className="text-base leading-[1.85] tracking-wide" style={{ color: "rgba(148,163,184,0.52)" }}>
           Archived projects leave behind architecture, concepts, and unfinished
-          thinking — waiting for the next builder willing to continue them.
+          thinking - waiting for the next builder willing to continue them.
         </p>
       </motion.div>
 
@@ -520,6 +544,14 @@ export function Legacy() {
 
   // hover state
   const [revivedHovered, setRevivedHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const leftInView     = useInView(leftRef,     { once: true, margin: "-100px" });
   const visualInView   = useInView(visualRef,   { once: true, margin: "-80px"  });
@@ -556,7 +588,7 @@ export function Legacy() {
         style={{ background: "linear-gradient(to bottom, #030508 0%, transparent 100%)" }}
       />
 
-      {/* background — CSS-only animations, zero JS RAF cost */}
+      {/* background - CSS-only animations, zero JS RAF cost */}
       <div className="pointer-events-none absolute inset-0">
         <style>{`
           @keyframes lg-glow-pulse {
@@ -643,7 +675,7 @@ export function Legacy() {
           }}
         />
 
-        {/* bg particles — CSS custom props per particle */}
+        {/* bg particles - CSS custom props per particle */}
         {BG_PARTICLES.map((p, i) => (
           <div key={i} className="absolute rounded-full"
             style={{
@@ -669,7 +701,7 @@ export function Legacy() {
             <LeftNarrative inView={leftInView} />
           </div>
 
-          {/* right visual */}
+          {/* right visual — single layout, chips hidden on mobile via lg:block */}
           <div
             ref={visualRef}
             className="relative flex-1 flex flex-col items-center gap-0"
@@ -686,15 +718,18 @@ export function Legacy() {
                 }}
               />
 
-              {/* fragments */}
-              {FRAGMENTS.map((f) => (
-                <IdeaFragment
-                  key={f.text}
-                  {...f}
-                  visible={visualInView}
-                  glowing={revivedHovered}
-                />
-              ))}
+              {/* fragments — hidden on mobile (absolute chips overflow small screens) */}
+              <div className="hidden lg:block">
+                {FRAGMENTS.map((f) => (
+                  <IdeaFragment
+                    key={f.text}
+                    {...f}
+                    left={f.left}
+                    visible={visualInView}
+                    glowing={revivedHovered}
+                  />
+                ))}
+              </div>
 
               {/* dead card */}
               <DeadCard visible={visualInView} />
@@ -774,12 +809,17 @@ export function Legacy() {
             transition={{ duration: 3.2, delay: 1.0, ease: CINEMATIC_EASE }}
             className="mt-20 flex flex-col items-center gap-4"
           >
-            <motion.div
+            <div
               className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: "#fbbf24", boxShadow: "0 0 12px rgba(251,191,36,0.50), 0 0 4px rgba(251,191,36,0.30)" }}
-              animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.5, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            />
+              style={{
+                backgroundColor: "#fbbf24",
+                boxShadow: "0 0 12px rgba(251,191,36,0.50), 0 0 4px rgba(251,191,36,0.30)",
+                animation: "lg-dot-amber 4s ease-in-out infinite",
+                willChange: "transform, opacity",
+              }}
+            >
+              <style suppressHydrationWarning>{`@keyframes lg-dot-amber{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}`}</style>
+            </div>
             <p className="font-mono text-[9px] uppercase tracking-[0.45em]" style={{ color: "rgba(148,163,184,0.20)" }}>
               The idea survives
             </p>

@@ -75,7 +75,7 @@ const WF: Record<WFKey, string> = {
 };
 
 // floating transmissions
-// Carefully designed for organic scatter — varying size, opacity, blur, timing.
+// Carefully designed for organic scatter - varying size, opacity, blur, timing.
 // scrollReveal: which scroll phase triggers appearance (1 = early, 2 = later)
 const TRANSMISSIONS: readonly TransmissionConfig[] = [
   // human signal
@@ -159,7 +159,7 @@ const WHISPERS = [
   "branch activity weakening",
   "unfinished deployment sequence observed",
   "core systems remain recoverable",
-  "revival probability — rising",
+  "revival probability - rising",
   "last signal: 12 days ago",
   "fork momentum detected in archive",
   "3 watchers remain active",
@@ -167,7 +167,7 @@ const WHISPERS = [
 ];
 
 // ambient particles
-// Kept lean — 16 particles, deterministic positions, GPU-only (opacity + transform)
+// Kept lean - 16 particles, deterministic positions, GPU-only (opacity + transform)
 const PARTICLES: readonly ParticleConfig[] = [
   { l:"7%",  t:"11%", s:1.0, op:0.038, dur:16, dl:0.0, rise:28, warm:false },
   { l:"18%", t:"67%", s:0.7, op:0.028, dur:22, dl:3.1, rise:18, warm:true  },
@@ -188,7 +188,7 @@ const PARTICLES: readonly ParticleConfig[] = [
 ];
 
 // keyframes
-// All ring animations are CSS-driven (no JS RAF) — GPU composited, zero CPU cost
+// All ring animations are CSS-driven (no JS RAF) - GPU composited, zero CPU cost
 const KEYFRAMES = `
   @keyframes obs-ring-a { to { transform: rotate(360deg);  } }
   @keyframes obs-ring-b { to { transform: rotate(-360deg); } }
@@ -200,6 +200,11 @@ const KEYFRAMES = `
     42%     { opacity: 0.90; }
     67%     { opacity: 0.62; }
     81%     { opacity: 0.88; }
+  }
+  @keyframes ft-drift {
+    0%   { transform: translate(0, 0); }
+    50%  { transform: translate(var(--ft-dx), var(--ft-dy)); }
+    100% { transform: translate(0, 0); }
   }
   .obs-ring-a {
     animation: obs-ring-a 52s linear infinite;
@@ -681,7 +686,7 @@ function WaveformBand({ phase }: PhaseProps) {
 }
 
 // floating transmission
-// Each transmission has unique sz, opacity, blur, motion — no two are alike.
+// Each transmission has unique sz, opacity, blur, motion - no two are alike.
 // scrollReveal 1 = appears at phase 1+, scrollReveal 2 = appears only at phase 2.
 function FloatingTransmission({ text, sz, op, blur, dur, delay, dy, dx, x, y, scrollReveal, phase }: FloatingTransmissionProps) {
   const isVisible = phase >= scrollReveal;
@@ -700,28 +705,23 @@ function FloatingTransmission({ text, sz, op, blur, dur, delay, dy, dx, x, y, sc
         ease: CINEMATIC_EASE,
       }}
     >
-      <motion.span
+      {/* drift - CSS custom props, zero JS RAF */}
+      <span
         className="block font-mono lowercase"
         style={{
           fontSize: sz,
           letterSpacing: "0.34em",
           color: "rgba(148,163,184,0.92)",
           whiteSpace: "nowrap",
-          // depth blur
           filter: blur > 0 ? `blur(${blur}px)` : undefined,
-        }}
-        animate={{ y: [0, dy, 0], x: [0, dx, 0] }}
-        transition={{
-          duration: dur,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: delay,
-          // independent motion
-          times: [0, 0.5, 1],
+          ["--ft-dy" as string]: `${dy}px`,
+          ["--ft-dx" as string]: `${dx}px`,
+          animation: `ft-drift ${dur}s ease-in-out ${delay}s infinite`,
+          willChange: "transform",
         }}
       >
         {text}
-      </motion.span>
+      </span>
     </motion.div>
   );
 }
@@ -751,13 +751,23 @@ function AIWhisper({ phase }: PhaseProps) {
       animate={{ opacity: phase === 0 ? 0 : 1 }}
       transition={{ duration: 3.0, delay: 2.0, ease: CINEMATIC_EASE }}
     >
-      {/* amber dot */}
-      <motion.div
+      {/* amber dot - CSS pulse, zero JS RAF */}
+      <div
         className="shrink-0 rounded-full"
-        style={{ width: 3.5, height: 3.5, backgroundColor: "rgba(251,191,36,0.52)" }}
-        animate={{ opacity: [1, 0.12, 1], scale: [1, 0.7, 1] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-      />
+        style={{
+          width: 3.5, height: 3.5,
+          backgroundColor: "rgba(251,191,36,0.52)",
+          animation: "aw-pulse 2.4s ease-in-out infinite",
+          willChange: "transform, opacity",
+        }}
+      >
+        <style>{`
+          @keyframes aw-pulse {
+            0%,100% { opacity: 1;    transform: scale(1);   }
+            50%      { opacity: 0.12; transform: scale(0.7); }
+          }
+        `}</style>
+      </div>
       <motion.p
         key={idx}
         className="font-mono lowercase"
@@ -884,7 +894,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         }}
       >
         Dormant projects still emit fragments of intent, unfinished
-        thinking, and distant activity — long after the last commit.
+        thinking, and distant activity - long after the last commit.
       </motion.p>
 
       {/* secondary */}
@@ -1003,31 +1013,39 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
         transition={{ duration: 5.5, ease: "easeInOut" }}
       />
 
-      {/* horizontal haze */}
-      <motion.div
+      {/* horizontal haze - CSS drift, zero JS RAF */}
+      <style suppressHydrationWarning>{`
+        @keyframes pp-drift-a { 0%,100%{transform:translate(0,0)} 50%{transform:translate(22px,-12px)} }
+        @keyframes pp-drift-b { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-14px,8px)} }
+        @keyframes pp-rise {
+          0%   { transform:translateY(0); opacity:0; }
+          20%  { opacity:var(--pp-op); }
+          80%  { opacity:var(--pp-op); }
+          100% { transform:translateY(var(--pp-rise)); opacity:0; }
+        }
+      `}</style>
+      <div
         className="absolute inset-0"
-        animate={{ x: [0, 22, 0], y: [0, -12, 0] }}
-        transition={{ duration: 42, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          background:
-            "radial-gradient(ellipse 52% 42% at 16% 65%, rgba(4,10,24,0.18) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse 52% 42% at 16% 65%, rgba(4,10,24,0.18) 0%, transparent 70%)",
+          animation: "pp-drift-a 42s ease-in-out infinite",
+          willChange: "transform",
         }}
       />
 
       {/* counter drift */}
-      <motion.div
+      <div
         className="absolute inset-0"
-        animate={{ x: [0, -14, 0], y: [0, 8, 0] }}
-        transition={{ duration: 58, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          background:
-            "radial-gradient(ellipse 40% 35% at 82% 28%, rgba(4,10,24,0.12) 0%, transparent 65%)",
+          background: "radial-gradient(ellipse 40% 35% at 82% 28%, rgba(4,10,24,0.12) 0%, transparent 65%)",
+          animation: "pp-drift-b 58s ease-in-out infinite",
+          willChange: "transform",
         }}
       />
 
-      {/* ambient micro-particles */}
+      {/* ambient micro-particles - CSS custom props per particle */}
       {PARTICLES.map((p, i) => (
-        <motion.div
+        <div
           key={i}
           className="absolute rounded-full"
           style={{
@@ -1035,17 +1053,11 @@ function AtmosphericBg({ phase }: { phase: 0 | 1 | 2 }) {
             top:  p.t,
             width:  p.s,
             height: p.s,
-            backgroundColor: p.warm
-              ? "rgba(251,191,36,1)"
-              : "rgba(140,158,180,1)",
-            opacity: 0,
-          }}
-          animate={{ y: [0, -p.rise, 0], opacity: [0, p.op, 0] }}
-          transition={{
-            duration: p.dur,
-            repeat: Infinity,
-            delay: p.dl,
-            ease: "easeInOut",
+            backgroundColor: p.warm ? "rgba(251,191,36,1)" : "rgba(140,158,180,1)",
+            ["--pp-op" as string]: String(p.op),
+            ["--pp-rise" as string]: `-${p.rise}px`,
+            animation: `pp-rise ${p.dur}s ease-in-out ${p.dl}s infinite`,
+            willChange: "transform, opacity",
           }}
         />
       ))}
@@ -1075,7 +1087,7 @@ export function ProjectPulse() {
     let prevPhase: 0 | 1 | 2 = 0;
     const unsub = smooth.on("change", (v) => {
       const next: 0 | 1 | 2 = v < 0.16 ? 0 : v < 0.40 ? 1 : 2;
-      // Only re-render when phase actually changes — not on every scroll frame
+      // Only re-render when phase actually changes - not on every scroll frame
       if (next !== prevPhase) {
         prevPhase = next;
         setPhase(next);

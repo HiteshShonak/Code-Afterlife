@@ -22,7 +22,7 @@ export function LegacyHall() {
           </h2>
           <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
             Projects revived by their next builder. Their original architects
-            still listed in the lineage — credit endures.
+            still listed in the lineage - credit endures.
           </p>
         </div>
 

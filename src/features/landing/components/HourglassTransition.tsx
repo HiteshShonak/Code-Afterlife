@@ -66,10 +66,9 @@ export function HourglassTransition() {
     <section
       ref={sectionRef}
       aria-hidden="true"
-      className="relative bg-[#030508]"
-      style={{ minHeight: "250vh" }}
+      className="relative bg-[#030508] hidden md:block md:min-h-[250vh]"
     >
-      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-black">
+      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-black relative flex items-center">
         <video
           ref={videoRef}
           src="/hourGlass.mp4"

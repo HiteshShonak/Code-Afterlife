@@ -42,8 +42,8 @@ function scrollToTop() {
 // nav client
 export function NavClient({ user }: NavClientProps) {
   return (
-    <nav className="fixed top-0 z-50 w-full mix-blend-difference">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 md:px-10">
+    <nav className="fixed top-0 z-50 w-full mix-blend-difference pointer-events-none">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 md:px-10 pointer-events-auto">
         {/* logo */}
         <button
           onClick={scrollToTop}

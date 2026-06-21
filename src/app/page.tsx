@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { Nav } from "@/features/landing/components/Nav";
 import { Hero } from "@/features/landing/components/Hero";
 
-// Below-fold sections — code-split via next/dynamic.
+// Below-fold sections - code-split via next/dynamic.
 // Their HTML still renders on the server (SSR preserved), but JS is deferred,
 // reducing the initial bundle that causes the 5.0s main-thread parse cost.
 const Lifecycle          = dynamic(() => import("@/features/landing/components/Lifecycle").then(m => m.Lifecycle));
@@ -26,21 +26,24 @@ export default function Home() {
         <Graveyard />
         <TimeCapsule />
 
-        <CinematicSpacer
-          topColor="var(--background)"
-          bottomColor="#030508"
-          glowColor="rgba(200,120,30,0.12)"
-          height="45vh"
-        />
+        {/* hourglass + its spacers — hidden entirely on mobile, shown on md+ */}
+        <div className="hidden md:block">
+          <CinematicSpacer
+            topColor="var(--background)"
+            bottomColor="#030508"
+            glowColor="rgba(200,120,30,0.12)"
+            height="45vh"
+          />
 
-        <HourglassTransition />
+          <HourglassTransition />
 
-        <CinematicSpacer
-          topColor="#030508"
-          bottomColor="#030508"
-          glowColor="rgba(56,189,248,0.12)"
-          height="45vh"
-        />
+          <CinematicSpacer
+            topColor="#030508"
+            bottomColor="#030508"
+            glowColor="rgba(56,189,248,0.12)"
+            height="45vh"
+          />
+        </div>
 
         <Legacy />
 

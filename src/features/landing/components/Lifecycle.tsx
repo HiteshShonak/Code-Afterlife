@@ -18,7 +18,7 @@ const stages = [
 const STAGE_COLORS = ["#ffffff", "#8b5cf6", "#f59e0b", "#ef4444", "#ffffff"];
 const STAGE_OPACITIES = ["1", "1", "1", "0.5", "0.28"];
 
-// Precomputed color strings — avoids inline Math.round/parseFloat/toString(16) during render
+// Precomputed color strings - avoids inline Math.round/parseFloat/toString(16) during render
 const STAGE_GLOW_COLORS = STAGE_COLORS.map((c, i) => {
   const alpha = Math.round(parseFloat(STAGE_OPACITIES[i]) * 0.08 * 255).toString(16).padStart(2, "0");
   return `${c}${alpha}`;
@@ -45,7 +45,7 @@ export function Lifecycle() {
     let prevIndex = 0;
     return scrollYProgress.on("change", (latest) => {
       const index = Math.min(stages.length - 1, Math.floor(latest * stages.length));
-      // Only re-render when the stage actually changes — not on every scroll frame
+      // Only re-render when the stage actually changes - not on every scroll frame
       if (index !== prevIndex) {
         prevIndex = index;
         setActiveIndex(index);
@@ -127,7 +127,7 @@ export function Lifecycle() {
           {/* card */}
           <div className="relative flex-1 flex flex-col items-center justify-center py-10">
 
-            {/* ambient glow — uses precomputed color table */}
+            {/* ambient glow - uses precomputed color table */}
             <motion.div
               className="pointer-events-none absolute inset-0 rounded-3xl blur-[80px]"
               animate={{
@@ -161,7 +161,7 @@ export function Lifecycle() {
                     Stage {stage.code}
                   </span>
 
-                  {/* node card — CSS transition on border/bg (fires on stage change, not every frame) */}
+                  {/* node card - CSS transition on border/bg (fires on stage change, not every frame) */}
                   <div
                     className="w-full max-w-xs border rounded-2xl px-8 py-6 backdrop-blur-md mb-6"
                     style={{
