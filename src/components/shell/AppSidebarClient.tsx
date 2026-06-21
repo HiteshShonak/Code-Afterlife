@@ -133,28 +133,56 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       </div>
 
       {/* user chip */}
-      <div className="mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 backdrop-blur-sm">
-        <div className="relative h-9 w-9 flex-shrink-0">
-          <div className="absolute inset-0 rounded-full border border-accent/30 bg-secondary overflow-hidden">
-            {user.image ? (
-              <Image
-                src={user.image}
-                alt={displayName}
-                fill
-                sizes="36px"
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center font-mono text-sm font-bold text-foreground">
-                {(user.name ?? 'D').charAt(0).toUpperCase()}
-              </div>
-            )}
+      {user.username ? (
+        <Link 
+          href={`/u/${user.username}`}
+          className="group mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 backdrop-blur-sm transition-all hover:border-accent/30 hover:bg-white/[0.06]"
+        >
+          <div className="relative h-9 w-9 flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border border-accent/30 bg-secondary overflow-hidden transition-colors group-hover:border-accent/50">
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={displayName}
+                  fill
+                  sizes="36px"
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center font-mono text-sm font-bold text-foreground">
+                  {(user.name ?? 'D').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-mono text-[13px] font-semibold text-foreground transition-colors group-hover:text-accent">{displayName}</p>
+          </div>
+        </Link>
+      ) : (
+        <div className="mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 backdrop-blur-sm">
+          <div className="relative h-9 w-9 flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border border-accent/30 bg-secondary overflow-hidden">
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={displayName}
+                  fill
+                  sizes="36px"
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center font-mono text-sm font-bold text-foreground">
+                  {(user.name ?? 'D').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-mono text-[13px] font-semibold text-foreground">{displayName}</p>
           </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-mono text-[13px] font-semibold text-foreground">{displayName}</p>
-        </div>
-      </div>
+      )}
 
       {/* primary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">

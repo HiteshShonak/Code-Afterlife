@@ -74,6 +74,16 @@ export function NavClient({ user }: NavClientProps) {
             Explore
           </Link>
 
+          {/* profile link */}
+          {user?.username && (
+            <Link
+              href={`/u/${user.username}`}
+              className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Profile
+            </Link>
+          )}
+
           {/* dashboard link */}
           {user && (
             <Link

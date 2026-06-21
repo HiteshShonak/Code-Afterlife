@@ -25,7 +25,7 @@ export default async function AppLayout({
       {hasSession ? <AppSidebar /> : <GuestSidebar />}
 
       {/* main content */}
-      <main className="min-h-screen flex-1 lg:pl-72">
+      <main className="min-h-screen flex-1 min-w-0 w-full lg:pl-72">
         {children}
       </main>
     </div>
