@@ -169,7 +169,7 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
 
           {/* footer row */}
-          <div className="flex items-center justify-between border-t border-border pt-3 font-mono text-[10px] text-muted-foreground/60">
+          <div className="flex flex-wrap items-center justify-between gap-y-3 border-t border-border pt-3 font-mono text-[10px] text-muted-foreground/60">
             <div className="flex gap-3">
               <span className="flex items-center gap-1">
                 <Heart className="h-3 w-3" /> {likeCount}
