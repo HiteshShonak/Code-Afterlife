@@ -209,7 +209,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
           <div>
             <h2 className="font-mono text-[14px] font-bold text-foreground">Register Project</h2>
             <p className="font-mono text-[10px] text-muted-foreground">
-              Step {stepIndex + 1} of {STEPS.length} — {currentStep}
+              Step {stepIndex + 1} of {STEPS.length} - {currentStep}
             </p>
           </div>
 
@@ -310,7 +310,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                           <p className="font-mono text-[11px] font-semibold text-amber-300">Repository access needs refresh</p>
                           <p className="mt-1 font-mono text-[10px] text-amber-400/70 leading-relaxed">
                             Your GitHub login was made before repo access was enabled.
-                            Sign out and sign back in — it takes 5 seconds.
+                            Sign out and sign back in - it takes 5 seconds.
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -491,7 +491,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                 onClick={() => navigate(1)}
                 className="font-mono text-[10px] text-muted-foreground/50 underline underline-offset-2 hover:text-muted-foreground transition-colors"
               >
-                Skip — enter URL manually
+                Skip - enter URL manually
               </button>
             )}
 

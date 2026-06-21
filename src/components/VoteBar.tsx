@@ -94,7 +94,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
 
       {stats.total === 0 && (
         <p className="text-center font-mono text-[11px] text-muted-foreground/40">
-          No votes yet — be the first to predict.
+          No votes yet - be the first to predict.
         </p>
       )}
 

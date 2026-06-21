@@ -108,7 +108,7 @@ export const ImageUploader = memo(function ImageUploader({
                   </div>
                 )}
 
-                {/* Done — green tick only */}
+                {/* Done - green tick only */}
                 {img.status === 'done' && (
                   <div className="absolute bottom-1 right-1">
                     <CheckCircle className="h-4 w-4 text-green-400 drop-shadow-sm" />
@@ -125,7 +125,7 @@ export const ImageUploader = memo(function ImageUploader({
                   </div>
                 )}
 
-                {/* Remove button — hover only */}
+                {/* Remove button - hover only */}
                 <button
                   type="button"
                   onClick={() => removeImage(i)}

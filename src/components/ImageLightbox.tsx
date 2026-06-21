@@ -117,7 +117,7 @@ export function ImageLightbox({
         )}
       </div>
 
-      {/* thumbnail strip — shown when 2+ images */}
+      {/* thumbnail strip - shown when 2+ images */}
       {images.length > 1 && (
         <div
           className="flex items-center justify-center gap-2 py-3 px-4"

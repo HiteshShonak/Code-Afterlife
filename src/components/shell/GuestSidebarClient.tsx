@@ -150,7 +150,7 @@ export function GuestSidebarClient() {
         <div className="mx-0 my-4 border-t border-white/[0.06]" />
         <p className="font-mono text-[10px] text-muted-foreground/30 leading-relaxed">
           Software Never Dies.<br />
-          <span className="text-muted-foreground/20">Code Afterlife — A cinematic graveyard for abandoned projects.</span>
+          <span className="text-muted-foreground/20">Code Afterlife - A cinematic graveyard for abandoned projects.</span>
         </p>
       </div>
     </div>
@@ -176,7 +176,7 @@ export function GuestSidebarClient() {
       {/* mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/80 text-muted-foreground shadow-lg backdrop-blur-md transition-colors hover:text-foreground lg:hidden"
+        className="fixed left-4 bottom-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/80 text-muted-foreground shadow-lg backdrop-blur-md transition-colors hover:text-foreground lg:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />

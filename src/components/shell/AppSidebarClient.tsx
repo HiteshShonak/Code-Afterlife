@@ -217,7 +217,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       {/* mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/80 text-muted-foreground shadow-lg backdrop-blur-md transition-colors hover:text-foreground lg:hidden"
+        className="fixed left-4 bottom-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/80 text-muted-foreground shadow-lg backdrop-blur-md transition-colors hover:text-foreground lg:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />
