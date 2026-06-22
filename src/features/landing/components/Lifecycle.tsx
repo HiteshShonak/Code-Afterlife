@@ -62,7 +62,7 @@ export function Lifecycle() {
 
         {/* fade overlay */}
         <motion.div
-          className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-background/20 to-background"
+          className="pointer-events-none absolute inset-0 z-20 bg-linear-to-b from-transparent via-background/20 to-background"
           animate={{ opacity: isFlatline ? 1 : 0, filter: isFlatline ? "grayscale(1)" : "grayscale(0)" }}
           transition={{ duration: 1.8, ease: CINEMATIC_EASE }}
         />
@@ -78,7 +78,7 @@ export function Lifecycle() {
                 Every project moves<br/>through five quiet stages.
               </h2>
             </div>
-            <div className="relative h-[200px] w-full max-w-[500px]">
+            <div className="relative h-50 w-full max-w-125">
               {stages.map((stage, i) => {
                 const isActive = activeIndex === i;
                 return (
@@ -108,7 +108,7 @@ export function Lifecycle() {
 
           {/* right column */}
           <div className="relative flex h-full w-1/2 items-center justify-center">
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/5 blur-[120px]" />
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-100 w-100 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/5 blur-[120px]" />
             <ReactFlowLifecycle activeIndex={activeIndex} />
           </div>
         </div>

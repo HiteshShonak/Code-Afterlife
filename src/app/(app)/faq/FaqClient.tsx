@@ -64,14 +64,14 @@ function FaqItem({ item, index }: { item: typeof FAQ_ITEMS[number]; index: numbe
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl border border-white/[0.06] bg-card/60 backdrop-blur-sm overflow-hidden"
+      className="rounded-2xl border border-white/6 bg-card/60 backdrop-blur-sm overflow-hidden"
     >
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-4 px-6 py-5 text-left transition-colors hover:bg-white/[0.03]"
+        className="flex w-full items-center gap-4 px-6 py-5 text-left transition-colors hover:bg-white/3"
         aria-expanded={open}
       >
-        <Icon className={['h-4 w-4 flex-shrink-0', item.color].join(' ')} />
+        <Icon className={['h-4 w-4 shrink-0', item.color].join(' ')} />
         <span className="flex-1 font-mono text-[13px] font-semibold text-foreground">
           {item.q}
         </span>
@@ -93,7 +93,7 @@ function FaqItem({ item, index }: { item: typeof FAQ_ITEMS[number]; index: numbe
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-white/[0.05] px-6 pb-6 pt-4">
+            <div className="border-t border-white/5 px-6 pb-6 pt-4">
               <p className="font-mono text-[12px] leading-relaxed text-muted-foreground whitespace-pre-line">
                 {item.a}
               </p>
@@ -140,7 +140,7 @@ export function FaqClient() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-16 rounded-2xl border border-accent/20 bg-accent/[0.04] p-8 text-center"
+        className="mt-16 rounded-2xl border border-accent/20 bg-accent/4 p-8 text-center"
       >
         <p className="font-mono text-[13px] font-semibold text-foreground mb-1">
           Still have questions?

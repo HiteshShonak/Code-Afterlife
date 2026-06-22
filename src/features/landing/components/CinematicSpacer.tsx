@@ -37,7 +37,7 @@ export function CinematicSpacer({
         initial={{ opacity: 0, scale: 0.8 }}
         animate={inView ? { opacity: 1, scale: 1 } : {}}
         transition={{ duration: 3, ease: CINEMATIC_EASE }}
-        className="pointer-events-none absolute w-[800px] h-[500px] rounded-full blur-[100px]"
+        className="pointer-events-none absolute w-200 h-125 rounded-full blur-[100px]"
         style={{
           background: `radial-gradient(ellipse at center, ${glowColor} 0%, transparent 60%)`,
         }}

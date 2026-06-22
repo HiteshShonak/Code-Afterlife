@@ -121,8 +121,8 @@ export function LifecycleNode({ data }: { data: LifecycleNodeData }) {
         </motion.div>
       </div>
 
-      <Handle type="target" position={Position.Top} className="!opacity-0 !border-none !bg-transparent" />
-      <Handle type="source" position={Position.Bottom} className="!opacity-0 !border-none !bg-transparent" />
+      <Handle type="target" position={Position.Top} className="opacity-0! border-none! bg-transparent!" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0! border-none! bg-transparent!" />
     </div>
   );
 }

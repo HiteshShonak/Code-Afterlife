@@ -887,7 +887,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         initial={{ opacity: 0, y: 14 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 2.6, delay: 0.52, ease: CINEMATIC_EASE }}
-        className="max-w-md leading-[2.0] tracking-wide"
+        className="max-w-md leading-loose tracking-wide"
         style={{
           fontSize: "clamp(1.1rem,1.5vw,1.3rem)",
           color: "rgba(203,213,225,0.75)",
@@ -920,7 +920,7 @@ function LeftTypography({ inView }: LeftTypographyProps) {
         transition={{ duration: 3.5, delay: 1.05, ease: CINEMATIC_EASE }}
       >
         <motion.div
-          className="mt-[6px] shrink-0 rounded-full"
+          className="mt-1.5 shrink-0 rounded-full"
           style={{ width: 4, height: 4, background: "rgba(251,191,36,0.65)" }}
           animate={{ opacity: [1, 0.3, 1] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}

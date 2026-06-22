@@ -10,8 +10,8 @@ import { Handle, Position } from '@xyflow/react';
 // ghost nodes
 const GhostNode = () => (
   <div className="h-4 w-4 opacity-0">
-    <Handle type="target" position={Position.Top} className="!opacity-0" />
-    <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+    <Handle type="target" position={Position.Top} className="opacity-0!" />
+    <Handle type="source" position={Position.Bottom} className="opacity-0!" />
   </div>
 );
 

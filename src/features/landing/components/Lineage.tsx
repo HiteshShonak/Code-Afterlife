@@ -364,7 +364,7 @@ export function Lineage() {
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 90% 70% at 60% 45%, #0a1020 0%, #030508 70%)" }} />
         {/* faint glow */}
-        <div className="absolute left-[55%] top-[40%] -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px]"
+        <div className="absolute left-[55%] top-[40%] -translate-x-1/2 -translate-y-1/2 w-175 h-125"
           style={{ background: "radial-gradient(ellipse at center, rgba(59,130,246,0.025) 0%, transparent 65%)" }} />
         {/* ambient particles */}
         {PARTICLES.map((p, i) => (
@@ -480,7 +480,7 @@ export function Lineage() {
                   hover:border-blue-500/30 hover:bg-blue-950/25 hover:text-blue-300/90"
               >
                 <span className="pointer-events-none absolute inset-0 -translate-x-full
-                  bg-gradient-to-r from-transparent via-blue-400/[0.04] to-transparent
+                  bg-linear-to-r from-transparent via-blue-400/4 to-transparent
                   transition-transform duration-700 group-hover:translate-x-full" />
                 <span className="relative">Trace the Echo</span>
                 <span className="relative transition-transform duration-400 group-hover:translate-x-1">→</span>
@@ -494,7 +494,7 @@ export function Lineage() {
             initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
             animate={isGraphInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
             transition={{ duration: 1.8, ease: CINEMATIC_EASE }}
-            className="relative w-full flex-1 min-h-[420px] md:min-h-[520px]"
+            className="relative w-full flex-1 min-h-105 md:min-h-130"
           >
             {/* graph glow */}
             <div className="pointer-events-none absolute inset-0 rounded-2xl"

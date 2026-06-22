@@ -17,7 +17,7 @@ const GraveyardCanvas = dynamic(
 function MobileFallback() {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050c1a] via-[#071325] to-[#09090c]" />
+      <div className="absolute inset-0 bg-linear-to-b from-[#050c1a] via-[#071325] to-[#09090c]" />
       {/* moon */}
       <div className="absolute left-[18%] top-[12%] h-28 w-28 rounded-full bg-[#7a9bd4]/8 blur-3xl" />
       <div className="absolute left-[19.5%] top-[13%] h-12 w-12 rounded-full bg-[#8caee8]/15 blur-xl" />
@@ -29,7 +29,7 @@ function MobileFallback() {
       <div className="absolute bottom-[26%] left-[8%] w-7 h-14 bg-foreground/8 rounded-t-full" />
       <div className="absolute bottom-[26%] right-[8%] w-7 h-15 bg-foreground/8 rounded-t-full" />
       {/* ground fog */}
-      <div className="absolute bottom-0 inset-x-0 h-[40%] bg-gradient-to-t from-[#06101e]/85 via-[#091626]/40 to-transparent blur-2xl" />
+      <div className="absolute bottom-0 inset-x-0 h-[40%] bg-linear-to-t from-[#06101e]/85 via-[#091626]/40 to-transparent blur-2xl" />
       {/* vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_36%,rgba(0,0,0,0.82)_100%)]" />
     </div>
@@ -128,10 +128,10 @@ export function Graveyard() {
       <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.78)_100%)]" />
 
       {/* top fade */}
-      <div className="pointer-events-none absolute top-0 inset-x-0 z-20 h-52 bg-gradient-to-b from-background to-transparent" />
+      <div className="pointer-events-none absolute top-0 inset-x-0 z-20 h-52 bg-linear-to-b from-background to-transparent" />
 
       {/* bottom fade */}
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 z-20 h-52 bg-gradient-to-t from-background to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 z-20 h-52 bg-linear-to-t from-background to-transparent" />
 
       {/* text overlay */}
       <div className="relative z-30 flex min-h-screen flex-col items-center justify-between px-6 py-16 md:px-10 md:py-24">
@@ -161,7 +161,7 @@ export function Graveyard() {
           className="mx-auto max-w-2xl text-center"
         >
           {/* moon haze gradient */}
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[55%] w-[600px] h-[360px] bg-[radial-gradient(ellipse_at_center,rgba(24,42,80,0.22)_0%,transparent_68%)] blur-2xl" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-55%] w-150 h-90 bg-[radial-gradient(ellipse_at_center,rgba(24,42,80,0.22)_0%,transparent_68%)] blur-2xl" />
 
           <h2 className="relative text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]">
             Some projects deserve
@@ -195,9 +195,9 @@ export function Graveyard() {
               focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent"
           >
             {/* shimmer */}
-            <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.04] to-transparent transition-transform duration-900 group-hover:translate-x-full" />
+            <span className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/4 to-transparent transition-transform duration-900 group-hover:translate-x-full" />
             {/* top border */}
-            <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/25 to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+            <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-foreground/25 to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
             <span className="relative">Enter the Graveyard</span>
             <span className="relative transition-transform duration-500 group-hover:translate-x-1 text-foreground/40 group-hover:text-foreground/75">→</span>
           </Link>

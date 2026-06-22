@@ -13,7 +13,7 @@ export function LegacyHall() {
   const ref = useReveal<HTMLDivElement>();
   return (
     <section id="legacy" className="relative border-t border-border/60 px-6 py-32 md:py-40">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-gradient-to-b from-accent/[0.06] via-transparent to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-accent/6 via-transparent to-transparent" />
       <div ref={ref} className="ca-reveal mx-auto max-w-7xl">
         <SectionLabel index="05" label="Legacy hall" />
         <div className="mb-16 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">

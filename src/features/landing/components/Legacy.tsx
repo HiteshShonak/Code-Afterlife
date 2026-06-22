@@ -178,7 +178,7 @@ function DeadCard({ visible }: { visible: boolean }) {
       initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
       animate={visible ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
       transition={{ duration: 2.6, ease: CINEMATIC_EASE }}
-      className="relative w-full max-w-[300px]"
+      className="relative w-full max-w-75"
       style={{ zIndex: 2 }}
     >
       <div
@@ -365,7 +365,7 @@ function RevivedCard({
       initial={{ opacity: 0, y: 28, filter: "blur(14px)" }}
       animate={visible ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
       transition={{ duration: 3.0, delay: 0.3, ease: CINEMATIC_EASE }}
-      className="relative w-full max-w-[300px] cursor-default"
+      className="relative w-full max-w-75 cursor-default"
       style={{ zIndex: 2 }}
       onHoverStart={() => onHover(true)}
       onHoverEnd={() => onHover(false)}

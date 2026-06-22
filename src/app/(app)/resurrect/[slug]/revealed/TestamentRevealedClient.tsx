@@ -40,16 +40,16 @@ export function TestamentRevealedClient({ slug, testament, parentTitle }: Testam
           Testament Unsealed
         </h1>
 
-        <div className="min-h-[200px]">
+        <div className="min-h-50">
           <AnimatePresence>
             {showContent && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.5, ease: 'easeOut' }}
-                className="relative rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-8 backdrop-blur-sm text-left shadow-2xl"
+                className="relative rounded-2xl border border-amber-500/10 bg-amber-500/2 p-8 backdrop-blur-sm text-left shadow-2xl"
               >
-                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-500/50 to-transparent rounded-l-2xl" />
+                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-linear-to-b from-amber-500/50 to-transparent rounded-l-2xl" />
                 <div className="flex items-center gap-2 mb-4 text-muted-foreground/50 font-mono text-xs">
                   <Terminal className="h-4 w-4" />
                   <span>Legacy of {parentTitle}</span>

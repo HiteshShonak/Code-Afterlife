@@ -321,7 +321,7 @@ function TreadmillTombstones({
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
   // dummy is stable (useMemo), so this dep array is correct
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [dummy]);
 
   useEffect(() => flushMesh(roundedRef.current, roundedItems), [roundedItems]);
@@ -330,7 +330,7 @@ function TreadmillTombstones({
     return () => {
       globalGrid.clear();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   useFrame(({ camera }) => {
@@ -1191,7 +1191,7 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
 
     filterTimers.current = [t1, t2];
     return () => filterTimers.current.forEach(clearTimeout);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [filteredProjects]);
 
   useEffect(() => {

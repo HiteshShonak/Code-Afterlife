@@ -51,7 +51,7 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
   const displayName = user.username ?? user.name ?? 'Developer';
 
   return (
-    <div className="mx-auto max-w-[1400px] px-6 pb-24 pt-12 md:px-10">
+    <div className="mx-auto max-w-350 px-6 pb-24 pt-12 md:px-10">
       {/* Welcome strip */}
       <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-start">
         <div>

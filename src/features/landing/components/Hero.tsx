@@ -105,11 +105,11 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative isolate flex h-screen min-h-[760px] w-full flex-col items-center justify-center overflow-hidden">
+    <section className="relative isolate flex h-screen min-h-190 w-full flex-col items-center justify-center overflow-hidden">
       {/* background image */}
       <div className="absolute inset-0 -z-30 bg-background overflow-hidden">
         {/* inner background */}
-        <div ref={bgRef} className="absolute -inset-[5%] -translate-x-[1%]">
+        <div ref={bgRef} className="absolute inset-[-5%] translate-x-[-1%]">
           <Image
             src="/hero-image.webp"
             alt="A vast foggy ravine of digital ruins with floating abandoned software panels and a distant light beam on the horizon"
@@ -127,13 +127,13 @@ export function Hero() {
       {/* fog layers */}
       <div className="pointer-events-none absolute inset-0 -z-20 overflow-hidden">
         {/* deep background fog */}
-        <div className="absolute bottom-0 left-[-20%] h-[80%] w-[140%] ca-fog-drift-1 bg-gradient-to-t from-background via-accent/10 to-transparent blur-3xl opacity-80 mix-blend-screen" />
+        <div className="absolute bottom-0 left-[-20%] h-[80%] w-[140%] ca-fog-drift-1 bg-linear-to-t from-background via-accent/10 to-transparent blur-3xl opacity-80 mix-blend-screen" />
         {/* foreground fog */}
-        <div className="absolute bottom-[-10%] left-[-10%] h-[60%] w-[120%] ca-fog-drift-2 bg-gradient-to-t from-background via-background/80 to-transparent blur-2xl opacity-90" />
+        <div className="absolute bottom-[-10%] left-[-10%] h-[60%] w-[120%] ca-fog-drift-2 bg-linear-to-t from-background via-background/80 to-transparent blur-2xl opacity-90" />
       </div>
 
       {/* panels */}
-      <div className="pointer-events-none absolute inset-0 -z-10 [perspective:1000px]">
+      <div className="pointer-events-none absolute inset-0 -z-10 perspective-[1000px]">
         <div ref={panelsRef} className="absolute inset-0">
           {/* panel 1 */}
           <div 
@@ -157,11 +157,11 @@ export function Hero() {
             style={{ "--tw-panel-rx": "-15deg", "--tw-panel-ry": "-35deg", "--tw-panel-duration": "24s" } as React.CSSProperties}
           >
             <div className="w-full h-full p-4 flex flex-col gap-2 opacity-30">
-              <div className="h-[2px] w-full bg-white/40 rounded-full mb-3" />
-              <div className="h-[2px] w-full bg-white/20 rounded-full" />
-              <div className="h-[2px] w-4/5 bg-white/20 rounded-full" />
-              <div className="h-[2px] w-5/6 bg-white/20 rounded-full" />
-              <div className="h-[2px] w-1/2 bg-white/20 rounded-full mt-auto" />
+              <div className="h-0.5 w-full bg-white/40 rounded-full mb-3" />
+              <div className="h-0.5 w-full bg-white/20 rounded-full" />
+              <div className="h-0.5 w-4/5 bg-white/20 rounded-full" />
+              <div className="h-0.5 w-5/6 bg-white/20 rounded-full" />
+              <div className="h-0.5 w-1/2 bg-white/20 rounded-full mt-auto" />
             </div>
           </div>
 
@@ -175,12 +175,12 @@ export function Hero() {
 
       {/* lighting */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent via-background/80 to-background" />
-        <div className="ca-pulse-glow absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 mix-blend-screen" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-background to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-72 bg-linear-to-b from-transparent via-background/80 to-background" />
+        <div className="ca-pulse-glow absolute left-1/2 top-1/2 h-175 w-175 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 mix-blend-screen" />
         <div className="ca-grain absolute inset-0 opacity-40 mix-blend-overlay" />
         {/* text shadow */}
-        <div className="absolute left-1/2 top-1/2 h-[520px] w-[1100px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/30 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-130 w-275 max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/30 blur-3xl" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">

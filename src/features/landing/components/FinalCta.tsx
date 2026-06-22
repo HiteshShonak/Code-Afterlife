@@ -51,7 +51,7 @@ export function FinalCta() {
 
         {/* subtle depth glow */}
         <div
-          className="absolute left-1/2 top-1/2 h-[800px] w-[800px] rounded-full"
+          className="absolute left-1/2 top-1/2 h-200 w-200 rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(14,165,233,0.015) 0%, transparent 70%)",
             filter: "blur(60px)",
@@ -106,7 +106,7 @@ export function FinalCta() {
           {/* primary button */}
           <Link
             href="/graveyard"
-            className="group relative inline-flex items-center gap-2 rounded-full bg-foreground px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-background transition-all duration-700 ease-out hover:-translate-y-[1px] hover:bg-[#f1f5f9] hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.15)]"
+            className="group relative inline-flex items-center gap-2 rounded-full bg-foreground px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-background transition-all duration-700 ease-out hover:-translate-y-px hover:bg-[#f1f5f9] hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.15)]"
           >
             Explore Graveyard
             <span className="transition-transform duration-700 ease-out group-hover:translate-x-1">→</span>
@@ -115,7 +115,7 @@ export function FinalCta() {
           {/* secondary button */}
           <Link
             href="/explore"
-            className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-transparent px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground transition-all duration-700 ease-out hover:-translate-y-[1px] hover:border-foreground/30 hover:bg-foreground/[0.02]"
+            className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-transparent px-9 py-4.5 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground transition-all duration-700 ease-out hover:-translate-y-px hover:border-foreground/30 hover:bg-foreground/2"
           >
             Start Exploring
           </Link>
