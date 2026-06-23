@@ -11,10 +11,11 @@ interface UserMenuProps {
   name:     string | null;
   username: string | null;
   image:    string | null;
+  direction?: 'down' | 'up-center';
 }
 
 // user menu
-export const UserMenu = ({ name, username, image }: UserMenuProps) => {
+export const UserMenu = ({ name, username, image, direction = 'down' }: UserMenuProps) => {
   const [open, setOpen]   = useState(false);
   const ref               = useRef<HTMLDivElement>(null);
   const router            = useRouter();
@@ -36,6 +37,8 @@ export const UserMenu = ({ name, username, image }: UserMenuProps) => {
     router.push('/');
   };
 
+  const isUp = direction === 'up-center';
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -56,11 +59,13 @@ export const UserMenu = ({ name, username, image }: UserMenuProps) => {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            initial={{ opacity: 0, scale: 0.95, y: isUp ? 4 : -4 }}
             animate={{ opacity: 1, scale: 1,    y: 0   }}
-            exit={{    opacity: 0, scale: 0.95, y: -4   }}
+            exit={{    opacity: 0, scale: 0.95, y: isUp ? 4 : -4   }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-10 z-50 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/40"
+            className={`absolute z-50 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/40 ${
+              isUp ? 'bottom-12 left-1/2 -translate-x-1/2' : 'right-0 top-10'
+            }`}
           >
             {/* identity */}
             <div className="border-b border-border px-4 py-3">

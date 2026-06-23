@@ -165,10 +165,10 @@ function ArtifactBase({
 function MessageNode({ data }: NodeProps) {
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase open={!!data.open} delay={data.delay as number} label={data.label as string}
         accentColor="rgba(251,191,36,0.25)">
-        <blockquote className="text-[11px] leading-relaxed text-foreground/80 font-light italic w-[210px]">
+        <blockquote className="text-[11px] leading-relaxed text-foreground/80 font-light italic w-52.5">
           {data.content as string}
         </blockquote>
         <p className="mt-2.5 font-mono text-[9px] text-amber-500/45">{data.author as string}</p>
@@ -181,10 +181,10 @@ function MessageNode({ data }: NodeProps) {
 function ReadmeNode({ data }: NodeProps) {
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase open={!!data.open} delay={data.delay as number} label={data.label as string}
         accentColor="rgba(255,255,255,0.08)">
-        <pre className="text-[9.5px] leading-[1.65] text-foreground/60 whitespace-pre-wrap font-mono w-[195px]">
+        <pre className="text-[9.5px] leading-[1.65] text-foreground/60 whitespace-pre-wrap font-mono w-48.75">
           {data.content as string}
         </pre>
       </ArtifactBase>
@@ -197,10 +197,10 @@ function CommitsNode({ data }: NodeProps) {
   const commits = data.commits as { hash: string; msg: string; date: string }[];
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase open={!!data.open} delay={data.delay as number} label={data.label as string}
         accentColor="rgba(255,255,255,0.08)">
-        <div className="flex flex-col gap-2.5 w-[210px]">
+        <div className="flex flex-col gap-2.5 w-52.5">
           {commits.map((c) => (
             <div key={c.hash} className="flex items-start gap-2">
               <div className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500/50" />
@@ -224,12 +224,12 @@ function VoiceNode({ data }: NodeProps) {
   );
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase open={!!data.open} delay={data.delay as number} label={data.label as string}
         accentColor="rgba(251,191,36,0.18)">
-        <div className="w-[195px]">
+        <div className="w-48.75">
           <div className="mb-2 font-mono text-[9.5px] text-foreground/60">{data.title as string}</div>
-          <div className="flex items-center gap-[2px] h-9">
+          <div className="flex items-center gap-0.5 h-9">
             {bars.map((h, i) => (
               <div key={i} className="flex-1 rounded-full bg-amber-400/55"
                 style={{ height: `${h}%`, opacity: 0.25 + (i / bars.length) * 0.75 }} />
@@ -250,10 +250,10 @@ function RoadmapNode({ data }: NodeProps) {
   const items = data.items as { done: boolean; text: string }[];
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase open={!!data.open} delay={data.delay as number} label={data.label as string}
         accentColor="rgba(255,255,255,0.07)">
-        <div className="flex flex-col gap-2 w-[190px]">
+        <div className="flex flex-col gap-2 w-47.5">
           {items.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
               <div className={`size-3 rounded border flex items-center justify-center shrink-0 ${
@@ -630,8 +630,8 @@ export function TimeCapsule() {
 
         {/* atmosphere */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070502] via-[#0c0804] to-[#060503]" />
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[700px] h-[450px]
+          <div className="absolute inset-0 bg-linear-to-b from-[#070502] via-[#0c0804] to-[#060503]" />
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-175 h-112.5
             bg-[radial-gradient(ellipse_at_top,rgba(160,90,15,0.14)_0%,transparent_70%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_28%,rgba(0,0,0,0.9)_100%)]" />
         </div>
@@ -676,13 +676,13 @@ export function TimeCapsule() {
 
           {/* warm halo */}
           <div ref={warmHaloDiv}
-            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full opacity-0"
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-85 h-85 rounded-full opacity-0"
             style={{ background: "radial-gradient(ellipse at center,rgba(251,191,36,0.18) 0%,rgba(180,100,20,0.07) 55%,transparent 78%)" }}
           />
 
           {/* internal warmth */}
           <div ref={warmGlowDiv}
-            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[42%] w-[190px] h-[220px] opacity-0 rounded-b-xl"
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-42%] w-47.5 h-55 opacity-0 rounded-b-xl"
             style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }}
           />
 
@@ -696,7 +696,7 @@ export function TimeCapsule() {
               perspectiveOrigin: "center 40%",
             }}
           >
-            <div className="w-[190px] md:w-[240px] lg:w-[280px] aspect-[280/420]">
+            <div className="w-47.5 md:w-60 lg:w-70 aspect-280/420">
               <CapsuleObject
                 lidRef={lidRef}
                 lockBodyRef={lockBodyRef}
@@ -747,8 +747,8 @@ export function TimeCapsule() {
         </div>
 
         {/* edge fades */}
-        <div className="pointer-events-none absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-background to-transparent z-40" />
-        <div className="pointer-events-none absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-background to-transparent z-40" />
+        <div className="pointer-events-none absolute top-0 inset-x-0 h-28 bg-linear-to-b from-background to-transparent z-40" />
+        <div className="pointer-events-none absolute bottom-0 inset-x-0 h-28 bg-linear-to-t from-background to-transparent z-40" />
       </div>
 
       {/* personal message */}
@@ -763,14 +763,14 @@ function PersonalMessageReveal() {
   const inView = useInView(ref, { once: true, margin: "-120px" });
 
   return (
-    <div ref={ref} className="relative flex flex-col items-center justify-center px-6 py-48 md:py-64 text-center bg-background">
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[400px]
+    <div ref={ref} className="relative flex flex-col items-center justify-center px-6 py-48 md:py-64 text-center bg-background overflow-hidden">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-100
         bg-[radial-gradient(ellipse_at_center,rgba(180,100,20,0.07)_0%,transparent_70%)] blur-3xl" />
 
       <motion.div initial={{ scaleX: 0, opacity: 0 }}
         animate={inView ? { scaleX: 1, opacity: 1 } : {}}
         transition={{ duration: 1.8, ease: CINEMATIC_EASE }}
-        className="mb-12 w-24 h-px bg-gradient-to-r from-transparent via-amber-500/38 to-transparent origin-center" />
+        className="mb-12 w-24 h-px bg-linear-to-r from-transparent via-amber-500/38 to-transparent origin-center" />
 
       <motion.p initial={{ opacity: 0, y: 12 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -807,7 +807,7 @@ function PersonalMessageReveal() {
       <motion.div initial={{ scaleX: 0, opacity: 0 }}
         animate={inView ? { scaleX: 1, opacity: 1 } : {}}
         transition={{ duration: 1.8, delay: 0.8, ease: CINEMATIC_EASE }}
-        className="mt-16 w-24 h-px bg-gradient-to-r from-transparent via-amber-500/28 to-transparent origin-center" />
+        className="mt-16 w-24 h-px bg-linear-to-r from-transparent via-amber-500/28 to-transparent origin-center" />
 
       <motion.div initial={{ opacity: 0, y: 16 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -821,7 +821,7 @@ function PersonalMessageReveal() {
           text-amber-400/65 backdrop-blur-sm transition-all duration-700
           hover:border-amber-500/40 hover:bg-amber-950/50 hover:text-amber-300/90">
           <span className="pointer-events-none absolute inset-0 -translate-x-full
-            bg-gradient-to-r from-transparent via-amber-400/[0.04] to-transparent
+            bg-linear-to-r from-transparent via-amber-400/4 to-transparent
             transition-transform duration-700 group-hover:translate-x-full" />
           <span className="relative">Seal Your Capsule</span>
           <span className="relative transition-transform duration-500 group-hover:translate-x-1">→</span>
