@@ -20,11 +20,11 @@ export async function GET(request: Request) {
     const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
     const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
-    // 2. Fetch all candidate projects: ACTIVE, STALLED, and DEAD
+    // 2. Fetch all candidate projects
     //    that have a GitHub URL and haven't been checked within 6 hours.
     const candidates = await prisma.project.findMany({
       where: {
-        state: { in: ['ACTIVE', 'STALLED', 'DEAD'] },
+        state: { in: ['BORN', 'ACTIVE', 'STALLED', 'DEAD', 'SHIPPED'] },
         githubRepoUrl: { not: '' },
         OR: [
           { lastPulseCheckAt: null },

@@ -40,25 +40,25 @@ export async function POST(
       return NextResponse.json({ message: 'No GitHub URL attached to this project. Cannot run AI Fetch.' }, { status: 400 });
     }
 
-    // Rate limit: 1 manual AI pulse per 24 hours
+    // Rate limit: 1 manual AI pulse per 12 hours
     const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const halfDayAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
     
-    // Check if a manual AI fetch was done in the last 24h
+    // Check if a manual AI fetch was done in the last 12h
     // (We distinguish manual vs cron by checking a flag in JSON `data`, or just limit the route itself)
-    // Actually, limiting any AI_BUILD_LOG in the last 24h is safest and prevents spamming LLM API.
+    // Actually, limiting any AI_BUILD_LOG in the last 12h is safest and prevents spamming LLM API.
     const recentAILog = await prisma.timelineEntry.findFirst({
       where: {
         projectId: id,
         type: { in: ['AI_BUILD_LOG', 'RESURRECTION'] },
-        createdAt: { gte: oneDayAgo },
-        // We look for manualTrigger in JSON data, but to be generous we just throttle to 1 per 24h total
+        createdAt: { gte: halfDayAgo },
+        // We look for manualTrigger in JSON data, but to be generous we just throttle to 1 per 12h total
       }
     });
 
     if (recentAILog) {
       return NextResponse.json(
-        { message: 'An AI Pulse has already run recently. Please wait 24 hours to manually force it again.' },
+        { message: 'An AI Pulse has already run recently. Please wait 12 hours to manually force it again.' },
         { status: 429 }
       );
     }

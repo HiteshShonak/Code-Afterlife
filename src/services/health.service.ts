@@ -41,6 +41,7 @@ export const healthService = {
     ]);
 
     const input: HealthCalculationInput = {
+      state: project.state,
       lastActivityAt: project.lastActivityAt,
       createdAt: project.createdAt,
       commitsThisMonth,

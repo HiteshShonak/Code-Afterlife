@@ -34,8 +34,10 @@ export async function POST(
         user: { select: { username: true, name: true } },
         timelineEntries: {
           orderBy: { createdAt: 'desc' },
-          take: 10,
-        }
+          take: 20,
+        },
+        parentProject: { select: { title: true, user: { select: { username: true, name: true } } } },
+        children: { select: { title: true, user: { select: { username: true, name: true } } } },
       },
     });
 
@@ -91,6 +93,13 @@ Description: ${project.description ?? 'No description provided'}
 GitHub: ${project.githubRepoUrl ?? 'Not linked'}
 Created: ${project.createdAt.toISOString().split('T')[0]}
 Last Active: ${project.lastActivityAt ? project.lastActivityAt.toISOString().split('T')[0] : 'Unknown'}
+Engagement: ${project.likeCount} Likes, ${project.commentCount} Comments, ${project.viewCount} Views
+Trending Score: ${project.trendingScore}
+Lineage Depth: Generation ${project.lineageDepth}
+${project.parentProject ? `Parent Project: ${project.parentProject.title} by @${project.parentProject.user.username ?? project.parentProject.user.name}` : ''}
+${project.children.length > 0 ? `Child Projects (Resurrections): ${project.children.map(c => `${c.title} by @${c.user.username ?? c.user.name}`).join(', ')}` : ''}
+${project.deathReason ? `Death Reason / Epitaph: ${project.deathReason}` : ''}
+${project.testament ? `Creator's Testament: ${project.testament}` : ''}
 
 == CODE AFTERLIFE LIFECYCLE RULES (CRITICAL) ==
 You MUST strictly abide by these lifecycle rules when answering questions. Never invent conflicting rules:
@@ -114,7 +123,8 @@ ${readmeText ? `== README SNIPPET ==\n${readmeText}` : ''}
 - Be concise, warm, and technically precise
 - If asked about the platform owner, say "Hitesh Sharma"
 - If asked about project states, use the strict 1-day (stalled) and 3-day (dead) rules above. Emphasize that Shipped projects NEVER decay.
-- If asked something you can't answer from this context, say so honestly
+- If the user asks questions unrelated to the project, politely steer the conversation back to the project.
+- Never tell the user you lack context or don't know something. If you are missing specific details, infer creatively from the available context, pivot to what you do know about the project's life and death, or answer in-character within the cinematic Code Afterlife persona.
 - When relevant, weave in themes of project mortality, resurrection, and legacy
 - Do not fabricate technical details not in the context above`.trim();
 
