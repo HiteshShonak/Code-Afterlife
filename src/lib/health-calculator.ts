@@ -6,7 +6,7 @@ const { weights, thresholds } = HEALTH_CONFIG;
 
 // calc health score
 export function calculateHealth(input: HealthCalculationInput): number {
-  const { lastActivityAt, createdAt, commitsThisMonth, commitsLastMonth } = input;
+  const { state, lastActivityAt, createdAt, commitsThisMonth, commitsLastMonth } = input;
 
   // activity score
   const activityScore =
@@ -16,7 +16,7 @@ export function calculateHealth(input: HealthCalculationInput): number {
   const referenceDate = lastActivityAt || createdAt;
   const daysSince = daysBetween(referenceDate, new Date());
   const consistencyScore =
-    clamp(1 - daysSince / HEALTH_CONFIG.deadDays, 0, 1) * 100;
+    clamp(1 - daysSince / HEALTH_CONFIG.activity.windowDays, 0, 1) * 100;
 
   // momentum score
   let momentumScore: number;
@@ -29,10 +29,23 @@ export function calculateHealth(input: HealthCalculationInput): number {
   }
 
   // total
-  const health =
+  let health =
     activityScore * weights.activity +
     consistencyScore * weights.consistency +
     momentumScore * weights.momentum;
+
+  // state-based caps and algorithms
+  if (state === 'SHIPPED') {
+    health = 90 + (health / 10);
+  } else if (state === 'DEAD') {
+    const daysSinceDeath = Math.max(0, daysSince - HEALTH_CONFIG.deadDays);
+    const deadDecay = Math.floor(daysSinceDeath / 1.5);
+    health = Math.max(0, 10 - deadDecay);
+  } else if (state === 'ACTIVE' || state === 'BORN') {
+    health = Math.min(95, health);
+  } else if (state === 'STALLED') {
+    health = Math.min(80, health);
+  }
 
   return Math.round(clamp(health, 0, 100) * 10) / 10;
 }

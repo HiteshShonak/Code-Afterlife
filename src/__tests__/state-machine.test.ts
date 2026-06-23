@@ -16,11 +16,11 @@ describe('stateMachine.canTransition', () => {
   it('BORN → ACTIVE is valid', () => {
     expect(stateMachine.canTransition('BORN', 'ACTIVE')).toBe(true);
   });
-  it('BORN → STALLED is invalid', () => {
-    expect(stateMachine.canTransition('BORN', 'STALLED')).toBe(false);
+  it('BORN → STALLED is valid', () => {
+    expect(stateMachine.canTransition('BORN', 'STALLED')).toBe(true);
   });
-  it('BORN → DEAD is invalid', () => {
-    expect(stateMachine.canTransition('BORN', 'DEAD')).toBe(false);
+  it('BORN → DEAD is valid', () => {
+    expect(stateMachine.canTransition('BORN', 'DEAD')).toBe(true);
   });
   it('BORN → SHIPPED is invalid', () => {
     expect(stateMachine.canTransition('BORN', 'SHIPPED')).toBe(false);
@@ -77,8 +77,8 @@ describe('stateMachine.canTransition', () => {
 // ─── getValidTransitions ──────────────────────────────────────────────────────
 
 describe('stateMachine.getValidTransitions', () => {
-  it('BORN has exactly 1 valid transition: ACTIVE', () => {
-    expect(stateMachine.getValidTransitions('BORN')).toEqual(['ACTIVE']);
+  it('BORN has exactly 3 valid transitions: ACTIVE, STALLED, DEAD', () => {
+    expect(stateMachine.getValidTransitions('BORN')).toEqual(['ACTIVE', 'STALLED', 'DEAD']);
   });
 
   it('ACTIVE has exactly 2 valid transitions: STALLED, SHIPPED', () => {
@@ -111,8 +111,8 @@ describe('stateMachine.validateTransition', () => {
     expect(() => stateMachine.validateTransition('BORN', 'ACTIVE')).not.toThrow();
   });
 
-  it('throws ApiError for invalid transition BORN → DEAD', () => {
-    expect(() => stateMachine.validateTransition('BORN', 'DEAD')).toThrow();
+  it('does not throw ApiError for valid transition BORN → DEAD', () => {
+    expect(() => stateMachine.validateTransition('BORN', 'DEAD')).not.toThrow();
   });
 
   it('throws for SHIPPED → anything (terminal state)', () => {
@@ -151,19 +151,19 @@ describe('stateMachine.evaluateState', () => {
     expect(result).toBe('BORN');
   });
 
-  it('project with activity 2 days ago → ACTIVE', () => {
+  it('project with activity 0 days ago → ACTIVE', () => {
     const result = stateMachine.evaluateState({
       state: 'ACTIVE',
-      lastActivityAt: daysAgo(2),
+      lastActivityAt: daysAgo(0),
       createdAt: daysAgo(60),
     });
     expect(result).toBe('ACTIVE');
   });
 
-  it('project with activity 45 days ago → STALLED (>30 days)', () => {
+  it('project with activity 2 days ago → STALLED (>1 day)', () => {
     const result = stateMachine.evaluateState({
       state: 'ACTIVE',
-      lastActivityAt: daysAgo(45),
+      lastActivityAt: daysAgo(2),
       createdAt: daysAgo(120),
     });
     expect(result).toBe('STALLED');
@@ -178,21 +178,21 @@ describe('stateMachine.evaluateState', () => {
     expect(result).toBe('DEAD');
   });
 
-  it('activity exactly at stalledDays boundary (30 days) → STALLED', () => {
-    // 30 days > HEALTH_CONFIG.stalledDays? No: >30 is STALLED, exactly 30 is ACTIVE
+  it('activity exactly at stalledDays boundary (1 day) → ACTIVE', () => {
+    // 1 day > HEALTH_CONFIG.stalledDays? No: >1 is STALLED, exactly 1 is ACTIVE
     const result = stateMachine.evaluateState({
       state: 'ACTIVE',
-      lastActivityAt: daysAgo(30),
+      lastActivityAt: daysAgo(1),
       createdAt: daysAgo(90),
     });
-    // daysSince = 30, STALLED threshold is >30, so 30 should be ACTIVE
+    // daysSince = 1, STALLED threshold is >1, so 1 should be ACTIVE
     expect(result).toBe('ACTIVE');
   });
 
-  it('activity at 31 days → STALLED', () => {
+  it('activity at 2 days → STALLED', () => {
     const result = stateMachine.evaluateState({
       state: 'ACTIVE',
-      lastActivityAt: daysAgo(31),
+      lastActivityAt: daysAgo(2),
       createdAt: daysAgo(90),
     });
     expect(result).toBe('STALLED');

@@ -15,6 +15,7 @@ function daysAgo(days: number): Date {
 
 // Base input for a recently-active project
 const baseInput = {
+  state: 'ACTIVE' as const,
   createdAt: daysAgo(60),
   lastActivityAt: daysAgo(2),
   commitsThisMonth: 20,
@@ -32,31 +33,34 @@ describe('calculateHealth', () => {
 
   it('thriving project: high commits, recent activity, accelerating → high score', () => {
     const score = calculateHealth({
+      state: 'ACTIVE',
       createdAt: daysAgo(90),
       lastActivityAt: daysAgo(1),
       commitsThisMonth: 80,
       commitsLastMonth: 30,
     });
-    // activity: (80/100)*40=32, consistency: high (1 day), momentum: 100*0.3=30
-    expect(score).toBeGreaterThan(75);
+    // capped at 95 for ACTIVE
+    expect(score).toBeGreaterThan(80);
+    expect(score).toBeLessThanOrEqual(95);
   });
 
   it('dead project: no activity for 120 days → score near 0', () => {
     const score = calculateHealth({
+      state: 'DEAD',
       createdAt: daysAgo(200),
       lastActivityAt: daysAgo(120),
       commitsThisMonth: 0,
       commitsLastMonth: 0,
     });
-    // activity: 0, consistency: 0 (>90 days clamps to 0), momentum: 50 (0===0 steady)
-    // health = 0*0.4 + 0*0.3 + 50*0.3 = 15
-    expect(score).toBeLessThan(20);
+    expect(score).toBe(0); // 120 days since dead is well beyond max 10 threshold
   });
+
 
   it('steady project: same commits month over month → moderate momentum (50)', () => {
     const score = calculateHealth({
+      state: 'ACTIVE',
       createdAt: daysAgo(60),
-      lastActivityAt: daysAgo(5),
+      lastActivityAt: daysAgo(1),
       commitsThisMonth: 15,
       commitsLastMonth: 15,
     });
@@ -68,12 +72,14 @@ describe('calculateHealth', () => {
 
   it('decelerating project: fewer commits than last month → momentum=0', () => {
     const slower = calculateHealth({
+      state: 'ACTIVE',
       createdAt: daysAgo(60),
       lastActivityAt: daysAgo(5),
       commitsThisMonth: 5,
       commitsLastMonth: 40,
     });
     const accelerating = calculateHealth({
+      state: 'ACTIVE',
       createdAt: daysAgo(60),
       lastActivityAt: daysAgo(5),
       commitsThisMonth: 5,
@@ -86,6 +92,7 @@ describe('calculateHealth', () => {
   it('uses createdAt as fallback when lastActivityAt is null', () => {
     // BORN project with no activity yet - should not crash
     const score = calculateHealth({
+      state: 'BORN',
       createdAt: daysAgo(1),
       lastActivityAt: null,
       commitsThisMonth: 0,
@@ -95,8 +102,9 @@ describe('calculateHealth', () => {
     expect(score).toBeLessThanOrEqual(100);
   });
 
-  it('caps commit count at maxCommits (100) - does not exceed max activity score', () => {
+  it('caps commit count at maxCommits - does not exceed max activity score', () => {
     const score = calculateHealth({
+      state: 'ACTIVE',
       createdAt: daysAgo(60),
       lastActivityAt: daysAgo(1),
       commitsThisMonth: 999, // Way over max

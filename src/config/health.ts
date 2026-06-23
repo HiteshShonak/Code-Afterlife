@@ -21,7 +21,7 @@ export const HEALTH_CONFIG = {
     // days to observe
     windowDays: 30,
     // max commits
-    maxCommits: 100,
+    maxCommits: 20,
   },
   // days before stalled
   stalledDays: 1,

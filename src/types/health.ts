@@ -13,6 +13,8 @@ export interface HealthResult {
 
 // health input
 export interface HealthCalculationInput {
+  // project state
+  readonly state: import('@prisma/client').ProjectState;
   // last activity
   readonly lastActivityAt: Date | null;
   // creation date

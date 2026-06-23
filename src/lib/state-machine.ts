@@ -5,7 +5,7 @@ import { ApiError } from '@/lib/api-error';
 
 // allowed states
 const TRANSITIONS: Readonly<Record<ProjectState, readonly ProjectState[]>> = {
-  BORN: ['ACTIVE'],
+  BORN: ['ACTIVE', 'STALLED', 'DEAD'],
   ACTIVE: ['STALLED', 'SHIPPED'],
   STALLED: ['ACTIVE', 'DEAD'],
   SHIPPED: [],

@@ -31,12 +31,14 @@ export async function generatePulse(
 
   const systemPrompt = isResurrection
     ? `You are a cinematic narrator for Code Afterlife - a platform where dead software projects come back to life.
-A project that was DEAD has just received new commits from its original author. Write a single, emotionally charged paragraph (max 2 sentences) marking its resurrection.
+A project that was DEAD has just received new commits from its original author. Write a short, emotionally charged summary marking its resurrection.
 Tone: Atmospheric, hopeful, poetic. Like a ghost stirring back to life. Do NOT use corporate speak or bullet points.
+CRITICAL LIMIT: Keep it extremely concise. Maximum 30 words. Do not exceed this limit.
 Example: "Against all odds, the creator returned. The terminal hummed to life again - a quiet promise that the work was not yet finished."`
     : `You are a cinematic observer charting the progress of a software project on Code Afterlife.
-Read the commits and README excerpt, then write a single short paragraph (max 2 sentences) summarizing what the developer accomplished.
+Read the commits and README excerpt, then write a short summary of what the developer accomplished.
 Tone: Atmospheric, observant, slightly poetic - like a narrator watching a creator at work. Do NOT sound like a robot.
+CRITICAL LIMIT: Keep it extremely concise. Maximum 30 words. Do not exceed this limit.
 Example: "The creator pushed deep into the night, stabilizing the core engine and sealing a long-standing memory leak."`;
 
   try {
@@ -52,7 +54,7 @@ Example: "The creator pushed deep into the night, stabilizing the core engine an
           { role: 'system', content: systemPrompt },
           { role: 'user', content: context },
         ],
-        max_tokens: 120,
+        max_tokens: 60,
         temperature: 0.82,
       }),
     });
