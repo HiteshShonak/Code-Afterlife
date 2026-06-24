@@ -10,6 +10,36 @@ export const ghFetch = (path: string) =>
     next: { revalidate: 0 },
   });
 
+export interface GitHubCommit {
+  author?: {
+    id?: number | null;
+    login?: string | null;
+  } | null;
+  commit?: {
+    message?: string | null;
+  };
+}
+
+export interface ProjectOwnerIdentity {
+  githubId?: number | null;
+  username?: string | null;
+}
+
+export function isOwnerAuthoredCommit(
+  commit: GitHubCommit,
+  owner: ProjectOwnerIdentity,
+): boolean {
+  if (owner.githubId && commit.author?.id === owner.githubId) {
+    return true;
+  }
+
+  if (owner.username && commit.author?.login) {
+    return commit.author.login.toLowerCase() === owner.username.toLowerCase();
+  }
+
+  return false;
+}
+
 export function calcHealthFromCommits(commitCount: number, currentHealth: number): number {
   const commitScore = Math.min(100, (commitCount / 10) * 100);
   return Math.round(commitScore * 0.6 + currentHealth * 0.4);

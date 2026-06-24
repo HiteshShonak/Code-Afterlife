@@ -269,6 +269,7 @@ enum TimelineEntryType {
   DEATH
   RESURRECTION
   UPDATE
+  SYSTEM_DECAY
   AI_BUILD_LOG
 }
 
