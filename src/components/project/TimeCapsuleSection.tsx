@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Save, Edit3, ShieldAlert, Plus, UploadCloud, X, Play, Image as ImageIcon, MessageSquare, FileText, Loader2 } from 'lucide-react';
+import { Lock, Save, Edit3, ShieldAlert, Plus, UploadCloud, X, Play, Image as ImageIcon, MessageSquare, FileText, Loader2, Pencil, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import type { TimeCapsule } from '@prisma/client';
@@ -58,6 +58,8 @@ export function TimeCapsuleSection({
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [saveMessage, setSaveMessage] = useState('');
+  const [tooltipOpen1, setTooltipOpen1] = useState(false);
+  const [tooltipOpen2, setTooltipOpen2] = useState(false);
   
   // upload state
   const [capsules, setCapsules] = useState<TimeCapsule[]>(initialCapsules);
@@ -254,14 +256,18 @@ export function TimeCapsuleSection({
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-2">
         <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-500/60 flex items-center gap-2">
           <ShieldAlert className="h-3 w-3" /> Will & Testament
         </h2>
         {isOwner && !isEditing && !readOnly && (
-          <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="h-7 text-[10px] text-amber-500/70 hover:text-amber-500 hover:bg-amber-500/10">
-            <Edit3 className="h-3 w-3 mr-1.5" /> Edit Testament
-          </Button>
+          <button
+            onClick={() => setIsEditing(true)}
+            title="Edit Testament"
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/20 text-amber-500/60 hover:text-amber-500 hover:bg-amber-500/10 transition-colors shrink-0"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
         )}
       </div>
 
@@ -272,7 +278,24 @@ export function TimeCapsuleSection({
           <div className="relative">
             <h3 className="font-mono text-[11px] font-semibold text-foreground/80 mb-3 flex items-center gap-2">
               Will & Testament
-              <span className="font-normal text-muted-foreground/40 tracking-normal text-[10px]">(Only visible to the next Resurrector)</span>
+              <span className="relative inline-flex">
+                <button
+                  type="button"
+                  onClick={() => setTooltipOpen1((v) => !v)}
+                  className="flex items-center"
+                  aria-label="Info"
+                >
+                  <Info className="h-3 w-3 text-muted-foreground/30" />
+                </button>
+                {tooltipOpen1 && (
+                  <span
+                    onClick={() => setTooltipOpen1(false)}
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] rounded-lg border border-border/50 bg-popover px-2.5 py-1.5 font-mono text-[10px] text-muted-foreground/70 shadow-lg z-50 text-center cursor-pointer"
+                  >
+                    Only visible to the next Resurrector
+                  </span>
+                )}
+              </span>
             </h3>
             
             {isEditing ? (
@@ -299,8 +322,8 @@ export function TimeCapsuleSection({
                 {saveMessage && <p className="mt-3 font-mono text-[10px] text-amber-500/80">{saveMessage}</p>}
               </div>
             ) : (
-              <div className="relative rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-6 backdrop-blur-sm">
-                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-500/50 to-transparent rounded-l-2xl" />
+              <div className="relative rounded-2xl border border-amber-500/10 bg-amber-500/2 p-6 backdrop-blur-sm">
+                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-linear-to-b from-amber-500/50 to-transparent rounded-l-2xl" />
                 {testament ? (
                   <p className="whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-foreground/80 font-light italic">
                     "{testament}"
@@ -319,14 +342,36 @@ export function TimeCapsuleSection({
         {isOwner && (
           <div className="relative mt-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-mono text-[11px] font-semibold text-foreground/80 flex items-center gap-2">
+              <h3 className="font-mono text-[11px] font-semibold text-foreground/80 flex items-center gap-2 flex-wrap">
                 Time Capsules
-                <span className="font-normal text-muted-foreground/40 tracking-normal text-[10px]">(Sealed until project dies. Followers will be emailed upon unsealing.)</span>
+                <span className="relative inline-flex">
+                  <button
+                    type="button"
+                    onClick={() => setTooltipOpen2((v) => !v)}
+                    className="flex items-center"
+                    aria-label="Info"
+                  >
+                    <Info className="h-3 w-3 text-muted-foreground/30" />
+                  </button>
+                  {tooltipOpen2 && (
+                    <span
+                      onClick={() => setTooltipOpen2(false)}
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[220px] rounded-lg border border-border/50 bg-popover px-2.5 py-1.5 font-mono text-[10px] text-muted-foreground/70 shadow-lg z-50 text-center cursor-pointer"
+                    >
+                      Sealed until project dies. Followers will be emailed upon unsealing.
+                    </span>
+                  )}
+                </span>
               </h3>
               {!readOnly && (
-                 <Button variant="outline" size="sm" onClick={() => setIsUploadModalOpen(true)} className="h-7 text-[10px] border-amber-500/30 text-amber-500/80 hover:bg-amber-500/10 hover:text-amber-500">
-                   <Plus className="h-3 w-3 mr-1" /> Add Capsule
-                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setIsUploadModalOpen(true)}
+                  title="Add Capsule"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/30 text-amber-500/80 hover:bg-amber-500/10 hover:text-amber-500 transition-colors shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
               )}
             </div>
 
@@ -377,7 +422,7 @@ export function TimeCapsuleSection({
       >
          <div className="mt-4 flex flex-col gap-5">
             <div>
-               <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-2 block">Capsule Type</label>
+               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2 block">Capsule Type</label>
                <div className="flex gap-2">
                   {(['MESSAGE', 'IMAGE', 'VIDEO', 'AUDIO'] as const).map(type => (
                      <button
@@ -392,7 +437,7 @@ export function TimeCapsuleSection({
             </div>
 
             <div>
-               <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-2 block">Title</label>
+               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2 block">Title</label>
                <input
                   type="text"
                   value={uploadTitle}
@@ -406,7 +451,7 @@ export function TimeCapsuleSection({
             {uploadType !== 'MESSAGE' && (
                <div>
                   <div className="flex justify-between mb-2 items-end">
-                    <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground block">Media File</label>
+                    <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block">Media File</label>
                     <span className="font-mono text-[9px] text-muted-foreground/50">
                       {uploadType === 'IMAGE' && 'Max 5MB (Auto WebP)'}
                       {uploadType === 'VIDEO' && 'Max 90MB'}
@@ -469,7 +514,7 @@ export function TimeCapsuleSection({
             )}
 
             <div>
-               <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-2 block">Optional Message</label>
+               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2 block">Optional Message</label>
                <textarea
                   value={uploadContent}
                   onChange={e => setUploadContent(e.target.value)}

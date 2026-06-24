@@ -19,7 +19,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
     {
       id: 'initial',
       role: 'assistant',
-      content: "I'm Code Afterlife AI. I've read this project's history, health, and timeline. Ask me anything about it!"
+      content: "Welcome! I'm the Code Afterlife AI. What would you like to know about this project?"
     }
   ]);
   const [input, setInput] = useState('');
@@ -171,7 +171,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
   return (
     <div className="flex flex-col h-[420px] rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm overflow-hidden">
       {/* header */}
-      <div className="flex items-center gap-3 border-b border-border/50 bg-card/60 px-4 py-3 flex-shrink-0">
+      <div className="flex items-center gap-3 border-b border-border/50 bg-card/60 px-4 py-3 shrink-0">
         <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 border border-accent/20 text-accent">
           <Bot className="h-4 w-4" />
           {/* online indicator */}
@@ -194,12 +194,12 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
         {messages.map((m) => (
           <div key={m.id} className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {m.role === 'assistant' && (
-              <div className="flex-shrink-0 h-6 w-6 mt-0.5 rounded-full bg-accent/15 flex items-center justify-center border border-accent/25 text-accent">
+              <div className="shrink-0 h-6 w-6 mt-0.5 rounded-full bg-accent/15 flex items-center justify-center border border-accent/25 text-accent">
                 <Bot className="h-3 w-3" />
               </div>
             )}
             <div className={[
-              'max-w-[80%] rounded-xl px-3.5 py-2.5 leading-relaxed break-words whitespace-pre-wrap',
+              'max-w-[80%] rounded-xl px-3.5 py-2.5 leading-relaxed wrap-break-word whitespace-pre-wrap',
               m.role === 'user'
                 ? 'bg-accent text-background rounded-tr-sm'
                 : 'bg-card/80 border border-border/50 text-foreground/80 rounded-tl-sm',
@@ -214,7 +214,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
               ) : m.content}
             </div>
             {m.role === 'user' && (
-              <div className="flex-shrink-0 h-6 w-6 mt-0.5 rounded-full bg-foreground/10 flex items-center justify-center text-foreground/40 border border-border/50">
+              <div className="shrink-0 h-6 w-6 mt-0.5 rounded-full bg-foreground/10 flex items-center justify-center text-foreground/40 border border-border/50">
                 <User className="h-3 w-3" />
               </div>
             )}
@@ -231,7 +231,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
       </div>
 
       {/* input */}
-      <div className="border-t border-border/50 bg-card/60 px-3 py-3 flex-shrink-0">
+      <div className="border-t border-border/50 bg-card/60 px-3 py-3 shrink-0">
         <form onSubmit={sendMessage} className="flex gap-2">
           <input
             ref={inputRef}
@@ -254,7 +254,7 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
             type="submit"
             disabled={isLoading || !input.trim()}
             aria-label="Send message"
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent text-background transition-all hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-background transition-all hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

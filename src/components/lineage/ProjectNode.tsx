@@ -27,7 +27,7 @@ export const ProjectNode = memo(function ProjectNode({ data }: ProjectNodeProps)
       <Handle
         type="target"
         position={Position.Top}
-        className="!border-foreground/20 !bg-background"
+        className="border-foreground/20! bg-background!"
       />
 
       <div className="min-w-[160px] rounded-sm border border-foreground/16 bg-card/95 p-3 shadow-lg backdrop-blur-sm">
@@ -49,7 +49,7 @@ export const ProjectNode = memo(function ProjectNode({ data }: ProjectNodeProps)
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!border-foreground/20 !bg-background"
+        className="border-foreground/20! bg-background!"
       />
     </>
   );

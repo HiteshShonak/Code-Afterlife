@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -33,6 +33,7 @@ interface ReactFlowGraphProps {
 export default function ReactFlowGraph({ nodes: initialNodes, edges: initialEdges }: ReactFlowGraphProps) {
   const [nodes, , onNodesChange] = useNodesState<Node<ProjectNodeData>>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const memoizedNodeTypes = useMemo(() => NODE_TYPES, []);
 
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
@@ -46,7 +47,7 @@ export default function ReactFlowGraph({ nodes: initialNodes, edges: initialEdge
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
-      nodeTypes={NODE_TYPES}
+      nodeTypes={memoizedNodeTypes}
       fitView
       fitViewOptions={{ padding: 0.2 }}
       minZoom={0.3}

@@ -71,7 +71,7 @@ function CapsuleNode({ data }: NodeProps) {
 
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase 
         open={!!data.open} 
         delay={data.delay as number} 
@@ -253,6 +253,7 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
   }, [capsules]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const memoizedNodeTypes = useMemo(() => NODE_TYPES, []);
 
   // sync state
   useEffect(() => {
@@ -308,13 +309,13 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
 
       {/* internal warmth */}
       <div ref={warmGlowDiv}
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[42%] w-[190px] h-[220px] opacity-0 rounded-b-xl z-20"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-42%] w-[190px] h-[220px] opacity-0 rounded-b-xl z-20"
         style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }}
       />
 
       {/* capsule svg */}
       <div className="relative z-30 flex items-center justify-center pointer-events-auto" style={{ perspective: "900px", perspectiveOrigin: "center 40%" }}>
-        <div className="w-[180px] aspect-[280/420]">
+        <div className="w-[180px] aspect-280/420">
           <CapsuleObject
             lidRef={lidRef}
             lockBodyRef={lockBodyRef}
@@ -341,7 +342,7 @@ export function InteractiveCapsule({ capsules, isDead }: { capsules: TimeCapsule
           <ReactFlow
             nodes={nodes}
             edges={[]}
-            nodeTypes={NODE_TYPES}
+            nodeTypes={memoizedNodeTypes}
             onNodesChange={onNodesChange}
             panOnDrag={true}
             panOnScroll={true}
