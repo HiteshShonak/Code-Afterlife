@@ -214,7 +214,7 @@ export function Hero() {
         <span className="font-mono text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
           Scroll to excavate
         </span>
-        <span className="h-12 w-px bg-gradient-to-b from-foreground/40 to-transparent" />
+        <span className="h-12 w-px bg-linear-to-b from-foreground/40 to-transparent" />
       </div>
     </section>
   );

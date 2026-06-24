@@ -89,7 +89,7 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
             )}
 
             {/* Stats */}
-            <div className="space-y-6 flex-grow">
+            <div className="space-y-6 grow">
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <div className="text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -101,7 +101,7 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
                 {/* Dynamic List */}
                 <div className="space-y-2">
                   {Array.from({ length: project.timeCapsules }).map((_, i) => (
-                    <div key={i} className="flex justify-between text-sm py-2 px-3 bg-white/[0.02] hover:bg-white/5 transition-colors rounded cursor-default border border-transparent hover:border-white/10">
+                    <div key={i} className="flex justify-between text-sm py-2 px-3 bg-white/2 hover:bg-white/5 transition-colors rounded cursor-default border border-transparent hover:border-white/10">
                       <span className="text-slate-300">Capsule {i + 1}</span>
                       <span className="text-slate-500">Sealed</span>
                     </div>
@@ -138,7 +138,7 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
             {project.slug && (
               <Link
                 href={`/project/${project.slug}`}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] py-3 transition-colors hover:bg-white/[0.08] hover:border-white/25"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/4 py-3 transition-colors hover:bg-white/8 hover:border-white/25"
               >
                 <ExternalLink size={13} className="text-slate-400" />
                 <span className="text-xs uppercase tracking-widest font-medium text-slate-400">View Full Project</span>

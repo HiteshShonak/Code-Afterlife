@@ -283,6 +283,7 @@ const NODE_TYPES: NodeTypes = {
 // full screen canvas
 
 function ArtifactCanvas({ open }: { open: boolean }) {
+  const memoizedNodeTypes = useMemo(() => NODE_TYPES, []);
   const initial = useMemo(() => buildNodes(false), []);
   const [nodes, setNodes, onNodesChange] = useNodesState(initial);
 
@@ -313,7 +314,7 @@ function ArtifactCanvas({ open }: { open: boolean }) {
       <ReactFlow
         nodes={nodes}
         edges={[]}
-        nodeTypes={NODE_TYPES}
+        nodeTypes={memoizedNodeTypes}
         onNodesChange={onNodesChange}
         // viewport
         defaultViewport={rfViewport}

@@ -68,7 +68,7 @@ export function HourglassTransition() {
       aria-hidden="true"
       className="relative bg-[#030508] hidden md:block md:min-h-[250vh]"
     >
-      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-black relative flex items-center">
+      <div className="sticky top-0 h-dvh w-full overflow-hidden bg-black relative flex items-center">
         <video
           ref={videoRef}
           src="/hourGlass.mp4"

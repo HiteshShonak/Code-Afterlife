@@ -42,6 +42,9 @@ function CameraFocus({ activeIndex }: { activeIndex: number }) {
 }
 
 export function ReactFlowLifecycle({ activeIndex }: { activeIndex: number }) {
+  const memoizedNodeTypes = useMemo(() => nodeTypes, []);
+  const memoizedEdgeTypes = useMemo(() => edgeTypes, []);
+
   const nodes: Node[] = useMemo(() => {
     const mainNodes: Node[] = STAGES.map((label, i) => ({
       id: `node-${i}`,
@@ -126,8 +129,8 @@ export function ReactFlowLifecycle({ activeIndex }: { activeIndex: number }) {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
+          nodeTypes={memoizedNodeTypes}
+          edgeTypes={memoizedEdgeTypes}
           panOnDrag={false}
           zoomOnScroll={false}
           zoomOnPinch={false}

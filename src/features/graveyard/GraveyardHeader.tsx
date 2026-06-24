@@ -53,7 +53,7 @@ function TechPanel({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-      className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-[calc(100%+10px)] z-50 w-[90vw] sm:w-72 max-w-[288px] overflow-hidden rounded-2xl border border-white/[0.12] bg-[#080c18]/80 shadow-2xl shadow-black/60 backdrop-blur-2xl"
+      className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-[calc(100%+10px)] z-50 w-[90vw] sm:w-72 max-w-[288px] overflow-hidden rounded-2xl border border-white/12 bg-[#080c18]/80 shadow-2xl shadow-black/60 backdrop-blur-2xl"
     >
       <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50">
@@ -79,10 +79,10 @@ function TechPanel({
                 'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-all duration-200',
                 active
                   ? 'border-purple-500/40 bg-purple-500/15 text-purple-300'
-                  : 'border-white/[0.08] bg-white/[0.03] text-muted-foreground/50 hover:border-white/[0.15] hover:text-foreground/70',
+                  : 'border-white/8 bg-white/3 text-muted-foreground/50 hover:border-white/15 hover:text-foreground/70',
               )}
             >
-              {active && <Check className="h-2.5 w-2.5 flex-shrink-0" />}
+              {active && <Check className="h-2.5 w-2.5 shrink-0" />}
               {tech}
             </button>
           );
@@ -108,7 +108,7 @@ function SortPanel({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-      className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-2xl border border-white/[0.12] bg-[#080c18]/80 shadow-2xl shadow-black/60 backdrop-blur-2xl"
+      className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-2xl border border-white/12 bg-[#080c18]/80 shadow-2xl shadow-black/60 backdrop-blur-2xl"
     >
       <div className="border-b border-white/[0.07] px-4 py-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50">
@@ -124,7 +124,7 @@ function SortPanel({
               'flex w-full items-center justify-between rounded-xl px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-colors',
               value === current
                 ? 'bg-purple-500/15 text-purple-300'
-                : 'text-muted-foreground/60 hover:bg-white/[0.05] hover:text-foreground/80',
+                : 'text-muted-foreground/60 hover:bg-white/5 hover:text-foreground/80',
             )}
           >
             {label}
@@ -214,7 +214,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
 
   // btn styles
   const btnBase =
-    'relative flex items-center gap-1 sm:gap-2 rounded-xl border border-white/[0.1] bg-[#07090f]/60 px-3 py-2 sm:px-4 sm:py-2.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.2] hover:text-foreground/80 hover:bg-white/[0.06]';
+    'relative flex items-center gap-1 sm:gap-2 rounded-xl border border-white/10 bg-[#07090f]/60 px-3 py-2 sm:px-4 sm:py-2.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 backdrop-blur-sm transition-all duration-200 hover:border-white/20 hover:text-foreground/80 hover:bg-white/6';
   const btnActive =
     'border-purple-500/40 bg-purple-500/10 text-purple-300/80 hover:border-purple-400/60 hover:text-purple-200';
 
@@ -233,7 +233,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
             onClick={() => { setTechOpen((p) => !p); setSortOpen(false); setSearchExpanded(false); }}
             className={cn(btnBase, (techOpen || filters.techs.length > 0) && btnActive)}
           >
-            <SlidersHorizontal className="h-3.5 w-3.5 flex-shrink-0" />
+            <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
             <span className="hidden sm:inline">Technologies</span>
             {filters.techs.length > 0 && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-500/40 font-mono text-[9px] text-purple-200">
@@ -259,7 +259,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                 className="flex items-center gap-2 overflow-hidden rounded-xl border border-purple-500/30 bg-[#07090f]/70 px-3 py-2.5 backdrop-blur-sm"
               >
-                <Search className="h-3.5 w-3.5 flex-shrink-0 text-purple-400/60" />
+                <Search className="h-3.5 w-3.5 shrink-0 text-purple-400/60" />
 
                 <input
                   ref={searchRef}
@@ -293,7 +293,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 4 }}
                       transition={{ duration: 0.15 }}
-                      className="flex flex-shrink-0 items-center gap-1 font-mono text-[9px] uppercase tracking-[0.12em] text-purple-400/50 select-none"
+                      className="flex shrink-0 items-center gap-1 font-mono text-[9px] uppercase tracking-[0.12em] text-purple-400/50 select-none"
                     >
                       <CornerDownLeft className="h-2.5 w-2.5" />
                       Enter
@@ -310,7 +310,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
                       collapseSearch();
                     }
                   }}
-                  className="flex-shrink-0 rounded-lg p-0.5 text-muted-foreground/40 transition-colors hover:text-foreground/70"
+                  className="shrink-0 rounded-lg p-0.5 text-muted-foreground/40 transition-colors hover:text-foreground/70"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -340,7 +340,7 @@ export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
             onClick={() => { setSortOpen((p) => !p); setTechOpen(false); setSearchExpanded(false); }}
             className={cn(btnBase, sortOpen && btnActive)}
           >
-            <ArrowUpDown className="h-3.5 w-3.5 flex-shrink-0" />
+            <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
             <span className="hidden sm:inline">{currentSort.label}</span>
             <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', sortOpen && 'rotate-180')} />
           </button>
