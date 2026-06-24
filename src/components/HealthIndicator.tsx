@@ -42,7 +42,7 @@ export const HealthIndicator = memo(function HealthIndicator({
         {/* Pulse dot */}
         <motion.span
           animate={pulseControls}
-          className="block h-2 w-2 flex-shrink-0 rounded-full"
+          className="block h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: color, boxShadow: `0 0 6px 1px ${color}` }}
         />
 

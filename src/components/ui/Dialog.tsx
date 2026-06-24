@@ -53,7 +53,7 @@ export function Dialog({ open, onClose, title, description, children, className 
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
           {/* backdrop */}
           <motion.div
             variants={backdropVariants}
@@ -75,7 +75,7 @@ export function Dialog({ open, onClose, title, description, children, className 
             aria-modal="true"
             aria-labelledby="dialog-title"
             className={cn(
-              'relative z-[101] w-full max-w-lg overflow-hidden rounded-sm border border-foreground/12 bg-card/95 shadow-2xl backdrop-blur-xl',
+              'relative z-101 w-full max-w-lg overflow-hidden rounded-sm border border-foreground/12 bg-card/95 shadow-2xl backdrop-blur-xl',
               className
             )}
           >

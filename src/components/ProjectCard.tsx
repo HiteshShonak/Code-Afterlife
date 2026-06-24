@@ -134,7 +134,7 @@ export const ProjectCard = memo(function ProjectCard({
             >
               {title}
             </Link>
-            <StateBadge state={state} className="flex-shrink-0" />
+            <StateBadge state={state} className="shrink-0" />
           </div>
 
           {/* description */}

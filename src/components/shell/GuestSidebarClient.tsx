@@ -54,7 +54,7 @@ function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boo
         'group relative flex items-center gap-3.5 rounded-xl px-4 py-3 font-mono text-[13px] font-medium transition-all duration-200',
         active
           ? 'bg-accent/15 text-accent shadow-sm shadow-accent/10'
-          : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground',
+          : 'text-muted-foreground hover:bg-white/6 hover:text-foreground',
       )}
     >
       {active && (
@@ -66,7 +66,7 @@ function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boo
       )}
       <Icon
         className={cn(
-          'h-[18px] w-[18px] flex-shrink-0 transition-colors',
+          'h-[18px] w-[18px] shrink-0 transition-colors',
           active ? 'text-accent' : 'text-muted-foreground/70 group-hover:text-foreground',
         )}
       />
@@ -131,7 +131,7 @@ export function GuestSidebarClient() {
         ))}
       </nav>
 
-      <div className="mx-5 my-6 border-t border-white/[0.06]" />
+      <div className="mx-5 my-6 border-t border-white/6" />
 
       {/* secondary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">
@@ -147,7 +147,7 @@ export function GuestSidebarClient() {
 
       {/* footer hint */}
       <div className="px-5 pb-6">
-        <div className="mx-0 my-4 border-t border-white/[0.06]" />
+        <div className="mx-0 my-4 border-t border-white/6" />
         <p className="font-mono text-[10px] text-muted-foreground/30 leading-relaxed">
           Software Never Dies.<br />
           <span className="text-muted-foreground/20">Code Afterlife - A cinematic graveyard for abandoned projects.</span>
@@ -164,7 +164,7 @@ export function GuestSidebarClient() {
       {/* desktop sidebar */}
       <aside
         key={sidebarKey}
-        className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
+        className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/8 bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
         style={{
           WebkitBackdropFilter: 'blur(24px)',
           animation: 'guest-sidebar-slide-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both',
@@ -201,7 +201,7 @@ export function GuestSidebarClient() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col overflow-y-auto border-r border-white/[0.08] bg-background/95 py-4 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:hidden"
+              className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col overflow-y-auto border-r border-white/8 bg-background/95 py-4 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:hidden"
             >
               <button
                 onClick={() => setMobileOpen(false)}

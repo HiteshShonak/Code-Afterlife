@@ -48,7 +48,7 @@ export function ImageLightbox({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[9999] flex flex-col bg-black/96 backdrop-blur-xl"
+      className="fixed inset-0 z-9999 flex flex-col bg-black/96 backdrop-blur-xl"
       onClick={onClose}
     >
       {/* toolbar */}
@@ -128,7 +128,7 @@ export function ImageLightbox({
               key={i}
               onClick={() => setCurrent(i)}
               className={cn(
-                'relative h-12 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all duration-200',
+                'relative h-12 w-20 shrink-0 overflow-hidden rounded-md border-2 transition-all duration-200',
                 i === current
                   ? 'border-white/80 shadow-[0_0_10px_rgba(255,255,255,0.3)] scale-105'
                   : 'border-white/20 opacity-50 hover:opacity-80'

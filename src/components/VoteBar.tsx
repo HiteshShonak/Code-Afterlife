@@ -39,7 +39,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
             'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 font-mono text-[12px] font-semibold tracking-wide transition-all duration-200',
             stats.userVote === 'WILL_SHIP'
               ? 'border-blue-500/40 bg-blue-500/15 text-blue-400 shadow-md shadow-blue-500/10'
-              : 'border-border/60 bg-card/60 text-muted-foreground hover:border-blue-500/30 hover:text-blue-400 hover:bg-blue-500/[0.05]',
+              : 'border-border/60 bg-card/60 text-muted-foreground hover:border-blue-500/30 hover:text-blue-400 hover:bg-blue-500/5',
             isPending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
           ].join(' ')}
           aria-label="Vote will ship"
@@ -56,7 +56,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
             'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 font-mono text-[12px] font-semibold tracking-wide transition-all duration-200',
             stats.userVote === 'WILL_DIE'
               ? 'border-red-500/40 bg-red-500/15 text-red-400 shadow-md shadow-red-500/10'
-              : 'border-border/60 bg-card/60 text-muted-foreground hover:border-red-500/30 hover:text-red-400 hover:bg-red-500/[0.05]',
+              : 'border-border/60 bg-card/60 text-muted-foreground hover:border-red-500/30 hover:text-red-400 hover:bg-red-500/5',
             isPending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
           ].join(' ')}
           aria-label="Vote will die"
@@ -70,7 +70,7 @@ export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
       {/* progress bar */}
       {stats.total > 0 && (
         <div className="space-y-1.5">
-          <div className="flex h-2 overflow-hidden rounded-full bg-foreground/[0.06]">
+          <div className="flex h-2 overflow-hidden rounded-full bg-foreground/6">
             <motion.div
               className="h-full rounded-l-full bg-blue-500/60"
               initial={{ width: 0 }}

@@ -50,7 +50,7 @@ function CommentEntry({
       className={`flex gap-3 py-4 ${comment.isPinned ? 'border border-amber-500/20 bg-amber-500/5 rounded-xl p-4 mb-2' : ''}`}
     >
       {/* Avatar */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         {comment.user.image ? (
           <Image
             src={comment.user.image}
@@ -83,13 +83,13 @@ function CommentEntry({
             </span>
           )}
         </div>
-        <p className="font-mono text-[12px] leading-relaxed text-muted-foreground/80 break-words">
+        <p className="font-mono text-[12px] leading-relaxed text-muted-foreground/80 wrap-break-word">
           {comment.content}
         </p>
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col gap-2 flex-shrink-0 self-start">
+      <div className="flex flex-col gap-2 shrink-0 self-start">
         {isProjectOwner && (
           <button
             onClick={() => onPinToggle(comment.id, !!comment.isPinned)}

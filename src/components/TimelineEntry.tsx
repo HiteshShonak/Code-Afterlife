@@ -56,7 +56,7 @@ export const TimelineEntry = memo(function TimelineEntry({
       {/* timeline dot */}
       <div className="relative flex flex-col items-center">
         <span
-          className="z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-foreground/10 bg-card font-mono text-sm shadow-sm"
+          className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-foreground/10 bg-card font-mono text-sm shadow-sm"
           style={{ color }}
         >
           {icon}

@@ -86,7 +86,7 @@ export function ArchiveProjectModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-80 bg-black/70 backdrop-blur-md"
             onClick={onClose}
           />
 
@@ -97,7 +97,7 @@ export function ArchiveProjectModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="fixed inset-0 z-[81] flex items-center justify-center p-4"
+            className="fixed inset-0 z-81 flex items-center justify-center p-4"
           >
             <div
               className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-900/30 bg-[#0d0508] shadow-2xl shadow-red-950/40"
@@ -144,7 +144,7 @@ export function ArchiveProjectModal({
                   onChange={(e) => setReason(e.target.value.slice(0, 120))}
                   placeholder={placeholder.current}
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 font-sans text-[13px] text-foreground/80 placeholder:text-muted-foreground/25 outline-none ring-0 transition-colors focus:border-red-800/50 focus:bg-white/[0.05]"
+                  className="w-full resize-none rounded-xl border border-white/8 bg-white/3 px-4 py-3 font-sans text-[13px] text-foreground/80 placeholder:text-muted-foreground/25 outline-none ring-0 transition-colors focus:border-red-800/50 focus:bg-white/5"
                 />
 
                 {/* Character count */}

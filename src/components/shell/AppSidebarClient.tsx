@@ -65,7 +65,7 @@ function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boo
         'group relative flex items-center gap-3.5 rounded-xl px-4 py-3 font-mono text-[13px] font-medium transition-all duration-200',
         active
           ? 'bg-accent/15 text-accent shadow-sm shadow-accent/10'
-          : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
+          : 'text-muted-foreground hover:bg-white/6 hover:text-foreground'
       )}
     >
       {active && (
@@ -77,7 +77,7 @@ function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boo
       )}
       <Icon
         className={cn(
-          'h-[18px] w-[18px] flex-shrink-0 transition-colors',
+          'h-[18px] w-[18px] shrink-0 transition-colors',
           active ? 'text-accent' : 'text-muted-foreground/70 group-hover:text-foreground'
         )}
       />
@@ -136,9 +136,9 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       {user.username ? (
         <Link 
           href={`/u/${user.username}`}
-          className="group mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 backdrop-blur-sm transition-all hover:border-accent/30 hover:bg-white/[0.06]"
+          className="group mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-3.5 backdrop-blur-sm transition-all hover:border-accent/30 hover:bg-white/6"
         >
-          <div className="relative h-9 w-9 flex-shrink-0">
+          <div className="relative h-9 w-9 shrink-0">
             <div className="absolute inset-0 rounded-full border border-accent/30 bg-secondary overflow-hidden transition-colors group-hover:border-accent/50">
               {user.image ? (
                 <Image
@@ -160,8 +160,8 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
           </div>
         </Link>
       ) : (
-        <div className="mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 backdrop-blur-sm">
-          <div className="relative h-9 w-9 flex-shrink-0">
+        <div className="mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-3.5 backdrop-blur-sm">
+          <div className="relative h-9 w-9 shrink-0">
             <div className="absolute inset-0 rounded-full border border-accent/30 bg-secondary overflow-hidden">
               {user.image ? (
                 <Image
@@ -198,7 +198,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
         ))}
       </nav>
 
-      <div className="mx-5 my-6 border-t border-white/[0.06]" />
+      <div className="mx-5 my-6 border-t border-white/6" />
 
       {/* secondary nav */}
       <p className="mb-2 px-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/40">
@@ -214,12 +214,12 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
 
       {/* sign out */}
       <div className="px-3 pb-4">
-        <div className="mx-2 my-4 border-t border-white/[0.06]" />
+        <div className="mx-2 my-4 border-t border-white/6" />
         <button
           onClick={handleSignOut}
           className="flex w-full items-center gap-3.5 rounded-xl px-4 py-3.5 font-mono text-[13px] text-muted-foreground/50 transition-all hover:bg-destructive/10 hover:text-destructive"
         >
-          <LogOut className="h-[18px] w-[18px] flex-shrink-0" />
+          <LogOut className="h-[18px] w-[18px] shrink-0" />
           Sign out
         </button>
       </div>
@@ -233,7 +233,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       {/* desktop sidebar */}
       <aside
         key={sidebarKey}
-        className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
+        className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/8 bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
         style={{
           WebkitBackdropFilter: 'blur(24px)',
           animation: 'sidebar-slide-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both',
@@ -270,7 +270,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col overflow-y-auto border-r border-white/[0.08] bg-background/95 py-4 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:hidden"
+              className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col overflow-y-auto border-r border-white/8 bg-background/95 py-4 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:hidden"
             >
               <button
                 onClick={() => setMobileOpen(false)}

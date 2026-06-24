@@ -50,7 +50,7 @@ function RepoCard({
       )}
     >
       <div className="flex items-start gap-2.5">
-        <div className="mt-0.5 flex-shrink-0">
+        <div className="mt-0.5 shrink-0">
           {selected ? (
             <CheckCircle2 className="h-4 w-4 text-accent" />
           ) : (
@@ -84,7 +84,7 @@ function RepoCard({
           )}
         </div>
         {repo.stars > 0 && (
-          <div className="flex items-center gap-0.5 flex-shrink-0 text-muted-foreground/40">
+          <div className="flex items-center gap-0.5 shrink-0 text-muted-foreground/40">
             <Star className="h-3 w-3" />
             <span className="font-mono text-[9px]">{repo.stars}</span>
           </div>
@@ -184,7 +184,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       {/* backdrop */}
@@ -205,7 +205,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
         style={{ maxHeight: '92vh' }}
       >
         {/* header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
           <div>
             <h2 className="font-mono text-[14px] font-bold text-foreground">Register Project</h2>
             <p className="font-mono text-[10px] text-muted-foreground">
@@ -377,7 +377,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                   {/* selected repo */}
                   {selectedRepo && (
                     <div className="flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2.5">
-                      <GitFork className="h-3.5 w-3.5 text-accent/60 flex-shrink-0" />
+                      <GitFork className="h-3.5 w-3.5 text-accent/60 shrink-0" />
                       <span className="font-mono text-[11px] text-accent/80 truncate">
                         {selectedRepo.full_name}
                       </span>
@@ -386,7 +386,7 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
                           setSelectedRepo(null);
                           setField('repoUrl', '');
                         }}
-                        className="ml-auto flex-shrink-0 text-muted-foreground/40 hover:text-foreground/60"
+                        className="ml-auto shrink-0 text-muted-foreground/40 hover:text-foreground/60"
                         title="Remove selected repo"
                       >
                         <X className="h-3 w-3" />
@@ -469,13 +469,13 @@ export function ProjectCreateModal({ open, onClose }: ProjectCreateModalProps) {
 
         {/* server error */}
         {serverError && (
-          <div className="mx-6 mb-2 flex-shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 font-mono text-[11px] text-destructive">
+          <div className="mx-6 mb-2 shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 font-mono text-[11px] text-destructive">
             {serverError}
           </div>
         )}
 
         {/* footer */}
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between border-t border-border px-6 py-4 shrink-0">
           <button
             onClick={() => navigate(-1)}
             disabled={stepIndex === 0 || isPending}
