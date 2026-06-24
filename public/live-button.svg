@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="350" height="80" viewBox="0 0 350 80">
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComponentTransfer in="blur" result="glow1">
+        <feFuncA type="linear" slope="0.8"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="glow1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <style>
+    .group { cursor: pointer; }
+    .bg {
+      transition: all 0.4s ease;
+    }
+    .group:hover .bg {
+      stroke: #0ea5e9;
+      filter: url(#glow);
+    }
+    .text {
+      transition: all 0.4s ease;
+    }
+    .group:hover .text {
+      fill: #ffffff;
+    }
+    .icon {
+      transition: all 0.4s ease;
+    }
+    .group:hover .icon {
+      fill: #ffffff;
+    }
+  </style>
+  
+  <g class="group">
+    <rect class="bg" x="15" y="15" width="320" height="50" rx="25" fill="#030508" stroke="#334155" stroke-width="1.5" />
+    <path class="icon" d="M45 45 L52.5 32 L60 45 Z" fill="#94a3b8" />
+    <text class="text" x="185" y="45.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="15px" font-weight="600" fill="#94a3b8" letter-spacing="0.5px">Experience Code Afterlife Live</text>
+  </g>
+</svg>

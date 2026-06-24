@@ -22,11 +22,35 @@ export function ContactForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('LOADING');
-    // Simulate API delay
-    await new Promise((r) => setTimeout(r, 1000));
-    setStatus('SUCCESS');
-    setMessage('');
-    setEmail('');
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: selectedType,
+          email,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      setStatus('SUCCESS');
+      setMessage('');
+      setEmail('');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setStatus('ERROR');
+      // Reset to IDLE after a short delay so they can try again
+      setTimeout(() => setStatus('IDLE'), 3000);
+    }
   };
 
   if (status === 'SUCCESS') {

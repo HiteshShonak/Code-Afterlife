@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Save, Edit3, ShieldAlert, Plus, UploadCloud, X, Play, Image as ImageIcon, MessageSquare, FileText, Loader2, Pencil, Info } from 'lucide-react';
+import { Lock, Save, ShieldAlert, Plus, UploadCloud, X, Play, Image as ImageIcon, MessageSquare, FileText, Loader2, Pencil, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import type { TimeCapsule } from '@prisma/client';
