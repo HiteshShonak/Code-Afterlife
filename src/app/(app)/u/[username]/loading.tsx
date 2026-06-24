@@ -5,7 +5,7 @@ export default function UserProfileLoading() {
         {/* HERO HEADER */}
         <div className="mb-16">
           <div className="flex flex-col items-center gap-8 text-center md:flex-row md:text-left md:items-start">
-            <div className="relative flex-shrink-0 h-28 w-28 rounded-full border-2 border-border/20 bg-muted/20" />
+            <div className="relative shrink-0 h-28 w-28 rounded-full border-2 border-border/20 bg-muted/20" />
             
             <div className="flex-1 min-w-0 w-full flex flex-col items-center md:items-start">
               <div className="h-10 md:h-12 w-64 bg-foreground/10 rounded-xl" />
@@ -39,7 +39,7 @@ export default function UserProfileLoading() {
         {/* PROJECT GRID */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[380px] rounded-xl border border-border/20 bg-card/20" />
+            <div key={i} className="h-95 rounded-xl border border-border/20 bg-card/20" />
           ))}
         </div>
       </main>

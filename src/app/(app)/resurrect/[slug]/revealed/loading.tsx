@@ -9,8 +9,8 @@ export default function TestamentRevealedLoading() {
         <ShieldAlert className="h-12 w-12 text-amber-500/20 mx-auto mb-6" />
         <div className="h-6 w-64 bg-amber-500/10 rounded-sm mx-auto mb-12" />
 
-        <div className="min-h-[200px]">
-          <div className="relative rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-8 shadow-2xl h-48 w-full" />
+        <div className="min-h-50">
+          <div className="relative rounded-2xl border border-amber-500/10 bg-amber-500/2 p-8 shadow-2xl h-48 w-full" />
         </div>
 
         <div className="mt-12 flex justify-center">

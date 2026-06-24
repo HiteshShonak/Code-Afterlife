@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="mx-auto max-w-[1400px] px-6 pb-24 pt-12 md:px-10 animate-pulse">
+    <div className="mx-auto max-w-350 px-6 pb-24 pt-12 md:px-10 animate-pulse">
       {/* Welcome strip */}
       <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-start">
         <div>
@@ -31,7 +31,7 @@ export default function DashboardLoading() {
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-4 rounded-xl border border-foreground/[0.08] bg-card/60 p-5 h-[380px]"
+            className="flex flex-col gap-4 rounded-xl border border-foreground/8 bg-card/60 p-5 h-95"
           />
         ))}
       </div>

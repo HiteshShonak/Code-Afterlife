@@ -43,10 +43,10 @@ export default function ProjectLoading() {
         </div>
 
         {/* Health */}
-        <div className="mb-8 h-32 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6" />
+        <div className="mb-8 h-32 rounded-2xl border border-foreground/8 bg-card/60 p-6" />
 
         {/* Community Prediction */}
-        <div className="mb-8 h-40 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6" />
+        <div className="mb-8 h-40 rounded-2xl border border-foreground/8 bg-card/60 p-6" />
 
         {/* Stack */}
         <div className="mb-8 h-20 rounded-xl bg-transparent" />

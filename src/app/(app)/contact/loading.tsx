@@ -4,8 +4,8 @@ export default function ContactLoading() {
   return (
     <div className="relative min-h-screen w-full bg-background overflow-hidden py-24 animate-pulse">
       {/* Background ambient glows */}
-      <div className="absolute top-[10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-accent/5 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[10%] right-[-5%] h-100 w-100 rounded-full bg-accent/5 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[20%] left-[-10%] h-125 w-125 rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
 
       <div className="mx-auto max-w-3xl px-4 relative z-10">
         <div className="text-center mb-16 flex flex-col items-center">

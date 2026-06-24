@@ -13,13 +13,13 @@ export default function FaqLoading() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="h-[68px] w-full rounded-2xl border border-white/[0.06] bg-card/60 backdrop-blur-sm"
+            className="h-17 w-full rounded-2xl border border-white/6 bg-card/60 backdrop-blur-sm"
           />
         ))}
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-16 h-32 w-full rounded-2xl border border-accent/20 bg-accent/[0.04] p-8 flex flex-col items-center justify-center animate-pulse">
+      <div className="mt-16 h-32 w-full rounded-2xl border border-accent/20 bg-accent/4 p-8 flex flex-col items-center justify-center animate-pulse">
         <div className="h-4 w-40 bg-foreground/20 rounded mb-3" />
         <div className="h-3 w-3/4 bg-muted-foreground/10 rounded" />
       </div>

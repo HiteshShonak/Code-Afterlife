@@ -5,9 +5,9 @@ export default function AboutLoading() {
     <div className="relative min-h-screen bg-[#030508] overflow-hidden">
       {/* Ambient background glows */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] h-[800px] w-[800px] rounded-full bg-slate-900/40 blur-[150px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] h-[900px] w-[900px] rounded-full bg-[#b87333]/5 blur-[200px]" />
-        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-amber-500/5 blur-[200px]" />
+        <div className="absolute top-[-20%] left-[-10%] h-200 w-200 rounded-full bg-slate-900/40 blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] h-225 w-225 rounded-full bg-[#b87333]/5 blur-[200px]" />
+        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 h-150 w-150 rounded-full bg-amber-500/5 blur-[200px]" />
       </div>
 
       <div className="relative z-10 animate-pulse">
@@ -27,7 +27,7 @@ export default function AboutLoading() {
             <div className="h-6 max-w-xl w-full bg-white/5 rounded-md mb-16" />
             
             <div className="mt-10 flex items-center gap-1.5 opacity-30">
-              <div className="h-10 w-px bg-gradient-to-b from-transparent via-white to-transparent" />
+              <div className="h-10 w-px bg-linear-to-b from-transparent via-white to-transparent" />
             </div>
           </div>
         </section>
@@ -37,7 +37,7 @@ export default function AboutLoading() {
           <div className="mx-auto max-w-4xl px-6 flex flex-col gap-32 md:gap-48">
             {[Code, Flame, History].map((Icon, i) => (
               <div key={i} className="flex flex-col md:flex-row items-start gap-8 md:gap-16">
-                <div className="flex-shrink-0 mt-2">
+                <div className="shrink-0 mt-2">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/10">
                     <Icon className="h-7 w-7" />
                   </div>

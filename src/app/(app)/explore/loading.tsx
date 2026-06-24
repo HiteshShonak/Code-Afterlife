@@ -14,7 +14,7 @@ export default function ExploreLoading() {
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="border-b border-border/50 px-4 py-4">
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 pt-0.5">
+                  <div className="shrink-0 pt-0.5">
                     <div className="h-10 w-10 rounded-full bg-secondary border border-border" />
                   </div>
                   <div className="flex-1 min-w-0">
