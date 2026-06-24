@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 function SearchSkeleton() {
   return (
-    <div className="mx-auto max-w-[1400px] px-6 pb-32 pt-10 md:px-10 min-h-screen">
+    <div className="mx-auto max-w-350 px-6 pb-32 pt-10 md:px-10 min-h-screen">
       {/* Hero */}
       <div className="mb-12 animate-pulse">
         <div className="mb-2 h-3 w-40 bg-muted-foreground/20 rounded" />
@@ -35,7 +35,7 @@ function SearchSkeleton() {
       {/* Grid */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 animate-pulse">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-[380px] w-full rounded-2xl border border-border/50 bg-card/40" />
+          <div key={i} className="h-95 w-full rounded-2xl border border-border/50 bg-card/40" />
         ))}
       </div>
     </div>

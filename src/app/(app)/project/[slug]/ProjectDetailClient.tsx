@@ -198,7 +198,7 @@ export function ProjectDetailClient({
           {updateMethod === 'MANUAL' ? (
             <>
               <div>
-                <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Title</label>
+                <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Title</label>
                 <input
                   type="text"
                   value={updateTitle}
@@ -209,12 +209,12 @@ export function ProjectDetailClient({
                 />
               </div>
               <div>
-                <label className="mb-2 block font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Description (Optional)</label>
+                <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Description (Optional)</label>
                 <textarea
                   value={updateDescription}
                   onChange={e => setUpdateDescription(e.target.value)}
                   placeholder="Add more details about this update..."
-                  className="w-full min-h-[80px] resize-y rounded border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs outline-none focus:border-accent/50"
+                  className="w-full min-h-20 resize-y rounded border border-border/50 bg-background/50 px-3 py-2 font-mono text-xs outline-none focus:border-accent/50"
                   maxLength={300}
                 />
               </div>
@@ -302,7 +302,7 @@ export function ProjectDetailClient({
           {/* ── Resurrection Banner ────────────────────────────── */}
           {project.lineageDepth > 0 && project.parentProject && (
             <motion.div {...sectionVariant(0)} className="mb-6 sticky top-4 z-20">
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-[#0a1a12] px-4 py-3 font-mono text-xs text-emerald-400 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/20 bg-[#0a1a12] px-4 py-3 font-mono text-xs text-emerald-400 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.15)]">
                 <span className="text-emerald-500/70">↑</span>
                 <span>
                   Resurrected from{' '}
@@ -343,7 +343,7 @@ export function ProjectDetailClient({
                       className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-300"
                     />
                   </AnimatePresence>
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-70 pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent opacity-70 pointer-events-none" />
                   {/* Zoom hint */}
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 px-2.5 py-1.5 font-mono text-[10px] text-white/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <ZoomIn className="h-3 w-3" />
@@ -381,7 +381,7 @@ export function ProjectDetailClient({
                       <button
                         key={i}
                         onClick={() => setGalleryIndex(i)}
-                        className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
+                        className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
                           i === galleryIndex
                             ? 'border-accent/80 shadow-[0_0_10px_rgba(245,158,11,0.25)] scale-105'
                             : 'border-border/40 opacity-50 hover:opacity-80 hover:border-border'
@@ -395,11 +395,11 @@ export function ProjectDetailClient({
               </div>
             )}
 
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="font-mono text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight text-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <h1 className="font-mono text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight tracking-tight text-foreground">
                 {project.title}
               </h1>
-              <div className="flex flex-shrink-0 items-center gap-2 mt-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <StateBadge state={project.state} />
               </div>
             </div>
@@ -411,7 +411,7 @@ export function ProjectDetailClient({
             )}
 
             {/* Meta row */}
-            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-sm text-muted-foreground/60">
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs sm:text-sm text-muted-foreground/60">
               <span className="flex items-center gap-1.5">
                 <span className="text-accent/70">by</span>
                 <Link href={`/u/${project.user.username ?? project.user.id}`} className="hover:text-accent transition-colors font-semibold">
@@ -457,13 +457,13 @@ export function ProjectDetailClient({
             )}
 
             {/* Social action bar */}
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-2">
               {/* Like button */}
               <button
                 onClick={() => isLoggedIn ? toggleLike() : router.push('/')}
                 disabled={likePending}
                 className={[
-                  'flex items-center gap-2 rounded-xl border px-4 py-2 font-mono text-sm font-medium transition-all duration-200',
+                  'flex items-center gap-2 rounded-xl border px-3 py-2 font-mono text-sm font-medium transition-all duration-200',
                   liked
                     ? 'border-rose-500/40 bg-rose-500/10 text-rose-400'
                     : 'border-border/60 bg-card/60 text-muted-foreground hover:border-rose-500/30 hover:text-rose-400',
@@ -478,26 +478,26 @@ export function ProjectDetailClient({
               {/* Comment count (scroll hint) */}
               <a
                 href="#comments"
-                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>{project.commentCount ?? 0}</span>
               </a>
 
-              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground/60">
+              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 font-mono text-sm text-muted-foreground/60">
                 <Flame className="h-4 w-4" />
                 <span>{project.voteCount ?? 0}</span>
               </span>
 
               {/* View count */}
-              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2 font-mono text-sm text-muted-foreground/60">
+              <span className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 font-mono text-sm text-muted-foreground/60">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span>{project.viewCount ?? 0}</span>
               </span>
 
               {/* Follow button / It's you badge */}
               {isOwner ? (
-                <div className="ml-auto flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2 font-mono text-sm font-medium text-accent">
+                <div className="ml-auto flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-3 py-2 font-mono text-sm font-medium text-accent">
                   <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
                   It's you
                 </div>
@@ -506,7 +506,7 @@ export function ProjectDetailClient({
                   onClick={() => isLoggedIn ? toggleFollow() : router.push('/')}
                   disabled={followPending}
                   className={[
-                    'ml-auto flex items-center gap-2 rounded-xl border px-4 py-2 font-mono text-sm font-medium transition-all duration-200',
+                    'ml-auto flex items-center gap-2 rounded-xl border px-3 py-2 font-mono text-sm font-medium transition-all duration-200',
                     following
                       ? 'border-accent/40 bg-accent/10 text-accent'
                       : 'border-border/60 bg-card/60 text-muted-foreground hover:border-accent/30 hover:text-accent',
@@ -525,7 +525,7 @@ export function ProjectDetailClient({
                 <button
                   onClick={handleShip}
                   disabled={isPending}
-                  className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 font-mono text-sm font-medium text-emerald-400 transition-all hover:bg-emerald-500/20 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 font-mono text-sm font-medium text-emerald-400 transition-all hover:bg-emerald-500/20 disabled:opacity-50"
                 >
                   ✓ Mark as Shipped
                 </button>
@@ -551,7 +551,7 @@ export function ProjectDetailClient({
 
           {/* ── Health ──────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.07)}
-            className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6 backdrop-blur-sm">
+            className="mb-8 rounded-2xl border border-foreground/8 bg-card/60 p-6 backdrop-blur-sm">
             <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
               Project Health
             </h2>
@@ -561,7 +561,7 @@ export function ProjectDetailClient({
           {/* ── Community Vote ───────────────────────────────────── */}
           {project.state !== 'DEAD' && project.state !== 'SHIPPED' && (
             <motion.section {...sectionVariant(0.1)}
-              className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6 backdrop-blur-sm">
+              className="mb-8 rounded-2xl border border-foreground/8 bg-card/60 p-6 backdrop-blur-sm">
               <h2 className="mb-5 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
                 Community Prediction
               </h2>
@@ -584,7 +584,7 @@ export function ProjectDetailClient({
               <div className="flex flex-wrap gap-2">
                 {project.stack.map((tech) => (
                   <span key={tech}
-                    className="rounded-lg border border-foreground/[0.1] bg-foreground/[0.04] px-3 py-1.5 font-mono text-xs tracking-wide text-muted-foreground font-medium">
+                    className="rounded-lg border border-foreground/10 bg-foreground/4 px-3 py-1.5 font-mono text-xs tracking-wide text-muted-foreground font-medium">
                     {tech}
                   </span>
                 ))}
@@ -599,7 +599,7 @@ export function ProjectDetailClient({
                 href={project.githubRepoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-2.5 rounded-xl border border-foreground/[0.1] bg-foreground/[0.03] px-4 py-3 font-mono text-sm text-muted-foreground transition-all hover:border-foreground/20 hover:bg-foreground/[0.06] hover:text-foreground"
+                className="group inline-flex items-center gap-2.5 rounded-xl border border-foreground/10 bg-foreground/3 px-4 py-3 font-mono text-sm text-muted-foreground transition-all hover:border-foreground/20 hover:bg-foreground/6 hover:text-foreground"
               >
                 <ExternalLink className="h-4 w-4" />
                 View on GitHub
@@ -611,7 +611,7 @@ export function ProjectDetailClient({
           {/* ── Lineage ─────────────────────────────────────────── */}
           {(project.parentProject || project.children.length > 0) && (
             <motion.section {...sectionVariant(0.2)}
-              className="mb-8 rounded-2xl border border-foreground/[0.08] bg-card/60 p-6">
+              className="mb-8 rounded-2xl border border-foreground/8 bg-card/60 p-6">
               <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
                 Lineage
               </h2>
@@ -648,7 +648,7 @@ export function ProjectDetailClient({
 
           {/* ── Will & Testament + Time Capsules ──────────────────── */}
           {(isOwner || project.testament || (project.timeCapsules && project.timeCapsules.length > 0)) && (
-            <motion.section {...sectionVariant(0.22)} className="mb-8 rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-6">
+            <motion.section {...sectionVariant(0.22)} className="mb-8 rounded-2xl border border-amber-500/10 bg-amber-500/2 p-6">
               <TimeCapsuleSection
                 projectId={project.id}
                 isOwner={isOwner}
@@ -704,14 +704,14 @@ export function ProjectDetailClient({
           {/* ── Owner Actions ────────────────────────────────────── */}
           {isOwner && (
             <motion.section {...sectionVariant(0.26)}
-              className="mb-8 rounded-2xl border border-foreground/[0.08] p-6">
+              className="mb-8 rounded-2xl border border-foreground/8 p-6">
               <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
                 Owner Actions
               </h2>
               {actionError && (
                 <p className="mb-3 font-mono text-[11px] text-destructive">{actionError}</p>
               )}
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {project.state === 'ACTIVE' && (
                   <Button variant="outline" size="sm" onClick={handleShip} isLoading={isPending}>
                     Mark as Shipped ✓

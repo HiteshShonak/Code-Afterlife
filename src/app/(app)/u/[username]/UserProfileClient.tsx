@@ -80,7 +80,7 @@ function HealthRing({ score, size = 96 }: { score: number; size?: number }) {
           fill="none"
           stroke="currentColor"
           strokeWidth={5}
-          className="text-foreground/[0.06]"
+          className="text-foreground/6"
         />
         {/* Progress */}
         <motion.circle
@@ -138,7 +138,7 @@ function StatPill({
       transition={{ duration: 0.6, delay: delay ?? 0, ease: CINEMATIC_EASE }}
       className="flex flex-col lg:flex-row items-center lg:items-start text-center lg:text-left gap-1 lg:gap-3 rounded-2xl border border-border/40 bg-card/40 px-2 py-3 lg:px-5 lg:py-3.5 backdrop-blur-sm min-w-0"
     >
-      <Icon className={`h-5 w-5 lg:h-4 lg:w-4 flex-shrink-0 ${colorClass} mb-1 lg:mb-0`} />
+      <Icon className={`h-5 w-5 lg:h-4 lg:w-4 shrink-0 ${colorClass} mb-1 lg:mb-0`} />
       <div className="w-full min-w-0">
         <div className={`font-mono text-lg lg:text-xl font-extrabold ${colorClass} truncate`}>{value}</div>
         <div className="mt-0.5 lg:mt-0 font-mono text-[8px] lg:text-[9px] uppercase tracking-wider lg:tracking-widest text-muted-foreground/60 truncate" title={label}>{label}</div>
@@ -199,7 +199,7 @@ export function UserProfileClient({
       {tierConfig && (
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div
-            className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-[0.04] blur-3xl"
+            className="absolute -top-40 left-1/2 -translate-x-1/2 w-150 h-150 rounded-full opacity-[0.04] blur-3xl"
             style={{
               background: necromancerTier === 'Lich King'
                 ? 'radial-gradient(circle, #8b5cf6, transparent)'
@@ -225,11 +225,11 @@ export function UserProfileClient({
           <div className="flex flex-col items-center gap-8 text-center md:flex-row md:text-left md:items-start">
             
             {/* Avatar + health ring */}
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               {/* Outer tier glow ring */}
               {tierConfig && (
                 <div
-                  className={`absolute inset-[-6px] rounded-full opacity-20 blur-md ${tierConfig.glow}`}
+                  className={`absolute -inset-1.5 rounded-full opacity-20 blur-md ${tierConfig.glow}`}
                   style={{
                     background: necromancerTier === 'Lich King'
                       ? 'radial-gradient(circle, #8b5cf6, transparent)'
@@ -361,7 +361,7 @@ export function UserProfileClient({
                 {isActive && (
                   <motion.div
                     layoutId="profile-tab-indicator"
-                    className={`absolute bottom-0 left-0 right-0 h-[2px] ${tab.barColor}`}
+                    className={`absolute bottom-0 left-0 right-0 h-0.5 ${tab.barColor}`}
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}

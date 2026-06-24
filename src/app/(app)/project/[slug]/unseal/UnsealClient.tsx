@@ -84,14 +84,14 @@ function CapsuleNode({ data }: NodeProps) {
 
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!opacity-0" />
+      <Handle type="source" position={Position.Bottom} className="opacity-0!" />
       <ArtifactBase 
         open={!!data.open} 
         delay={data.delay as number} 
         label={capsule.type}
         accentColor={accentColor}
       >
-        <div className="w-[220px] flex flex-col gap-3 group relative cursor-pointer">
+        <div className="w-55 flex flex-col gap-3 group relative cursor-pointer">
           <div className="font-mono text-[10px] text-foreground/80 font-bold uppercase tracking-wider">
             {capsule.title}
           </div>
@@ -285,6 +285,7 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [rfViewport, setRfViewport] = useState({ x: 512, y: 300, zoom: 1 });
+  const memoizedNodeTypes = useMemo(() => NODE_TYPES, []);
   
   useEffect(() => {
     setRfViewport({ x: window.innerWidth / 2, y: window.innerHeight / 2, zoom: 1 });
@@ -325,8 +326,8 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center">
       {/* ── ATMOSPHERE ── */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#070502] via-[#0c0804] to-[#060503]" />
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[700px] h-[450px] bg-[radial-gradient(ellipse_at_top,rgba(160,90,15,0.14)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-linear-to-b from-[#070502] via-[#0c0804] to-[#060503]" />
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-175 h-112.5 bg-[radial-gradient(ellipse_at_top,rgba(160,90,15,0.14)_0%,transparent_70%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_28%,rgba(0,0,0,0.9)_100%)]" />
       </div>
 
@@ -350,12 +351,12 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
       </div>
 
       {/* ── INTERACTIVE AREA ── */}
-      <div className="relative flex items-center justify-center w-full h-full min-h-[600px] z-30">
-        <div ref={warmHaloDiv} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full opacity-0" style={{ background: "radial-gradient(ellipse at center,rgba(251,191,36,0.18) 0%,rgba(180,100,20,0.07) 55%,transparent 78%)" }} />
-        <div ref={warmGlowDiv} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[42%] w-[190px] h-[220px] opacity-0 rounded-b-xl" style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }} />
+      <div className="relative flex items-center justify-center w-full h-full min-h-150 z-30">
+        <div ref={warmHaloDiv} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-85 h-85 rounded-full opacity-0" style={{ background: "radial-gradient(ellipse at center,rgba(251,191,36,0.18) 0%,rgba(180,100,20,0.07) 55%,transparent 78%)" }} />
+        <div ref={warmGlowDiv} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-42%] w-47.5 h-55 opacity-0 rounded-b-xl" style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }} />
 
         <div ref={capsuleRef} className="relative z-10 flex items-center justify-center" style={{ perspective: "900px", perspectiveOrigin: "center 40%" }}>
-          <div className="w-[190px] md:w-[240px] lg:w-[280px] aspect-[280/420]">
+          <div className="w-47.5 md:w-60 lg:w-70 aspect-280/420">
             <CapsuleObject
               lidRef={lidRef} lockBodyRef={lockBodyRef} lockHaspRef={lockHaspRef} lockDotRef={lockDotRef} lockSealedRef={lockSealedRef} lockOpenRef={lockOpenRef} warmHaloRef={warmHaloRef}
             />
@@ -366,7 +367,7 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
         <div className="absolute inset-0 z-20" style={{ pointerEvents: opened ? "auto" : "none" }}>
           <ReactFlowProvider>
             <ReactFlow
-              nodes={nodes} edges={[]} nodeTypes={NODE_TYPES} onNodesChange={onNodesChange}
+              nodes={nodes} edges={[]} nodeTypes={memoizedNodeTypes} onNodesChange={onNodesChange}
               defaultViewport={rfViewport} panOnDrag={true} panOnScroll={true} zoomOnScroll={true} preventScrolling={false}
               nodesDraggable={opened} elementsSelectable={false} nodesConnectable={false} style={{ background: "transparent" }} proOptions={{ hideAttribution: true }}
             />

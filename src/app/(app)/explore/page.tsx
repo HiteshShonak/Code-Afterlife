@@ -15,6 +15,13 @@ export default async function ExplorePage() {
     auth(),
   ]);
 
+  // Fetch the top 3 most-liked projects for the @mention section
+  const trendingProjects = await prisma.project.findMany({
+    orderBy: { likes: { _count: 'desc' } },
+    take: 3,
+    select: { title: true, slug: true },
+  });
+
   const currentUserId = session?.user?.id ?? null;
   const projectIds = projects.map((p) => p.id);
 
@@ -37,7 +44,35 @@ export default async function ExplorePage() {
     votedProjectIds = votes.map((v) => v.projectId);
   }
 
-  const trendingTags = ['react', 'next.js', 'typescript', 'tailwind', 'prisma', 'node.js'];
+  // Compute dynamic trending tags from fetched projects
+  const rawTags: string[] = [];
+  projects.forEach((p, idx) => {
+    // Add all tech stack items
+    p.stack.forEach((tech) => rawTags.push(tech.toLowerCase()));
+    // Mix in project names occasionally (or if they are short)
+    if (idx % 2 === 0 || p.title.length < 15) {
+      const nameTag = p.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      if (nameTag) rawTags.push(nameTag);
+    }
+  });
+
+  // Calculate frequency to find true "trending" items
+  const tagCounts = rawTags.reduce((acc, tag) => {
+    acc[tag] = (acc[tag] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  let trendingTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1]) // highest frequency first
+    .map((entry) => entry[0])
+    .slice(0, 6);
+
+  // Pad with fallbacks if there aren't enough unique tags
+  const fallbacks = ['react', 'next.js', 'typescript', 'tailwind', 'prisma', 'node.js'];
+  if (trendingTags.length < 6) {
+    const extra = fallbacks.filter((f) => !trendingTags.includes(f)).slice(0, 6 - trendingTags.length);
+    trendingTags = [...trendingTags, ...extra];
+  }
 
   return (
     <div className="flex justify-center min-h-screen">
@@ -45,6 +80,7 @@ export default async function ExplorePage() {
         initialProjects={projects}
         initialCursor={nextCursor}
         trendingTags={trendingTags}
+        trendingProjects={trendingProjects}
         currentUserId={currentUserId}
         likedProjectIds={likedProjectIds}
         votedProjectIds={votedProjectIds}

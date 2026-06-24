@@ -139,7 +139,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   const ActiveBannerIcon = activeFilter.icon;
 
   return (
-    <div className="mx-auto max-w-[1400px] px-6 pb-32 pt-10 md:px-10 min-h-screen">
+    <div className="mx-auto max-w-350 px-6 pb-32 pt-10 md:px-10 min-h-screen">
 
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <div className="mb-12">
@@ -179,7 +179,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
                   'group flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] font-medium tracking-wide transition-all duration-200 border',
                   isActive
                     ? 'bg-foreground/10 border-foreground/30 text-foreground shadow-md ' + f.glow
-                    : 'border-border/50 text-muted-foreground hover:border-foreground/20 hover:text-foreground hover:bg-white/[0.04]',
+                    : 'border-border/50 text-muted-foreground hover:border-foreground/20 hover:text-foreground hover:bg-white/4',
                 ].join(' ')}
               >
                 <Icon className={['h-3.5 w-3.5 transition-colors', isActive ? f.color : 'text-muted-foreground/50 group-hover:' + f.color].join(' ')} />
@@ -265,7 +265,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
             backgroundColor: (state ? STATE_META[state].color : '#fff') + '0d',
           }}
         >
-          <ActiveBannerIcon className={['h-4 w-4 flex-shrink-0', activeFilter.color].join(' ')} />
+          <ActiveBannerIcon className={['h-4 w-4 shrink-0', activeFilter.color].join(' ')} />
           <div>
             <p className="font-mono text-[11px] font-semibold text-foreground">
               {state ? `Showing ${STATE_META[state].label} projects` : ''}
@@ -282,7 +282,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
           Instead of unmounting the grid while loading, we keep it in the DOM
           and just lower its opacity, preventing massive layout shifts.
       ──────────────────────────────────────────────────────────────────── */}
-      <div className="min-h-[600px] relative">
+      <div className="min-h-150 relative">
         {/* Loading Overlay */}
         <AnimatePresence>
           {loading && (

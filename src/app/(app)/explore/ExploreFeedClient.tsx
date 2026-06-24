@@ -33,6 +33,7 @@ interface ExploreFeedClientProps {
   initialProjects: ProjectWithUser[];
   initialCursor: string | null;
   trendingTags: string[];
+  trendingProjects: { title: string; slug: string }[];
   currentUserId: string | null;
   likedProjectIds: string[];
   votedProjectIds: string[];
@@ -295,7 +296,7 @@ function FeedPost({
       >
         <div className="flex gap-3">
           {/* Avatar */}
-          <div className="flex-shrink-0 pt-0.5">
+          <div className="shrink-0 pt-0.5">
             <Link href={`/project/${project.slug}`} onClick={(e) => e.stopPropagation()}>
               <div className="h-10 w-10 rounded-full bg-secondary border border-border overflow-hidden flex items-center justify-center font-bold text-sm text-muted-foreground hover:opacity-80 transition-opacity">
                 {project.user.image ? (
@@ -312,7 +313,7 @@ function FeedPost({
 
             {/* Header: name / handle / time / state */}
             <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-0.5">
-              <span className="font-semibold text-sm text-foreground leading-none truncate max-w-[140px]">
+              <span className="font-semibold text-sm text-foreground leading-none truncate max-w-35">
                 {displayName}
               </span>
               {handle && (
@@ -459,7 +460,7 @@ function FeedPost({
 // Main Feed Client
 // ─────────────────────────────────────────────────────────────
 
-export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags, currentUserId, likedProjectIds, votedProjectIds }: ExploreFeedClientProps) {
+export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags, trendingProjects, currentUserId, likedProjectIds, votedProjectIds }: ExploreFeedClientProps) {
   const [projects, setProjects] = useState<ProjectWithUser[]>(initialProjects);
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -567,7 +568,30 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
             </div>
           </div>
 
-
+          {/* Trending Projects */}
+          {trendingProjects.length > 0 && (
+            <div className="rounded-2xl border border-border/40 bg-card/20 p-4">
+              <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50 mb-3">
+                Trending Projects
+              </h2>
+              <div className="flex flex-col gap-0.5">
+                {trendingProjects.map((project, i) => (
+                  <Link
+                    key={project.slug}
+                    href={`/project/${project.slug}`}
+                    className="group flex items-center gap-3 rounded-lg p-2.5 hover:bg-white/5 transition-colors duration-150"
+                  >
+                    <span className="font-mono text-[10px] text-muted-foreground/25 w-3 text-right shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="font-mono text-[12px] font-semibold text-accent/70 group-hover:text-accent transition-colors">
+                      @{project.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           <p className="font-mono text-[9px] text-muted-foreground/20 px-2 leading-relaxed">
             Software Never Dies. - Code Afterlife

@@ -31,7 +31,7 @@ export default async function LineagePage({ params }: PageProps) {
   return (
     <div className="relative h-screen w-full bg-[#050505] overflow-hidden">
       {/* Absolute Cinematic Header */}
-      <div className="pointer-events-none absolute left-0 top-0 z-50 w-full bg-gradient-to-b from-black/80 to-transparent pt-12 pb-24 px-8">
+      <div className="pointer-events-none absolute left-0 top-0 z-50 w-full bg-linear-to-b from-black/80 to-transparent pt-12 pb-24 px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-emerald-500/70 mb-2">
           Project Lineage
         </p>

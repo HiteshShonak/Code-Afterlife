@@ -115,12 +115,11 @@ export function ForkSetupClient({ deadProjectId, deadProjectTitle, deadProjectSt
 
           <div className="mt-auto">
             <Button
-              variant="primary"
+              variant="outline"
               onClick={handleAutoFork}
               isLoading={isForking}
               disabled={isForking || isResurrecting || !!forkUrl}
-              className="w-full font-mono font-bold tracking-widest text-[12px] h-12"
-              style={{ color: 'var(--health-thriving)', borderColor: 'var(--health-thriving)' } as React.CSSProperties}
+              className="w-full font-mono font-bold tracking-widest text-[12px] h-12 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-400"
             >
               <GitFork className="h-4 w-4 mr-2" />
               {forkUrl ? 'FORKED SUCCESSFULLY' : 'AUTO-FORK REPOSITORY'}
@@ -179,7 +178,7 @@ export function ForkSetupClient({ deadProjectId, deadProjectTitle, deadProjectSt
           </div>
 
           <div>
-            <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground block mb-2 flex items-center gap-2">
+            <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground block mb-2 items-center gap-2">
               3. Updated Description
               <span className="text-muted-foreground/40 normal-case tracking-normal">(optional)</span>
             </label>

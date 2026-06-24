@@ -69,7 +69,7 @@ export function LegacyClient({ projects, currentUserId }: LegacyClientProps) {
             <Crown className="h-7 w-7 text-amber-400" />
           </div>
           <h1 className="mb-4 font-mono text-4xl font-extrabold tracking-tight text-amber-50 md:text-6xl lg:text-7xl">
-            Hall of <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 drop-shadow-[0_0_20px_rgba(245,158,11,0.4)]">Legacy</span>
+            Hall of <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-200 via-amber-400 to-amber-600 drop-shadow-[0_0_20px_rgba(245,158,11,0.4)]">Legacy</span>
           </h1>
           <p className="max-w-2xl font-mono text-[13px] leading-relaxed text-amber-500/60 md:text-[15px]">
             They fought through the stall. They survived the architecture rewrites. They shipped.
@@ -104,7 +104,7 @@ export function LegacyClient({ projects, currentUserId }: LegacyClientProps) {
                 className="group relative"
               >
                 {/* Intense glowing golden wrapper */}
-                <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-b from-amber-400/40 to-transparent opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-b from-amber-400/40 to-transparent opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-100" />
                 
                 <div className="relative h-full overflow-hidden rounded-2xl border border-amber-500/20 bg-[#0a0705] transition-all duration-500 hover:border-amber-500/50 hover:bg-[#120b06]">
                   {/* Image */}
