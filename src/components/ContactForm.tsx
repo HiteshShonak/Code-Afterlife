@@ -75,11 +75,11 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
       
       {/* Type Selector */}
-      <div className="space-y-3">
-        <label className="font-mono text-sm font-bold text-muted-foreground uppercase tracking-wider">
+      <div className="space-y-8">
+        <label className="font-mono text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
           What is this regarding?
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
           {CONTACT_TYPES.map((type) => {
             const Icon = type.icon;
             const isSelected = selectedType === type.id;

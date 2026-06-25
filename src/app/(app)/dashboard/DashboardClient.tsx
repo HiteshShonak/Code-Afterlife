@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { ProjectCard } from '@/components/ProjectCard';
 import { ProjectCreateModal } from '@/components/ProjectCreateModal';
 import { Button } from '@/components/ui/Button';
@@ -32,6 +33,26 @@ const cardVariants = {
 export function DashboardClient({ projects: initialProjects, user }: DashboardClientProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const { filter, setFilter, sort, setSort, projects } = useDashboardFilters(initialProjects);
+
+  const [visibleCount, setVisibleCount] = useState(12);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [filter, sort]);
+
+  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount(prev => Math.min(prev + 12, projects.length));
+      }
+    });
+    if (node) observerRef.current.observe(node);
+  }, [projects.length]);
+
+  const displayedProjects = projects.slice(0, visibleCount);
+  const hasMore = visibleCount < projects.length;
 
   const stats = {
     total:   initialProjects.length,
@@ -118,7 +139,7 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
           animate="visible"
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
-          {projects.map((p) => (
+          {displayedProjects.map((p) => (
             <motion.div key={p.id} variants={cardVariants}>
               <ProjectCard
                 id={p.id}
@@ -140,6 +161,12 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
             </motion.div>
           ))}
         </motion.div>
+      )}
+
+      {hasMore && (
+        <div ref={loadMoreRef} className="mt-12 flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
+        </div>
       )}
 
       {/* FAB */}

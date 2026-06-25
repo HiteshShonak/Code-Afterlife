@@ -42,18 +42,17 @@ const STATE_META: Record<ProjectState, { label: string; tagline: string; color: 
 
 export const SearchClient = memo(function SearchClient({ initialProjects, initialCursor }: SearchClientProps) {
   const { state, search, sort, setState, setSearch, setSort, reset } = useSearchFilters();
-  const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
   const [isSortOpen, setIsSortOpen] = useState(false);
 
-  // Local state for the input to prevent router transitions from stealing focus while typing
+  // local search state
   const [localSearch, setLocalSearch] = useState(search);
 
-  // Sync external search changes (e.g. from Clear button) into local state
+  // sync search
   useEffect(() => {
     setLocalSearch(search);
   }, [search]);
 
-  // Debounce the push to the URL
+  // debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localSearch !== search) {
@@ -79,7 +78,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
       if (isInitialState) return;
     }
 
-    // We no longer need the 400ms delay here because 'search' itself is debounced!
+    // fetch data
     setLoading(true);
 
     let isMounted = true;
@@ -269,18 +268,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
             </AnimatePresence>
           </div>
 
-          <div className="hidden sm:flex rounded-xl border border-border/60 bg-card/60 overflow-hidden backdrop-blur-sm">
-            {(['grid', 'feed'] as const).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={['flex items-center justify-center p-2.5 transition-colors', viewMode === mode ? 'bg-accent/20 text-accent' : 'text-muted-foreground hover:text-foreground'].join(' ')}
-                aria-label={`${mode} view`}
-              >
-                {mode === 'grid' ? <Grid3x3 className="h-3.5 w-3.5" /> : <List className="h-3.5 w-3.5" />}
-              </button>
-            ))}
-          </div>
+
         </div>
       </div>
 
@@ -350,14 +338,8 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
               )}
             </motion.div>
           ) : (
-            /* grid or feed view */
-            <div
-              className={
-                viewMode === 'grid'
-                  ? 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4'
-                  : 'flex flex-col gap-5 max-w-3xl mx-auto'
-              }
-            >
+            /* grid view */
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
               {projects.map((p) => (
                 <div key={p.id}>
                   <ProjectCard

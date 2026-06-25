@@ -3,19 +3,19 @@
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Rocket, Skull } from 'lucide-react';
-import { useVote } from '@/hooks/use-vote';
 import type { VoteStats } from '@/services/social.service';
 
 interface VoteBarProps {
   projectId:    string;
-  initialStats: VoteStats;
+  stats:        VoteStats;
+  castVote:     (vote: 'WILL_SHIP' | 'WILL_DIE') => void;
+  isPending:    boolean;
   isLoggedIn:   boolean;
 }
 
 // vote bar
-export function VoteBar({ projectId, initialStats, isLoggedIn }: VoteBarProps) {
+export function VoteBar({ projectId, stats, castVote, isPending, isLoggedIn }: VoteBarProps) {
   const router = useRouter();
-  const { stats, castVote, isPending } = useVote(projectId, initialStats);
 
   const shipPct = stats.total > 0 ? Math.round((stats.willShip / stats.total) * 100) : 50;
   const diePct  = 100 - shipPct;

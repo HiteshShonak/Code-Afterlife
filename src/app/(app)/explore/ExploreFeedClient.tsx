@@ -9,6 +9,7 @@ import {
   Heart,
   MessageSquare,
   Flame,
+  Skull,
   ExternalLink,
   Hash,
   ChevronLeft,
@@ -221,7 +222,11 @@ function FeedPost({
     const wasVoted = myVote === 'WILL_SHIP';
     // Optimistic
     setMyVote(wasVoted ? null : 'WILL_SHIP');
-    setVoteCount((c) => wasVoted ? c - 1 : c + 1);
+    setVoteCount((c) => {
+      if (wasVoted) return c - 1;
+      if (myVote === 'WILL_DIE') return c + 2;
+      return c + 1;
+    });
     setVoteLoading(true);
     try {
       const res = await fetch(`/api/projects/${project.id}/vote`, {
@@ -231,12 +236,20 @@ function FeedPost({
       });
       if (!res.ok) {
         // Revert
-        setMyVote(wasVoted ? 'WILL_SHIP' : null);
-        setVoteCount((c) => wasVoted ? c + 1 : c - 1);
+        setMyVote(wasVoted ? 'WILL_SHIP' : (myVote === 'WILL_DIE' ? 'WILL_DIE' : null));
+        setVoteCount((c) => {
+          if (wasVoted) return c + 1;
+          if (myVote === 'WILL_DIE') return c - 2;
+          return c - 1;
+        });
       }
     } catch {
-      setMyVote(wasVoted ? 'WILL_SHIP' : null);
-      setVoteCount((c) => wasVoted ? c + 1 : c - 1);
+      setMyVote(wasVoted ? 'WILL_SHIP' : (myVote === 'WILL_DIE' ? 'WILL_DIE' : null));
+      setVoteCount((c) => {
+        if (wasVoted) return c + 1;
+        if (myVote === 'WILL_DIE') return c - 2;
+        return c - 1;
+      });
     } finally {
       setVoteLoading(false);
     }
@@ -398,8 +411,12 @@ function FeedPost({
                   voted ? 'text-orange-400' : 'text-muted-foreground/40 hover:text-orange-400'
                 )}
               >
-                <Flame className={cn('h-4 w-4 transition-transform group-active:scale-125', voted && 'fill-orange-400')} />
-                <span className="font-mono text-xs">{voteCount}</span>
+                {voteCount >= 0 ? (
+                  <Flame className={cn('h-4 w-4 transition-transform group-active:scale-125', voted && 'fill-orange-400')} />
+                ) : (
+                  <Skull className={cn('h-4 w-4 transition-transform group-active:scale-125', voted && 'fill-orange-400')} />
+                )}
+                <span className="font-mono text-xs">{Math.abs(voteCount)}</span>
               </button>
 
               {/* View count */}

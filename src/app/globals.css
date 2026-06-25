@@ -254,13 +254,13 @@
   animation: ca-glitch-stalled 4s infinite;
 }
 @keyframes ca-glitch-stalled {
-  0%, 100% { transform: translate(0); opacity: 1; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
-  45% { transform: translate(-1px, 1px); opacity: 0.9; }
-  46% { transform: translate(1px, -1px); opacity: 0.82; filter: grayscale(0.35) sepia(0.35) hue-rotate(-20deg) brightness(0.88); }
-  47% { transform: translate(0); opacity: 1; }
-  85% { transform: translate(0); opacity: 1; }
-  86% { transform: translate(-2px, 0); opacity: 0.82; }
-  87% { transform: translate(0); opacity: 1; }
+  0%, 100% { opacity: 1; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
+  45% { opacity: 0.9; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
+  46% { opacity: 0.82; filter: grayscale(0.35) sepia(0.35) hue-rotate(-20deg) brightness(0.88); }
+  47% { opacity: 1; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
+  85% { opacity: 1; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
+  86% { opacity: 0.85; filter: grayscale(0.3) sepia(0.3) hue-rotate(-20deg) brightness(0.9); }
+  87% { opacity: 1; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
 }
 
 /* SHIPPED: Golden Beam */

@@ -1,6 +1,7 @@
 // social logic
 
 import { prisma } from '@/lib/prisma';
+import { calculateTrendingScore } from '@/lib/trending';
 import type { VoteType } from '@prisma/client';
 
 // trending score
@@ -12,14 +13,11 @@ export async function recalculateTrending(
 ): Promise<void> {
   const project = await tx.project.findUnique({
     where: { id: projectId },
-    select: { likeCount: true, commentCount: true, voteCount: true, health: true, createdAt: true },
+    select: { likeCount: true, commentCount: true, voteCount: true, viewCount: true, health: true, createdAt: true },
   });
   if (!project) return;
 
-  const ageHours = (Date.now() - project.createdAt.getTime()) / 3_600_000;
-  const score =
-    (project.likeCount * 3 + project.commentCount * 2 + project.voteCount * 1 + project.health * 0.5) /
-    Math.pow(ageHours + 2, 1.5);
+  const score = calculateTrendingScore(project);
 
   await tx.project.update({
     where: { id: projectId },
@@ -165,9 +163,10 @@ export const socialService = {
           await tx.projectVote.delete({
             where: { projectId_userId: { projectId, userId } },
           });
+          const delta = vote === 'WILL_SHIP' ? -1 : 1;
           await tx.project.update({
             where: { id: projectId },
-            data: { voteCount: { decrement: 1 } },
+            data: { voteCount: { increment: delta } },
           });
         } else {
           // change vote
@@ -175,13 +174,19 @@ export const socialService = {
             where: { projectId_userId: { projectId, userId } },
             data: { vote },
           });
+          const delta = vote === 'WILL_SHIP' ? 2 : -2;
+          await tx.project.update({
+            where: { id: projectId },
+            data: { voteCount: { increment: delta } },
+          });
         }
       } else {
         // new vote
         await tx.projectVote.create({ data: { projectId, userId, vote } });
+        const delta = vote === 'WILL_SHIP' ? 1 : -1;
         await tx.project.update({
           where: { id: projectId },
-          data: { voteCount: { increment: 1 } },
+          data: { voteCount: { increment: delta } },
         });
       }
 

@@ -3,7 +3,7 @@
 import { memo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageSquare, Flame } from 'lucide-react';
+import { Heart, MessageSquare, Flame, Skull } from 'lucide-react';
 import { StateBadge } from '@/components/StateBadge';
 import { HealthIndicator } from '@/components/HealthIndicator';
 import { DecayVisuals } from '@/components/DecayVisuals';
@@ -92,7 +92,7 @@ export const ProjectCard = memo(function ProjectCard({
         onHoverEnd={() => setIsHovered(false)}
         className={cn(
           "group relative flex flex-col overflow-hidden rounded-sm border backdrop-blur-sm transition-colors hover:border-accent/50",
-          "h-[420px]", // standard height
+          "h-full min-h-[420px]", // standard grid height
           STATE_STYLES[state].wrapper,
           STATE_STYLES[state].anim
         )}
@@ -142,30 +142,30 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
 
           {/* description */}
-          {description && (
-            <p className="mb-4 line-clamp-2 flex-1 text-[12px] leading-relaxed text-muted-foreground">
-              {description}
-            </p>
-          )}
+          <div className="mb-4 h-[40px]">
+            {description ? (
+              <p className="line-clamp-2 text-[12px] leading-relaxed text-muted-foreground">
+                {description}
+              </p>
+            ) : null}
+          </div>
 
           {/* stack tags */}
-          {stack.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-1.5">
-              {stack.slice(0, 4).map((tech) => (
-                <span
-                  key={tech}
-                  className="rounded-sm border border-border bg-secondary/50 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted-foreground"
-                >
-                  {tech}
-                </span>
-              ))}
-              {stack.length > 4 && (
-                <span className="font-mono text-[9px] text-muted-foreground/60">
-                  +{stack.length - 4}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="mb-4 flex h-[22px] flex-nowrap items-center gap-1.5 overflow-hidden">
+            {stack.slice(0, 3).map((tech) => (
+              <span
+                key={tech}
+                className="min-w-0 shrink truncate rounded-sm border border-border bg-secondary/50 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted-foreground"
+              >
+                {tech}
+              </span>
+            ))}
+            {stack.length > 3 && (
+              <span className="shrink-0 rounded-sm border border-transparent bg-secondary/30 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground/80">
+                +{stack.length - 3}
+              </span>
+            )}
+          </div>
 
           {/* health bar */}
           <div className="mb-4 mt-auto">
@@ -182,7 +182,7 @@ export const ProjectCard = memo(function ProjectCard({
                 <MessageSquare className="h-3 w-3" /> {commentCount}
               </span>
               <span className="flex items-center gap-1">
-                <Flame className="h-3 w-3" /> {voteCount}
+                {voteCount >= 0 ? <Flame className="h-3 w-3" /> : <Skull className="h-3 w-3" />} {Math.abs(voteCount)}
               </span>
               <span className="flex items-center gap-1 text-muted-foreground/40">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>

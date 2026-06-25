@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen, Plus, ZoomIn, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Skull, Bell, BellOff, LockOpen, Plus, ZoomIn, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { DecayVisuals } from '@/components/DecayVisuals';
 import { HealthIndicator } from '@/components/HealthIndicator';
 import { StateBadge } from '@/components/StateBadge';
@@ -21,6 +21,7 @@ import { TimeCapsuleSection } from '@/components/project/TimeCapsuleSection';
 import { useDecayState } from '@/hooks/use-decay-state';
 import { useLike } from '@/hooks/use-like';
 import { useFollow } from '@/hooks/use-follow';
+import { useVote } from '@/hooks/use-vote';
 import { shipProjectAction, permanentDeleteProjectAction } from '@/actions/project.actions';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
 import type { ProjectDetail } from '@/types/project';
@@ -82,6 +83,8 @@ export function ProjectDetailClient({
     useLike(project.id, initialLiked, project.likeCount ?? 0);
   const { following, followerCount, toggle: toggleFollow, isPending: followPending } =
     useFollow(project.id, initialFollowing, project._count?.followers ?? 0);
+  const { stats: voteStats, castVote, isPending: votePending } =
+    useVote(project.id, initialVoteStats);
 
   const isLoggedIn = !!currentUserId;
   const existingResurrection = currentUserId
@@ -504,8 +507,8 @@ export function ProjectDetailClient({
               </a>
 
               <span className="flex shrink-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 font-mono text-sm text-muted-foreground/60">
-                <Flame className="h-4 w-4" />
-                <span>{project.voteCount ?? 0}</span>
+                {voteStats.willShip - voteStats.willDie >= 0 ? <Flame className="h-4 w-4" /> : <Skull className="h-4 w-4" />}
+                <span>{Math.abs(voteStats.willShip - voteStats.willDie)}</span>
               </span>
 
               {/* View count */}
@@ -576,7 +579,9 @@ export function ProjectDetailClient({
               </h2>
               <VoteBar
                 projectId={project.id}
-                initialStats={initialVoteStats}
+                stats={voteStats}
+                castVote={castVote}
+                isPending={votePending}
                 isLoggedIn={isLoggedIn}
               />
             </motion.section>
