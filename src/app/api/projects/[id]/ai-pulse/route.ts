@@ -59,23 +59,29 @@ export async function POST(
       return NextResponse.json({ message: 'No GitHub URL attached to this project. Cannot run AI Fetch.' }, { status: 400 });
     }
 
-    // Rate limit: 1 manual AI pulse per 12 hours
+    // Rate limit: 1 manual AI pulse per 6 hours
     const now = new Date();
-    const halfDayAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+    const limitAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
     
-    // Check if a manual AI fetch was done in the last 12h
-    const recentAILog = await prisma.timelineEntry.findFirst({
+    // Check if a manual AI fetch was done in the last 6h
+    const recentAILogs = await prisma.timelineEntry.findMany({
       where: {
         projectId: id,
         type: { in: ['AI_BUILD_LOG', 'RESURRECTION'] },
-        createdAt: { gte: halfDayAgo },
-
+        createdAt: { gte: limitAgo },
       }
     });
 
-    if (recentAILog) {
+    const recentManualLog = recentAILogs.find((log) => {
+      if (log.data && typeof log.data === 'object' && 'manualTrigger' in log.data) {
+        return log.data.manualTrigger === true;
+      }
+      return false;
+    });
+
+    if (recentManualLog) {
       return NextResponse.json(
-        { message: 'An AI Pulse has already run recently. Please wait 12 hours to manually force it again.' },
+        { message: 'An AI Pulse has already run recently. Please wait 6 hours to manually force it again.' },
         { status: 429 }
       );
     }

@@ -134,7 +134,7 @@ export function isOwnerAuthoredCommit(
 }
 
 export function calcHealthFromCommits(commitCount: number, currentHealth: number): number {
-  const commitScore = Math.min(100, (commitCount / 10) * 100);
+  const commitScore = Math.min(100, (commitCount / HEALTH_CONFIG.activity.maxCommits) * 100);
   return Math.round(commitScore * 0.6 + currentHealth * 0.4);
 }
 

@@ -32,22 +32,34 @@ export const healthService = {
     const thirtyDaysAgo = new Date(now.getTime() - THIRTY_DAYS_MS);
     const sixtyDaysAgo = new Date(now.getTime() - 2 * THIRTY_DAYS_MS);
 
-    const [commitsThisMonth, commitsLastMonth] = await Promise.all([
-      prisma.timelineEntry.count({
+    const [thisMonthEntries, lastMonthEntries] = await Promise.all([
+      prisma.timelineEntry.findMany({
         where: {
           projectId,
           type: { not: 'SYSTEM_DECAY' },
           createdAt: { gte: thirtyDaysAgo },
         },
+        select: { data: true }
       }),
-      prisma.timelineEntry.count({
+      prisma.timelineEntry.findMany({
         where: {
           projectId,
           type: { not: 'SYSTEM_DECAY' },
           createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
         },
+        select: { data: true }
       }),
     ]);
+
+    const sumCommits = (entries: any[]) => entries.reduce((acc, e) => {
+      if (e.data && typeof e.data === 'object' && 'commitCount' in e.data) {
+        return acc + (Number(e.data.commitCount) || 1);
+      }
+      return acc + 1; // default fallback
+    }, 0);
+
+    const commitsThisMonth = sumCommits(thisMonthEntries);
+    const commitsLastMonth = sumCommits(lastMonthEntries);
 
     const input: HealthCalculationInput = {
       state: project.state,

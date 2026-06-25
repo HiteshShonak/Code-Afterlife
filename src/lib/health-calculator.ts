@@ -20,12 +20,14 @@ export function calculateHealth(input: HealthCalculationInput): number {
 
   // momentum score
   let momentumScore: number;
-  if (commitsThisMonth > commitsLastMonth) {
-    momentumScore = 100;
-  } else if (commitsThisMonth === commitsLastMonth) {
-    momentumScore = 50;
-  } else {
+  if (commitsThisMonth === 0 && commitsLastMonth === 0) {
     momentumScore = 0;
+  } else if (commitsLastMonth === 0) {
+    momentumScore = 100; // infinite momentum
+  } else {
+    // fluid percentage curve, capped at 100
+    const ratio = commitsThisMonth / commitsLastMonth;
+    momentumScore = clamp(ratio * 100, 0, 100);
   }
 
   // total
