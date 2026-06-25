@@ -4,14 +4,19 @@ import { prisma } from '@/lib/prisma';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://codeafterlife.com';
 
-  // get all projects
-  const projects = await prisma.project.findMany({
-    select: {
-      slug: true,
-      updatedAt: true,
-    },
-    orderBy: { updatedAt: 'desc' },
-  });
+  let projects: Array<{ slug: string; updatedAt: Date }> = [];
+
+  try {
+    projects = await prisma.project.findMany({
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+  } catch (error) {
+    console.warn('[sitemap] Skipping project URLs because the database is unavailable.', error);
+  }
 
   const projectUrls = projects.map((project) => ({
     url: `${baseUrl}/project/${project.slug}`,

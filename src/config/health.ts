@@ -27,7 +27,8 @@ export const HEALTH_CONFIG = {
   stalledDays: 1,
   // days before dead
   deadDays: 3,
+  // dead projects lose 1 health point every N days after crossing the dead threshold
+  deadHealthDecayDays: 2,
   // starting health
   initialHealth: 50,
 } as const;
-

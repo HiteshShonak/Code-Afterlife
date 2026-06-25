@@ -1,8 +1,8 @@
 export default function ExploreLoading() {
   return (
-    <div className="flex justify-center min-h-screen bg-background">
-      <div className="flex w-full h-full" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <main className="flex-1 border-x border-border/50 animate-pulse">
+    <div className="flex min-h-screen w-full min-w-0 justify-center overflow-x-clip bg-background">
+      <div className="mx-auto flex h-full w-full min-w-0 max-w-[1200px] overflow-x-clip">
+        <main className="min-w-0 flex-1 border-x border-border/50 animate-pulse">
           {/* Sticky Header */}
           <div className="sticky top-0 z-10 border-b border-border/50 bg-background/85 backdrop-blur-md px-4 py-3 flex items-center justify-between">
             <div className="h-4 w-20 bg-muted-foreground/20 rounded-sm" />
@@ -12,14 +12,14 @@ export default function ExploreLoading() {
           {/* Posts */}
           <div>
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="border-b border-border/50 px-4 py-4">
-                <div className="flex gap-3">
+              <div key={i} className="overflow-hidden border-b border-border/50 px-3 py-4 sm:px-4">
+                <div className="flex min-w-0 gap-3">
                   <div className="shrink-0 pt-0.5">
                     <div className="h-10 w-10 rounded-full bg-secondary border border-border" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-x-1.5 gap-y-1 mb-0.5">
-                      <div className="h-4 w-24 bg-foreground/10 rounded-sm" />
+                    <div className="mb-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+                      <div className="h-4 w-20 rounded-sm bg-foreground/10 sm:w-24" />
                       <div className="h-3 w-16 bg-muted-foreground/10 rounded-sm" />
                       <div className="h-3 w-3 bg-muted-foreground/10 rounded-full" />
                       <div className="h-3 w-12 bg-muted-foreground/10 rounded-sm" />
@@ -42,11 +42,11 @@ export default function ExploreLoading() {
                     
                     <div className="mt-2 h-32 w-full rounded-xl bg-secondary/20 border border-border/20" />
 
-                    <div className="mt-3 flex items-center gap-1">
-                      <div className="h-8 w-12 rounded-full bg-foreground/5" />
-                      <div className="h-8 w-12 rounded-full bg-foreground/5" />
-                      <div className="h-8 w-12 rounded-full bg-foreground/5" />
-                      <div className="h-8 w-12 rounded-full bg-foreground/5" />
+                    <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1 sm:flex-nowrap">
+                      <div className="h-8 w-11 shrink-0 rounded-full bg-foreground/5 sm:w-12" />
+                      <div className="h-8 w-11 shrink-0 rounded-full bg-foreground/5 sm:w-12" />
+                      <div className="h-8 w-11 shrink-0 rounded-full bg-foreground/5 sm:w-12" />
+                      <div className="h-8 w-11 shrink-0 rounded-full bg-foreground/5 sm:w-12" />
                     </div>
                   </div>
                 </div>

@@ -5,6 +5,9 @@ import {
   ghFetch,
   calcHealthFromCommits,
   generatePulse,
+  getFreshCommitsForPulse,
+  getLatestCommitDate,
+  getPulseSinceDate,
   isOwnerAuthoredCommit,
   type GitHubCommit,
 } from '@/lib/ai-pulse';
@@ -31,6 +34,8 @@ export async function POST(
         state: true, 
         health: true, 
         title: true,
+        createdAt: true,
+        lastActivityAt: true,
         lastPulseCheckAt: true,
         user: {
           select: {
@@ -84,9 +89,8 @@ export async function POST(
     const [, owner, repoRaw] = match;
     const repo = repoRaw.replace(/\.git$/, '');
 
-    // Fetch commits
-    const lookbackDays = project.state === 'DEAD' ? 14 : 7;
-    const sinceDate = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000);
+    // Fetch only from the active freshness window, with a tiny overlap for API lag.
+    const sinceDate = getPulseSinceDate(project, now);
     const commitsRes = await ghFetch(
       `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&per_page=20`
     );
@@ -96,11 +100,20 @@ export async function POST(
     }
 
     const commits: GitHubCommit[] = await commitsRes.json();
+    const freshCommits = getFreshCommitsForPulse(commits, project, now);
 
-    if (commits.length === 0) {
+    if (freshCommits.length === 0) {
       // Update check time but no new entry
       await prisma.project.update({ where: { id }, data: { lastPulseCheckAt: now } });
-      return NextResponse.json({ message: 'No new commits found since last check.' }, { status: 400 }); // Return 400 to show message in UI
+      return NextResponse.json(
+        {
+          message:
+            commits.length === 0
+              ? 'No new commits found since the last check.'
+              : 'Only stale commits were found. Lifecycle activity requires commits from the last 24 hours.',
+        },
+        { status: 400 }
+      ); // Return 400 to show message in UI
     }
 
     // Fetch README
@@ -115,7 +128,7 @@ export async function POST(
       // ignore
     }
 
-    const ownerCommits = commits.filter((commit) =>
+    const ownerCommits = freshCommits.filter((commit) =>
       isOwnerAuthoredCommit(commit, project.user)
     );
     const isDeadResurrection = project.state === 'DEAD';
@@ -138,7 +151,16 @@ export async function POST(
       );
     }
 
-    const activityCommits = shouldActivate ? ownerCommits : commits;
+    const activityCommits = shouldActivate ? ownerCommits : freshCommits;
+    const latestActivityAt = getLatestCommitDate(activityCommits);
+    if (!latestActivityAt) {
+      await prisma.project.update({ where: { id }, data: { lastPulseCheckAt: now } });
+      return NextResponse.json(
+        { message: 'Fresh commits were found, but none had usable timestamps.' },
+        { status: 400 }
+      );
+    }
+
     const commitMessages = activityCommits.map((commit) => commit.commit?.message ?? '');
     const summary = await generatePulse(
       project.title,
@@ -161,7 +183,7 @@ export async function POST(
         where: { id },
         data: {
           lastPulseCheckAt: now,
-          lastActivityAt: now,
+          lastActivityAt: latestActivityAt,
           health: newHealth,
         },
       });
@@ -178,6 +200,7 @@ export async function POST(
             data: {
               commitCount: ownerCommits.length,
               repo: `${owner}/${repo}`,
+              latestCommitAt: latestActivityAt.toISOString(),
               manualTrigger: true,
             },
           },
@@ -195,6 +218,7 @@ export async function POST(
               commitCount: activityCommits.length,
               ownerCommitCount: ownerCommits.length,
               repo: `${owner}/${repo}`,
+              latestCommitAt: latestActivityAt.toISOString(),
               manualTrigger: true,
             },
           },

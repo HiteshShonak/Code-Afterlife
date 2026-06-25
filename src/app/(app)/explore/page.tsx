@@ -75,7 +75,7 @@ export default async function ExplorePage() {
   }
 
   return (
-    <div className="flex justify-center min-h-screen">
+    <div className="flex min-h-screen w-full min-w-0 justify-center overflow-x-clip">
       <ExploreFeedClient
         initialProjects={projects}
         initialCursor={nextCursor}

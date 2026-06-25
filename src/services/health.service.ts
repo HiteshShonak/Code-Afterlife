@@ -76,7 +76,7 @@ export const healthService = {
   async recalculateAll(): Promise<{ processed: number; errors: number }> {
     const projects = await prisma.project.findMany({
       where: {
-        state: { notIn: ['SHIPPED', 'DEAD'] },
+        state: { not: 'SHIPPED' },
       },
       select: { id: true },
     });

@@ -40,6 +40,21 @@ describe('stateMachine.canTransition', () => {
     ).toBe(true);
   });
 
+  it('allows user activity and health checks to repair stalled projects with fresh activity', () => {
+    expect(
+      stateMachine.canTransition('STALLED', 'ACTIVE', { source: 'user_activity' })
+    ).toBe(true);
+    expect(
+      stateMachine.canTransition('STALLED', 'ACTIVE', { source: 'health_cron' })
+    ).toBe(true);
+  });
+
+  it('does not allow user activity to revive dead projects directly', () => {
+    expect(
+      stateMachine.canTransition('DEAD', 'ACTIVE', { source: 'user_activity' })
+    ).toBe(false);
+  });
+
   it('allows same-state transitions for every source', () => {
     expect(stateMachine.canTransition('BORN', 'BORN', { source: 'manual' })).toBe(true);
     expect(
@@ -59,6 +74,7 @@ describe('stateMachine.getValidTransitions', () => {
 
   it('filters transitions by source when context is provided', () => {
     expect(stateMachine.getValidTransitions('STALLED', { source: 'manual' })).toEqual(['DEAD']);
+    expect(stateMachine.getValidTransitions('STALLED', { source: 'user_activity' })).toEqual(['ACTIVE']);
     expect(stateMachine.getValidTransitions('DEAD', { source: 'manual' })).toEqual([]);
     expect(stateMachine.getValidTransitions('DEAD', { source: 'ai_pulse' })).toEqual(['ACTIVE']);
   });
@@ -124,6 +140,16 @@ describe('stateMachine.evaluateState', () => {
     });
 
     expect(result).toBe('STALLED');
+  });
+
+  it('decays BORN straight to DEAD after exactly 3 days without activity', () => {
+    const result = stateMachine.evaluateState({
+      state: 'BORN',
+      lastActivityAt: null,
+      createdAt: daysAgo(3),
+    });
+
+    expect(result).toBe('DEAD');
   });
 
   it('decays ACTIVE to STALLED after exactly 1 day of inactivity', () => {

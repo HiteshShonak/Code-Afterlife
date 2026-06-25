@@ -11,7 +11,6 @@ import {
   Flame,
   ExternalLink,
   Hash,
-  X,
   ChevronLeft,
   ChevronRight,
   ZoomIn,
@@ -187,7 +186,6 @@ function FeedPost({
   const [voteCount, setVoteCount] = useState(project.voteCount);
   const [voteLoading, setVoteLoading] = useState(false);
 
-  const isOwner = !!currentUserId && currentUserId === project.userId;
   const isLoggedIn = !!currentUserId;
 
   const displayName = project.user.name ?? project.user.username ?? 'Developer';
@@ -196,9 +194,9 @@ function FeedPost({
   const hasImages = project.screenshots && project.screenshots.length > 0;
 
   const cardFilter =
-    decayState === 'dead' ? 'grayscale(55%) brightness(0.85)' :
-    decayState === 'nearDeath' ? 'grayscale(25%) brightness(0.9)' :
-    decayState === 'unstable' ? 'saturate(80%)' :
+    decayState === 'dead' ? 'grayscale(48%) brightness(0.7) saturate(62%)' :
+    decayState === 'nearDeath' ? 'grayscale(30%) brightness(0.8) saturate(72%)' :
+    decayState === 'unstable' ? 'brightness(0.9) saturate(84%)' :
     'none';
 
   const handleLike = async (e: React.MouseEvent) => {
@@ -256,20 +254,6 @@ function FeedPost({
     }
   };
 
-  const handleShip = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (voteLoading || likeLoading) return;
-    try {
-      await fetch(`/api/projects/${project.id}/state`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: 'SHIPPED' }),
-      });
-      router.refresh();
-    } catch { /* ignore */ }
-  };
-
   const voted = myVote === 'WILL_SHIP';
 
   return (
@@ -291,10 +275,17 @@ function FeedPost({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
         onClick={() => router.push(`/project/${project.slug}`)}
-        className="relative border-b border-border/50 px-4 py-4 hover:bg-white/[0.018] transition-colors duration-200 cursor-pointer"
+        className={cn(
+          "relative overflow-hidden border-b border-border/50 px-3 py-4 transition-colors duration-200 hover:bg-white/[0.018] sm:px-4 cursor-pointer",
+          project.state === 'BORN' && "ca-hover-born",
+          project.state === 'ACTIVE' && "ca-hover-active",
+          project.state === 'STALLED' && "ca-hover-stalled",
+          project.state === 'DEAD' && "ca-hover-dead",
+          project.state === 'SHIPPED' && "ca-hover-shipped"
+        )}
         style={{ filter: cardFilter, transition: 'filter 0.6s ease' }}
       >
-        <div className="flex gap-3">
+        <div className="flex min-w-0 gap-3">
           {/* Avatar */}
           <div className="shrink-0 pt-0.5">
             <Link href={`/project/${project.slug}`} onClick={(e) => e.stopPropagation()}>
@@ -312,12 +303,12 @@ function FeedPost({
           <div className="flex-1 min-w-0">
 
             {/* Header: name / handle / time / state */}
-            <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-0.5">
-              <span className="font-semibold text-sm text-foreground leading-none truncate max-w-35">
+            <div className="mb-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+              <span className="max-w-28 truncate text-sm font-semibold leading-none text-foreground sm:max-w-35">
                 {displayName}
               </span>
               {handle && (
-                <span className="font-mono text-xs text-muted-foreground/50 truncate">
+                <span className="min-w-0 truncate font-mono text-xs text-muted-foreground/50">
                   {handle}
                 </span>
               )}
@@ -348,7 +339,7 @@ function FeedPost({
                 {project.stack.slice(0, 5).map((tech) => (
                   <span
                     key={tech}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded-sm bg-secondary/80 text-muted-foreground/65 border border-border/40"
+                    className="max-w-full truncate rounded-sm border border-border/40 bg-secondary/80 px-2 py-0.5 font-mono text-[10px] text-muted-foreground/65"
                   >
                     {tech}
                   </span>
@@ -388,12 +379,12 @@ function FeedPost({
             )}
 
             {/* Interaction Bar */}
-            <div className="mt-3 flex items-center gap-1">
+            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1 sm:flex-nowrap">
               {/* Like */}
               <button
                 onClick={handleLike}
                 className={cn(
-                  'group flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all duration-200 hover:bg-rose-500/10',
+                  'group flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-all duration-200 hover:bg-rose-500/10 sm:px-3',
                   liked ? 'text-rose-400' : 'text-muted-foreground/40 hover:text-rose-400'
                 )}
               >
@@ -405,7 +396,7 @@ function FeedPost({
               <Link
                 href={`/project/${project.slug}#comments`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground/40 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
+                className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground/40 transition-all duration-200 hover:bg-sky-400/10 hover:text-sky-400 sm:px-3"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span className="font-mono text-xs">{project.commentCount}</span>
@@ -415,7 +406,7 @@ function FeedPost({
               <button
                 onClick={handleVote}
                 className={cn(
-                  'group flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all duration-200 hover:bg-orange-500/10',
+                  'group flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-all duration-200 hover:bg-orange-500/10 sm:px-3',
                   voted ? 'text-orange-400' : 'text-muted-foreground/40 hover:text-orange-400'
                 )}
               >
@@ -424,27 +415,16 @@ function FeedPost({
               </button>
 
               {/* View count */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 text-muted-foreground/25">
+              <div className="flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground/25 sm:px-3">
                 <Activity className="h-4 w-4" />
                 <span className="font-mono text-xs">{project.viewCount}</span>
               </div>
-
-              {/* Ship button - only for owner on ACTIVE state (state machine: ACTIVE → SHIPPED) */}
-              {isOwner && project.state === 'ACTIVE' && (
-                <button
-                  onClick={handleShip}
-                  className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 transition-all duration-200 text-emerald-400 hover:bg-emerald-500/20"
-                  title="Mark as Shipped"
-                >
-                  <span className="font-mono text-[10px] font-bold tracking-wider">✓ Ship</span>
-                </button>
-              )}
 
               {/* Open project */}
               <Link
                 href={`/project/${project.slug}`}
                 onClick={(e) => e.stopPropagation()}
-                className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground/30 hover:text-accent hover:bg-accent/10 transition-all duration-200"
+                className="ml-0 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground/30 transition-all duration-200 hover:bg-accent/10 hover:text-accent sm:ml-auto sm:px-3"
               >
                 <ExternalLink className="h-4 w-4" />
               </Link>
@@ -486,14 +466,20 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
   }, [cursor, loadingMore]);
 
   useEffect(() => {
-    if (loadMoreInView && !loadingMore) loadMore();
+    if (!loadMoreInView || loadingMore) return;
+
+    const timeout = window.setTimeout(() => {
+      void loadMore();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [loadMoreInView, loadMore, loadingMore]);
 
   return (
-    <div className="flex w-full h-full" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="mx-auto flex h-full w-full min-w-0 max-w-[1200px] overflow-x-clip">
 
       {/* ── Main Feed ── */}
-      <main className="flex-1 border-x border-border/50">
+      <main className="min-w-0 flex-1 border-x border-border/50">
 
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 border-b border-border/50 bg-background/85 backdrop-blur-md px-4 py-3 flex items-center justify-between">

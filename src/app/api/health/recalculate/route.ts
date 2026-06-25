@@ -5,8 +5,7 @@ import { healthService } from '@/services/health.service';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env';
 
-// recalculate health
-export const POST = asyncHandler(async (request: NextRequest) => {
+async function recalculateHealth(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const expectedToken = `Bearer ${env.CRON_SECRET}`;
 
@@ -20,4 +19,10 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   logger.info('Health recalculation completed', result);
 
   return apiResponse.success(result, 'Health recalculation complete');
-});
+}
+
+// Vercel cron invokes scheduled routes with GET.
+export const GET = asyncHandler(recalculateHealth);
+
+// Keep POST available for manual/admin trigger calls.
+export const POST = asyncHandler(recalculateHealth);

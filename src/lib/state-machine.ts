@@ -12,7 +12,7 @@ const TRANSITIONS: Readonly<Record<ProjectState, readonly ProjectState[]>> = {
   DEAD: ['ACTIVE'],
 };
 
-export type TransitionSource = 'manual' | 'health_cron' | 'ai_pulse' | 'resurrection';
+export type TransitionSource = 'manual' | 'health_cron' | 'ai_pulse' | 'resurrection' | 'user_activity';
 
 export interface TransitionContext {
   readonly source: TransitionSource;
@@ -21,13 +21,13 @@ export interface TransitionContext {
 type TransitionKey = `${ProjectState}:${ProjectState}`;
 
 const SOURCE_TRANSITIONS: Readonly<Partial<Record<TransitionKey, readonly TransitionSource[]>>> = {
-  'BORN:ACTIVE': ['manual', 'ai_pulse'],
+  'BORN:ACTIVE': ['manual', 'ai_pulse', 'user_activity'],
   'BORN:STALLED': ['health_cron'],
   'BORN:DEAD': ['manual', 'health_cron'],
   'ACTIVE:STALLED': ['health_cron'],
   'ACTIVE:SHIPPED': ['manual'],
   'ACTIVE:DEAD': ['manual', 'health_cron'],
-  'STALLED:ACTIVE': ['ai_pulse', 'resurrection'],
+  'STALLED:ACTIVE': ['health_cron', 'ai_pulse', 'resurrection', 'user_activity'],
   'STALLED:DEAD': ['manual', 'health_cron'],
   'DEAD:ACTIVE': ['ai_pulse', 'resurrection'],
 };

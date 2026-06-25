@@ -1,3 +1,9 @@
+import { HEALTH_CONFIG } from '@/config/health';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const COMMIT_FETCH_OVERLAP_MS = 5 * 60 * 1000;
+const CLOCK_SKEW_ALLOWANCE_MS = 5 * 60 * 1000;
+
 export const ghFetch = (path: string) =>
   fetch(`https://api.github.com${path}`, {
     headers: {
@@ -17,12 +23,95 @@ export interface GitHubCommit {
   } | null;
   commit?: {
     message?: string | null;
+    author?: {
+      date?: string | null;
+    } | null;
+    committer?: {
+      date?: string | null;
+    } | null;
   };
 }
 
 export interface ProjectOwnerIdentity {
   githubId?: number | null;
   username?: string | null;
+}
+
+export interface PulseProjectActivity {
+  readonly createdAt: Date;
+  readonly lastActivityAt?: Date | null;
+  readonly lastPulseCheckAt?: Date | null;
+}
+
+function maxDate(dates: readonly Date[]): Date {
+  return new Date(Math.max(...dates.map((date) => date.getTime())));
+}
+
+export function getCommitDate(commit: GitHubCommit): Date | null {
+  const rawDate = commit.commit?.committer?.date ?? commit.commit?.author?.date;
+  if (!rawDate) return null;
+
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date;
+}
+
+export function getPulseSinceDate(
+  project: PulseProjectActivity,
+  now = new Date(),
+): Date {
+  const freshnessCutoff = new Date(
+    now.getTime() - HEALTH_CONFIG.stalledDays * MS_PER_DAY,
+  );
+  const lastPulseOverlap = project.lastPulseCheckAt
+    ? new Date(project.lastPulseCheckAt.getTime() - COMMIT_FETCH_OVERLAP_MS)
+    : null;
+
+  return maxDate([
+    freshnessCutoff,
+    project.createdAt,
+    ...(lastPulseOverlap ? [lastPulseOverlap] : []),
+  ]);
+}
+
+export function getFreshCommitsForPulse(
+  commits: readonly GitHubCommit[],
+  project: PulseProjectActivity,
+  now = new Date(),
+): GitHubCommit[] {
+  const baseline = project.lastActivityAt ?? project.createdAt;
+  const freshnessCutoff = new Date(
+    now.getTime() - HEALTH_CONFIG.stalledDays * MS_PER_DAY,
+  );
+  const futureCutoff = new Date(now.getTime() + CLOCK_SKEW_ALLOWANCE_MS);
+
+  return commits
+    .filter((commit) => {
+      const commitDate = getCommitDate(commit);
+      if (!commitDate) return false;
+
+      return (
+        commitDate > baseline &&
+        commitDate >= freshnessCutoff &&
+        commitDate <= futureCutoff
+      );
+    })
+    .sort((a, b) => {
+      const aDate = getCommitDate(a)?.getTime() ?? 0;
+      const bDate = getCommitDate(b)?.getTime() ?? 0;
+      return bDate - aDate;
+    });
+}
+
+export function getLatestCommitDate(commits: readonly GitHubCommit[]): Date | null {
+  const dates = commits
+    .map((commit) => getCommitDate(commit))
+    .filter((date): date is Date => Boolean(date));
+
+  if (!dates.length) return null;
+
+  return maxDate(dates);
 }
 
 export function isOwnerAuthoredCommit(

@@ -4,6 +4,7 @@ import {
   getDecayState,
   getHealthBucket,
 } from '@/lib/health-calculator';
+import { HEALTH_CONFIG } from '@/config/health';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -53,6 +54,42 @@ describe('calculateHealth', () => {
       commitsLastMonth: 0,
     });
     expect(score).toBe(0); // 120 days since dead is well beyond max 10 threshold
+  });
+
+  it('dead project: health is capped at 10 when it first crosses the dead threshold', () => {
+    const score = calculateHealth({
+      state: 'DEAD',
+      createdAt: daysAgo(30),
+      lastActivityAt: daysAgo(HEALTH_CONFIG.deadDays),
+      commitsThisMonth: 20,
+      commitsLastMonth: 0,
+    });
+
+    expect(score).toBe(10);
+  });
+
+  it('dead project: loses 1 health every configured dead decay window', () => {
+    const score = calculateHealth({
+      state: 'DEAD',
+      createdAt: daysAgo(30),
+      lastActivityAt: daysAgo(HEALTH_CONFIG.deadDays + HEALTH_CONFIG.deadHealthDecayDays),
+      commitsThisMonth: 20,
+      commitsLastMonth: 0,
+    });
+
+    expect(score).toBe(9);
+  });
+
+  it('dead project: does not decay before a full dead decay window passes', () => {
+    const score = calculateHealth({
+      state: 'DEAD',
+      createdAt: daysAgo(30),
+      lastActivityAt: daysAgo(HEALTH_CONFIG.deadDays + HEALTH_CONFIG.deadHealthDecayDays - 1),
+      commitsThisMonth: 20,
+      commitsLastMonth: 0,
+    });
+
+    expect(score).toBe(10);
   });
 
 

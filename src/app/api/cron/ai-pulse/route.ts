@@ -4,6 +4,9 @@ import {
   ghFetch,
   calcHealthFromCommits,
   generatePulse,
+  getFreshCommitsForPulse,
+  getLatestCommitDate,
+  getPulseSinceDate,
   isOwnerAuthoredCommit,
   type GitHubCommit,
 } from '@/lib/ai-pulse';
@@ -44,6 +47,7 @@ export async function GET(request: Request) {
         state: true,
         health: true,
         githubRepoUrl: true,
+        createdAt: true,
         lastActivityAt: true,
         lastPulseCheckAt: true,
         user: {
@@ -82,9 +86,8 @@ export async function GET(request: Request) {
         // Strip .git suffix if present
         const repo = repoRaw.replace(/\.git$/, '');
 
-        // --- Fetch commits since last activity (or 14 days for dead projects) ---
-        const lookbackDays = project.state === 'DEAD' ? 14 : 7;
-        const sinceDate = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000);
+        // Fetch only from the active freshness window, with a tiny overlap for API lag.
+        const sinceDate = getPulseSinceDate(project, now);
         const commitsRes = await ghFetch(
           `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&per_page=20`
         );
@@ -98,11 +101,12 @@ export async function GET(request: Request) {
         }
 
         const commits: GitHubCommit[] = await commitsRes.json();
+        const freshCommits = getFreshCommitsForPulse(commits, project, now);
 
-        // --- Always update lastPulseCheckAt ---
-        if (commits.length === 0) {
+        // Older commits should not refresh lifecycle activity or create timeline noise.
+        if (freshCommits.length === 0) {
           await prisma.project.update({ where: { id: project.id }, data: pulseUpdate });
-          results.push({ id: project.id, action: 'no_commits' });
+          results.push({ id: project.id, action: commits.length === 0 ? 'no_commits' : 'stale_commits_ignored' });
           continue;
         }
 
@@ -119,7 +123,7 @@ export async function GET(request: Request) {
           // README is optional context - continue without it
         }
 
-        const ownerCommits = commits.filter((commit) =>
+        const ownerCommits = freshCommits.filter((commit) =>
           isOwnerAuthoredCommit(commit, project.user)
         );
         const isDeadResurrection = project.state === 'DEAD';
@@ -136,7 +140,14 @@ export async function GET(request: Request) {
           continue;
         }
 
-        const activityCommits = shouldActivate ? ownerCommits : commits;
+        const activityCommits = shouldActivate ? ownerCommits : freshCommits;
+        const latestActivityAt = getLatestCommitDate(activityCommits);
+        if (!latestActivityAt) {
+          await prisma.project.update({ where: { id: project.id }, data: pulseUpdate });
+          results.push({ id: project.id, action: 'commits_missing_dates' });
+          continue;
+        }
+
         const commitMessages = activityCommits.map((commit) => commit.commit?.message ?? '');
 
         // --- Generate AI summary ---
@@ -162,7 +173,7 @@ export async function GET(request: Request) {
             where: { id: project.id },
             data: {
               ...pulseUpdate,
-              lastActivityAt: now,
+              lastActivityAt: latestActivityAt,
               health: newHealth,
             },
           });
@@ -179,6 +190,7 @@ export async function GET(request: Request) {
                 data: {
                   commitCount: ownerCommits.length,
                   repo: `${owner}/${repo}`,
+                  latestCommitAt: latestActivityAt.toISOString(),
                 },
               },
             });
@@ -195,6 +207,7 @@ export async function GET(request: Request) {
                   commitCount: activityCommits.length,
                   ownerCommitCount: ownerCommits.length,
                   repo: `${owner}/${repo}`,
+                  latestCommitAt: latestActivityAt.toISOString(),
                 },
               },
             });

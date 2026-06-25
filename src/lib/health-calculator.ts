@@ -39,7 +39,7 @@ export function calculateHealth(input: HealthCalculationInput): number {
     health = 90 + (health / 10);
   } else if (state === 'DEAD') {
     const daysSinceDeath = Math.max(0, daysSince - HEALTH_CONFIG.deadDays);
-    const deadDecay = Math.floor(daysSinceDeath / 1.5);
+    const deadDecay = Math.floor(daysSinceDeath / HEALTH_CONFIG.deadHealthDecayDays);
     health = Math.max(0, 10 - deadDecay);
   } else if (state === 'ACTIVE' || state === 'BORN') {
     health = Math.min(95, health);

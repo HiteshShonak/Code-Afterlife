@@ -105,18 +105,18 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative isolate flex h-screen min-h-190 w-full flex-col items-center justify-center overflow-hidden">
+    <section className="relative isolate flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden px-4 pb-20 pt-28 md:h-screen md:min-h-190 md:px-0 md:py-0">
       {/* background image */}
       <div className="absolute inset-0 -z-30 bg-background overflow-hidden">
         {/* inner background */}
-        <div ref={bgRef} className="absolute inset-[-5%] translate-x-[-1%]">
+        <div ref={bgRef} className="absolute inset-[-8%] translate-x-[-1%] md:inset-[-5%]">
           <Image
             src="/hero-image.webp"
             alt="A vast foggy ravine of digital ruins with floating abandoned software panels and a distant light beam on the horizon"
             fill
             priority
             sizes="100vw"
-            className="ca-ken-burns h-full w-full object-cover object-[52%_center] select-none pointer-events-none"
+            className="ca-ken-burns h-full w-full object-cover object-[58%_center] select-none pointer-events-none sm:object-[52%_center]"
             draggable={false}
           />
         </div>
@@ -137,7 +137,7 @@ export function Hero() {
         <div ref={panelsRef} className="absolute inset-0">
           {/* panel 1 */}
           <div 
-            className="absolute left-[12%] top-[30%] w-48 h-64 border border-accent/20 bg-background/5 backdrop-blur-md rounded-2xl ca-panel-float shadow-[0_0_30px_rgba(139,92,246,0.1)] opacity-70"
+            className="absolute left-[3%] top-[24%] h-44 w-32 rounded-2xl border border-accent/20 bg-background/5 opacity-45 shadow-[0_0_30px_rgba(139,92,246,0.1)] backdrop-blur-md ca-panel-float sm:left-[12%] sm:top-[30%] sm:h-64 sm:w-48 sm:opacity-70"
             style={{ "--tw-panel-rx": "12deg", "--tw-panel-ry": "28deg", "--tw-panel-duration": "18s" } as React.CSSProperties}
           >
             <div className="w-full h-full p-5 flex flex-col gap-4 opacity-40 mix-blend-plus-lighter">
@@ -153,7 +153,7 @@ export function Hero() {
 
           {/* panel 2 */}
           <div 
-            className="absolute right-[8%] top-[50%] w-64 h-44 border border-white/10 bg-background/10 backdrop-blur-lg rounded-2xl ca-panel-float shadow-[0_0_20px_rgba(255,255,255,0.05)] opacity-50"
+            className="absolute right-[-18%] top-[58%] h-32 w-48 rounded-2xl border border-white/10 bg-background/10 opacity-35 shadow-[0_0_20px_rgba(255,255,255,0.05)] backdrop-blur-lg ca-panel-float sm:right-[8%] sm:top-[50%] sm:h-44 sm:w-64 sm:opacity-50"
             style={{ "--tw-panel-rx": "-15deg", "--tw-panel-ry": "-35deg", "--tw-panel-duration": "24s" } as React.CSSProperties}
           >
             <div className="w-full h-full p-4 flex flex-col gap-2 opacity-30">
@@ -167,7 +167,7 @@ export function Hero() {
 
           {/* panel 3 */}
           <div 
-            className="absolute right-[30%] top-[15%] w-32 h-32 border border-accent/10 bg-accent/5 backdrop-blur-sm rounded-xl ca-panel-float opacity-30 blur-[3px]"
+            className="absolute right-[20%] top-[14%] h-20 w-20 rounded-xl border border-accent/10 bg-accent/5 opacity-20 blur-[3px] backdrop-blur-sm ca-panel-float sm:right-[30%] sm:top-[15%] sm:h-32 sm:w-32 sm:opacity-30"
             style={{ "--tw-panel-rx": "5deg", "--tw-panel-ry": "15deg", "--tw-panel-duration": "32s" } as React.CSSProperties}
           />
         </div>
@@ -177,32 +177,32 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-background to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-72 bg-linear-to-b from-transparent via-background/80 to-background" />
-        <div className="ca-pulse-glow absolute left-1/2 top-1/2 h-175 w-175 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 mix-blend-screen" />
+        <div className="ca-pulse-glow absolute left-1/2 top-1/2 h-100 w-100 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 mix-blend-screen md:h-175 md:w-175" />
         <div className="ca-grain absolute inset-0 opacity-40 mix-blend-overlay" />
         {/* text shadow */}
-        <div className="absolute left-1/2 top-1/2 h-130 w-275 max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/30 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-90 w-[88vw] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/35 blur-3xl md:h-130 md:w-275" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
-        <h1 className="text-balance font-sans text-[14vw] font-extrabold leading-[0.86] tracking-[-0.045em] text-foreground md:text-[9.5rem]">
+      <div className="relative z-10 mx-auto w-full max-w-5xl text-center">
+        <h1 className="text-balance font-sans text-[4.35rem] font-extrabold leading-[0.88] tracking-normal text-foreground min-[390px]:text-[5.1rem] sm:text-[6.5rem] md:text-[9.5rem]">
           Software
           <br />
           Never Dies.
         </h1>
-        <p className="mx-auto mt-8 max-w-[44ch] text-pretty font-mono text-xs uppercase tracking-[0.25em] text-muted-foreground md:text-sm">
+        <p className="mx-auto mt-6 max-w-[34ch] text-pretty font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:max-w-[44ch] sm:text-xs sm:tracking-[0.25em] md:mt-8 md:text-sm">
           Projects decay. Builders disappear. Code survives.
         </p>
-        <div className="mt-12 flex flex-col items-center justify-center gap-3 md:flex-row md:gap-4">
+        <div className="mx-auto mt-9 flex w-full max-w-xs flex-col items-stretch justify-center gap-3 sm:max-w-none sm:flex-row sm:items-center sm:gap-4 md:mt-12">
           <Link
             href="/graveyard"
-            className="group inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-background transition-colors duration-500 hover:bg-accent hover:text-accent-foreground"
+            className="group inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-background transition-colors duration-500 hover:bg-accent hover:text-accent-foreground sm:px-7 sm:text-[11px] sm:tracking-[0.22em]"
           >
             Enter the Graveyard
             <span className="transition-transform duration-500 group-hover:translate-x-1">→</span>
           </Link>
           <Link
             href="/explore"
-            className="inline-flex items-center gap-2 rounded-full border border-foreground/20 px-7 py-3.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground transition-colors duration-500 hover:bg-foreground/5"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-foreground/20 px-6 py-3.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground transition-colors duration-500 hover:bg-foreground/5 sm:px-7 sm:text-[11px] sm:tracking-[0.22em]"
           >
             Explore Projects
           </Link>
@@ -210,11 +210,11 @@ export function Hero() {
       </div>
 
       {/* scroll cue */}
-      <div className="absolute bottom-10 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-3">
-        <span className="font-mono text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
+      <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 sm:bottom-10 sm:gap-3">
+        <span className="font-mono text-[8px] uppercase tracking-[0.34em] text-muted-foreground sm:text-[9px] sm:tracking-[0.5em]">
           Scroll to excavate
         </span>
-        <span className="h-12 w-px bg-linear-to-b from-foreground/40 to-transparent" />
+        <span className="h-8 w-px bg-linear-to-b from-foreground/40 to-transparent sm:h-12" />
       </div>
     </section>
   );

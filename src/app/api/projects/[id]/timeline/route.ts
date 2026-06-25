@@ -56,7 +56,7 @@ export async function POST(
     const now = new Date();
     const entry = await prisma.$transaction(async (tx) => {
       await projectService.updateState(id, 'ACTIVE', {
-        source: 'manual',
+        source: 'user_activity',
         tx,
       });
 
