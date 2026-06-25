@@ -27,7 +27,7 @@ if (typeof window !== "undefined") {
   };
 }
 
-// ─── TERRAIN HEIGHT ───────────────────────────────────────────────────────────
+// Terrain Height
 
 function getTerrainHeight(x: number, z: number) {
   // terrain noise
@@ -37,7 +37,7 @@ function getTerrainHeight(x: number, z: number) {
   return height + mid + micro;
 }
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+// Constants
 
 const VISIBLE_ROUNDED = 55; // Enough for a dense field
 
@@ -156,7 +156,7 @@ class CollisionGrid {
 // Singleton shared across all tombstone types
 const globalGrid = new CollisionGrid(30);
 
-// ─── GEOMETRIES ───────────────────────────────────────────────────────────────
+// Geometries
 
 class RoundedTombstoneGeometry extends THREE.BufferGeometry {
   constructor(width = 0.6, height = 1.0, depth = 0.2) {
@@ -186,7 +186,7 @@ function polarSpawn(camPos: THREE.Vector3, forward: THREE.Vector3, minR: number,
   };
 }
 
-// ─── TREADMILL TOMBSTONES ─────────────────────────────────────────────────────
+// Treadmill Tombstones
 
 interface ActiveTombstone {
   position: THREE.Vector3;
@@ -464,7 +464,7 @@ function TreadmillTombstones({
   );
 }
 
-// ─── TOMBSTONE TEXT (LOD-GATED) ───────────────────────────────────────────────
+// Tombstone Text
 
 function TombstoneText({ hoveredId, items, projects }: {
   hoveredId: number | null;
@@ -636,7 +636,7 @@ function TombstoneTextItem({ isHovered, item, project }: {
   );
 }
 
-// ─── CINEMATIC MOON (tracks camera) ──────────────────────────────────────────
+// Cinematic Moon
 
 function CinematicMoonLight() {
   const dirRef = useRef<THREE.DirectionalLight>(null);
@@ -692,7 +692,7 @@ function CinematicMoonLight() {
   );
 }
 
-// ─── CAMERA FOLLOW LIGHT ──────────────────────────────────────────────────────
+// Camera Follow Light
 
 function CinematicCameraLight() {
   const ref = useRef<THREE.PointLight>(null);
@@ -706,7 +706,7 @@ function CinematicCameraLight() {
   return <pointLight ref={ref} intensity={6.0} distance={50} color="#ccd6f6" />;
 }
 
-// ─── GROUND FOG LAYERS ────────────────────────────────────────────────────────
+// Ground Fog Layers
 
 const fogVert = `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
 const fogFrag = `
@@ -752,7 +752,7 @@ function GroundFog() {
   );
 }
 
-// ─── INFINITE TERRAIN CHUNKING ────────────────────────────────────────────────
+// Infinite Terrain Chunking
 
 function TerrainChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
   const ox = chunkX * CHUNK_SIZE;
@@ -1262,7 +1262,7 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
   }, []);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#030611", overflow: "hidden", position: "relative" }}>
+    <div className="relative h-[100svh] min-h-[100dvh] w-full overflow-hidden bg-[#030611]">
 
       {/* header */}
       <GraveyardHeader filters={filters} onChange={setFilters} />

@@ -7,6 +7,7 @@ import {
   getFreshCommitsForPulse,
   getLatestCommitDate,
   getPulseSinceDate,
+  getPulseUntilDate,
   isOwnerAuthoredCommit,
   type GitHubCommit,
 } from '@/lib/ai-pulse';
@@ -14,7 +15,7 @@ import { projectService } from '@/services/project.service';
 
 export const maxDuration = 60; // Vercel serverless limit
 
-// ─── Main cron handler ────────────────────────────────────────────────────────
+// main cron handler
 export async function GET(request: Request) {
   try {
     // 1. Auth check
@@ -30,8 +31,7 @@ export async function GET(request: Request) {
     const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
     const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
-    // 2. Fetch all candidate projects
-    //    that have a GitHub URL and haven't been checked within 6 hours.
+    // 2. Fetch all candidate projects with a GitHub URL not checked within 6 hours
     const candidates = await prisma.project.findMany({
       where: {
         state: { in: ['BORN', 'ACTIVE', 'STALLED', 'DEAD'] },
@@ -63,9 +63,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'No projects due for a pulse check.' });
     }
 
-    // 3. Probabilistic stagger: 
-    //    - Never checked or >12h ago  → always process (100%)
-    //    - 6–12h ago                  → 20% random chance
+    // 3. Probabilistic stagger (20% chance if 6-12h ago, 100% if >12h ago)
     const projectsToProcess = candidates.filter((p) => {
       if (!p.lastPulseCheckAt || p.lastPulseCheckAt < twelveHoursAgo) return true;
       return Math.random() < 0.20; // 20% chance in the 6–12h window
@@ -88,8 +86,9 @@ export async function GET(request: Request) {
 
         // Fetch only from the active freshness window, with a tiny overlap for API lag.
         const sinceDate = getPulseSinceDate(project, now);
+        const untilDate = getPulseUntilDate(now);
         const commitsRes = await ghFetch(
-          `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&per_page=20`
+          `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&until=${untilDate.toISOString()}&per_page=20`
         );
 
         // Mark as checked regardless of whether we find commits
@@ -110,7 +109,7 @@ export async function GET(request: Request) {
           continue;
         }
 
-        // --- Fetch README for richer context ---
+        // fetch README for richer context
         let readme: string | null = null;
         try {
           const readmeRes = await ghFetch(`/repos/${owner}/${repo}/readme`);
@@ -150,7 +149,7 @@ export async function GET(request: Request) {
 
         const commitMessages = activityCommits.map((commit) => commit.commit?.message ?? '');
 
-        // --- Generate AI summary ---
+        // generate AI summary
         const summary = await generatePulse(
           project.title,
           commitMessages,
@@ -158,7 +157,7 @@ export async function GET(request: Request) {
           isDeadResurrection
         );
 
-        // --- Calculate new health score ---
+        // calculate new health score
         const newHealth = calcHealthFromCommits(activityCommits.length, project.health);
 
         await prisma.$transaction(async (tx) => {

@@ -7,23 +7,21 @@ import type { ActionResult } from '@/lib/async-handler';
 import type { Project } from '@prisma/client';
 
 interface ResurrectFormState {
+  title: string;
   repoUrl: string;
   description: string;
+  screenshots: string[];
   stack: string[];
 }
 
 // resurrect project hook
 export function useResurrectProject(
   deadProjectId: string,
-  deadProjectStack: string[],
+  initialForm: ResurrectFormState,
   onSuccess: (newSlug: string) => void
 ) {
   const router = useRouter();
-  const [form, setForm] = useState<ResurrectFormState>({
-    repoUrl: '',
-    description: '',
-    stack: deadProjectStack,
-  });
+  const [form, setForm] = useState<ResurrectFormState>(initialForm);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -36,8 +34,10 @@ export function useResurrectProject(
   const submit = useCallback(() => {
     setServerError(null);
     const data = new FormData();
+    data.set('title', form.title);
     data.set('repoUrl', form.repoUrl);
     data.set('description', form.description);
+    form.screenshots.forEach((url) => data.append('screenshots', url));
     form.stack.forEach((s) => data.append('stack', s));
 
     startTransition(async () => {

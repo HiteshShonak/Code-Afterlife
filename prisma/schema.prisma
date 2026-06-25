@@ -1,11 +1,3 @@
-// =============================================================================
-// Code Afterlife â€” Prisma Schema
-// =============================================================================
-// Database: PostgreSQL (Neon free tier)
-// Philosophy: Schema supports Phase 1 MVP + Phase 2 social/engagement tables
-// Convention: "resurrect" terminology (not "revive") per product identity
-// =============================================================================
-
 generator client {
   provider = "prisma-client-js"
 }

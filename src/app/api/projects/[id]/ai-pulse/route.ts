@@ -8,6 +8,7 @@ import {
   getFreshCommitsForPulse,
   getLatestCommitDate,
   getPulseSinceDate,
+  getPulseUntilDate,
   isOwnerAuthoredCommit,
   type GitHubCommit,
 } from '@/lib/ai-pulse';
@@ -63,14 +64,12 @@ export async function POST(
     const halfDayAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
     
     // Check if a manual AI fetch was done in the last 12h
-    // (We distinguish manual vs cron by checking a flag in JSON `data`, or just limit the route itself)
-    // Actually, limiting any AI_BUILD_LOG in the last 12h is safest and prevents spamming LLM API.
     const recentAILog = await prisma.timelineEntry.findFirst({
       where: {
         projectId: id,
         type: { in: ['AI_BUILD_LOG', 'RESURRECTION'] },
         createdAt: { gte: halfDayAgo },
-        // We look for manualTrigger in JSON data, but to be generous we just throttle to 1 per 12h total
+
       }
     });
 
@@ -89,10 +88,11 @@ export async function POST(
     const [, owner, repoRaw] = match;
     const repo = repoRaw.replace(/\.git$/, '');
 
-    // Fetch only from the active freshness window, with a tiny overlap for API lag.
+    // Fetch only from the active freshness window
     const sinceDate = getPulseSinceDate(project, now);
+    const untilDate = getPulseUntilDate(now);
     const commitsRes = await ghFetch(
-      `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&per_page=20`
+      `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&until=${untilDate.toISOString()}&per_page=20`
     );
 
     if (!commitsRes.ok) {

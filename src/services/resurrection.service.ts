@@ -18,7 +18,7 @@ export interface ChainProject {
 }
 
 /** Returns a random starting health in the range [42, 58]. */
-function seededInitialHealth(_seed: string): number {
+function seededInitialHealth(): number {
   const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8
   return PROJECT_DEFAULTS.initialHealth + offset;     // 42 … 58
 }
@@ -42,21 +42,21 @@ export const resurrectionService = {
       throw ApiError.badRequest('Only dead projects can be resurrected');
     }
 
-    const baseSlug = generateSlug(`${deadProject.title} resurrected`);
+    const baseSlug = generateSlug(data.title);
     const suffix = Math.random().toString(36).substring(2, 7);
     const slug = `${baseSlug}-${suffix}`;
 
     const newProject = await prisma.$transaction(async (tx) => {
       const created = await tx.project.create({
         data: {
-          title: `${deadProject.title} (Resurrected)`,
+          title: data.title,
           slug,
           description: data.description ?? deadProject.description,
           githubRepoUrl: data.repoUrl,
           stack: data.stack ?? deadProject.stack,
-          screenshots: deadProject.screenshots,
+          screenshots: data.screenshots,
           state: 'BORN',
-          health: seededInitialHealth(deadProject.title + resurrecterUserId),
+          health: seededInitialHealth(),
           userId: resurrecterUserId,
           resurrecterUserId,
           parentProjectId: deadProjectId,

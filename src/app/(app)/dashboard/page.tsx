@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const { auth } = await import('@/lib/auth');
   const session = await auth();
 
-  // Layout guarantees auth - but TypeScript needs the null check
+  // typescript null check
   if (!session?.user?.id) redirect('/');
 
   const userId = session.user.id;

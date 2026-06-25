@@ -20,7 +20,7 @@ export interface GithubRepoItem {
 export const GET = asyncHandler(async (_request: NextRequest) => {
   const user = await requireAuth();
 
-  // Retrieve the stored GitHub OAuth access token via PrismaAdapter's Account table
+  // get github access token
   const account = await prisma.account.findFirst({
     where: { userId: user.id, provider: 'github' },
     select: { access_token: true },
@@ -30,8 +30,7 @@ export const GET = asyncHandler(async (_request: NextRequest) => {
     return apiResponse.error('no_token', 401);
   }
 
-  // Fetch repos - type=owner returns only repos the user owns (not forks or org repos)
-  // Do NOT combine type= with affiliation= as they conflict in the GitHub API
+  // fetch owner repos
   const ghRes = await fetch(
     'https://api.github.com/user/repos?sort=updated&per_page=100&type=owner',
     {
@@ -47,7 +46,7 @@ export const GET = asyncHandler(async (_request: NextRequest) => {
     let errorCode = 'github_error';
     try {
       const body = await ghRes.json();
-      // 401 = expired token, 403 = insufficient scope (need public_repo)
+      // handle auth errors
       if (ghRes.status === 401 || ghRes.status === 403) {
         errorCode = 'reauth_needed';
       }

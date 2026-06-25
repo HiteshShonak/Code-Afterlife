@@ -13,8 +13,10 @@ export const resurrectProjectAction = actionHandler(
     const user = await requireAuth();
 
     const rawData = {
+      title: formData.get('title') as string,
       repoUrl: formData.get('repoUrl') as string,
       description: (formData.get('description') as string) || undefined,
+      screenshots: formData.getAll('screenshots').map(String).filter(Boolean),
       stack: formData.getAll('stack').map(String),
     };
 

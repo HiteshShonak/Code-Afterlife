@@ -24,9 +24,7 @@ import { formatRelativeDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { ImageLightbox } from '@/components/ImageLightbox';
 
-// ─────────────────────────────────────────────────────────────
 // Types
-// ─────────────────────────────────────────────────────────────
 
 interface ExploreFeedClientProps {
   initialProjects: ProjectWithUser[];
@@ -38,13 +36,7 @@ interface ExploreFeedClientProps {
   votedProjectIds: string[];
 }
 
-// ─────────────────────────────────────────────────────────────
-// Image Carousel (inline in feed posts)
-// ─────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────
-// Inline Post Image Carousel (slides through screenshots)
-// ─────────────────────────────────────────────────────────────
+// Inline Post Image Carousel
 
 function PostImageCarousel({
   images,
@@ -135,9 +127,7 @@ function PostImageCarousel({
   );
 }
 
-// ─────────────────────────────────────────────────────────────
 // Health Pulse Dot
-// ─────────────────────────────────────────────────────────────
 
 function HealthDot({ health }: { health: number }) {
   const color =
@@ -157,9 +147,7 @@ function HealthDot({ health }: { health: number }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Single Feed Post (Twitter card style)
-// ─────────────────────────────────────────────────────────────
+// Single Feed Post
 
 function FeedPost({
   project,
@@ -176,12 +164,12 @@ function FeedPost({
   const { decayState, healthPercent } = useDecayState(project.health);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Like state - seeded from server so icon is pre-colored on first render
+  // like state
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(project.likeCount);
   const [likeLoading, setLikeLoading] = useState(false);
 
-  // Vote state - seeded from server (WILL_SHIP only for the fire icon)
+  // vote state
   const [myVote, setMyVote] = useState<'WILL_SHIP' | 'WILL_DIE' | null>(initialVoted ? 'WILL_SHIP' : null);
   const [voteCount, setVoteCount] = useState(project.voteCount);
   const [voteLoading, setVoteLoading] = useState(false);
@@ -224,7 +212,7 @@ function FeedPost({
     }
   };
 
-  // Fire = WILL_SHIP vote. Toggle: same vote removes it, calling again removes it.
+  // toggle vote
   const handleVote = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -304,24 +292,24 @@ function FeedPost({
 
             {/* Header: name / handle / time / state */}
             <div className="mb-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
-              <span className="max-w-28 truncate text-sm font-semibold leading-none text-foreground sm:max-w-35">
+              <span className="max-w-24 truncate text-sm font-semibold leading-none text-foreground sm:max-w-35">
                 {displayName}
               </span>
               {handle && (
-                <span className="min-w-0 truncate font-mono text-xs text-muted-foreground/50">
+                <span className="max-w-28 min-w-0 truncate font-mono text-xs text-muted-foreground/50 sm:max-w-none">
                   {handle}
                 </span>
               )}
               <span className="text-muted-foreground/30 text-xs">·</span>
               <span className="font-mono text-xs text-muted-foreground/40 shrink-0">{timeAgo}</span>
-              <div className="ml-auto shrink-0">
+              <div className="min-w-0 shrink-0 sm:ml-auto">
                 <StateBadge state={project.state} />
               </div>
             </div>
 
             {/* Clickable title */}
             <Link href={`/project/${project.slug}`}>
-              <h2 className="font-mono text-[15px] font-bold text-foreground leading-snug mb-2 hover:text-accent transition-colors duration-150">
+              <h2 className="mb-2 break-words font-mono text-[15px] font-bold leading-snug text-foreground transition-colors duration-150 hover:text-accent">
                 {project.title}
               </h2>
             </Link>
@@ -436,9 +424,7 @@ function FeedPost({
   );
 }
 
-// ─────────────────────────────────────────────────────────────
 // Main Feed Client
-// ─────────────────────────────────────────────────────────────
 
 export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags, trendingProjects, currentUserId, likedProjectIds, votedProjectIds }: ExploreFeedClientProps) {
   const [projects, setProjects] = useState<ProjectWithUser[]>(initialProjects);
@@ -476,10 +462,10 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
   }, [loadMoreInView, loadMore, loadingMore]);
 
   return (
-    <div className="mx-auto flex h-full w-full min-w-0 max-w-[1200px] overflow-x-clip">
+    <div className="mx-auto flex h-full w-full max-w-full min-w-0 overflow-x-clip lg:max-w-[1200px]">
 
       {/* ── Main Feed ── */}
-      <main className="min-w-0 flex-1 border-x border-border/50">
+      <main className="w-full min-w-0 flex-1 border-x border-border/50">
 
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 border-b border-border/50 bg-background/85 backdrop-blur-md px-4 py-3 flex items-center justify-between">
@@ -545,7 +531,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
                   </span>
                   <div className="flex items-center gap-1.5">
                     <Hash className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-                    <span className="font-mono text-[12px] font-semibold text-foreground/70 group-hover:text-accent transition-colors">
+                    <span className="min-w-0 truncate font-mono text-[12px] font-semibold text-foreground/70 transition-colors group-hover:text-accent">
                       {tag}
                     </span>
                   </div>
@@ -570,7 +556,7 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
                     <span className="font-mono text-[10px] text-muted-foreground/25 w-3 text-right shrink-0">
                       {i + 1}
                     </span>
-                    <span className="font-mono text-[12px] font-semibold text-accent/70 group-hover:text-accent transition-colors">
+                    <span className="min-w-0 truncate font-mono text-[12px] font-semibold text-accent/70 transition-colors group-hover:text-accent">
                       @{project.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}
                     </span>
                   </Link>

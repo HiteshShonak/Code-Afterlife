@@ -6,6 +6,7 @@ import React, {
   useState,
   useMemo,
 } from "react";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -817,7 +818,7 @@ function PersonalMessageReveal() {
         <p className="text-sm text-foreground/32 max-w-[34ch] leading-relaxed">
           Create your own time capsule. Preserve what mattered.
         </p>
-        <button className="relative group inline-flex items-center gap-3 border border-amber-500/20
+        <Link href="/dashboard" className="relative group inline-flex items-center gap-3 border border-amber-500/20
           bg-amber-950/30 px-7 py-3.5 font-mono text-[10px] uppercase tracking-[0.3em]
           text-amber-400/65 backdrop-blur-sm transition-all duration-700
           hover:border-amber-500/40 hover:bg-amber-950/50 hover:text-amber-300/90">
@@ -826,7 +827,7 @@ function PersonalMessageReveal() {
             transition-transform duration-700 group-hover:translate-x-full" />
           <span className="relative">Seal Your Capsule</span>
           <span className="relative transition-transform duration-500 group-hover:translate-x-1">→</span>
-        </button>
+        </Link>
       </motion.div>
     </div>
   );

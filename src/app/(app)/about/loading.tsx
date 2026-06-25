@@ -1,73 +1,112 @@
-import { Code, Flame, History } from 'lucide-react';
+import { Activity, Code, GitFork, History, TimerReset } from 'lucide-react';
 
 export default function AboutLoading() {
   return (
-    <div className="relative min-h-screen bg-[#030508] overflow-hidden">
-      {/* Ambient background glows */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] h-200 w-200 rounded-full bg-slate-900/40 blur-[150px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] h-225 w-225 rounded-full bg-[#b87333]/5 blur-[200px]" />
-        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 h-150 w-150 rounded-full bg-amber-500/5 blur-[200px]" />
-      </div>
+    <div className="min-h-screen overflow-x-clip bg-[#050608] text-foreground">
+      <div className="animate-pulse">
+        <section className="relative min-h-[86vh] overflow-hidden bg-[#090b0d]">
+          <div className="absolute inset-0 bg-[url('/hero-image.webp')] bg-cover bg-center opacity-30" />
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-[#050608] to-transparent" />
 
-      <div className="relative z-10 animate-pulse">
-        {/* HERO SECTION */}
-        <section className="relative flex min-h-[90vh] flex-col items-center justify-center px-6 text-center">
-          <div className="flex flex-col items-center w-full">
-            <div className="mb-8 flex items-center justify-center gap-4">
-              <span className="h-px w-12 bg-amber-500/20" />
-              <div className="h-4 w-40 bg-amber-500/20 rounded" />
-              <span className="h-px w-12 bg-amber-500/20" />
+          <div className="relative z-10 mx-auto flex min-h-[86vh] max-w-6xl flex-col justify-end px-4 pb-16 pt-32 sm:px-6 md:px-10 lg:pb-20">
+            <div className="mb-4 h-3 w-48 rounded-sm bg-amber-300/18" />
+            <div className="h-12 w-full max-w-[18rem] rounded-sm bg-white/12 sm:h-20 sm:max-w-[34rem] md:h-24" />
+            <div className="mt-6 max-w-2xl space-y-3">
+              <div className="h-4 w-full rounded-sm bg-white/10 sm:h-5" />
+              <div className="h-4 w-5/6 rounded-sm bg-white/8 sm:h-5" />
             </div>
-            
-            <div className="h-20 sm:h-28 max-w-2xl w-full bg-white/10 rounded-xl mb-8" />
-            <div className="h-10 sm:h-14 max-w-md w-full bg-white/10 rounded-xl mb-8" />
-            
-            <div className="h-6 max-w-2xl w-full bg-white/5 rounded-md mb-2" />
-            <div className="h-6 max-w-xl w-full bg-white/5 rounded-md mb-16" />
-            
-            <div className="mt-10 flex items-center gap-1.5 opacity-30">
-              <div className="h-10 w-px bg-linear-to-b from-transparent via-white to-transparent" />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="h-11 w-full rounded-sm border border-amber-300/20 bg-amber-300/8 sm:w-40" />
+              <div className="h-11 w-full rounded-sm border border-white/12 bg-white/6 sm:w-32" />
             </div>
           </div>
         </section>
 
-        {/* MANIFESTO SECTIONS */}
-        <div className="relative border-y border-white/5 bg-black/40 backdrop-blur-3xl py-32 md:py-48">
-          <div className="mx-auto max-w-4xl px-6 flex flex-col gap-32 md:gap-48">
-            {[Code, Flame, History].map((Icon, i) => (
-              <div key={i} className="flex flex-col md:flex-row items-start gap-8 md:gap-16">
-                <div className="shrink-0 mt-2">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/10">
-                    <Icon className="h-7 w-7" />
-                  </div>
+        <main>
+          <section className="border-y border-white/8 bg-[#08090b]">
+            <div className="mx-auto grid max-w-6xl gap-4 px-4 py-8 sm:grid-cols-3 sm:px-6 md:px-10">
+              {[0, 1, 2].map((item) => (
+                <div key={item} className="border-l border-white/10 py-2 pl-4">
+                  <div className="h-8 w-24 rounded-sm bg-white/12" />
+                  <div className="mt-2 h-4 w-36 rounded-sm bg-white/7" />
                 </div>
-                <div className="flex-1 w-full">
-                  <div className="h-10 w-3/4 max-w-xs bg-white/10 rounded-lg mb-6" />
-                  <div className="space-y-3 max-w-2xl">
-                    <div className="h-5 w-full bg-white/5 rounded" />
-                    <div className="h-5 w-[90%] bg-white/5 rounded" />
-                    <div className="h-5 w-[80%] bg-white/5 rounded" />
+              ))}
+            </div>
+          </section>
+
+          <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 md:px-10 md:py-28">
+            <div className="max-w-3xl">
+              <div className="h-3 w-36 rounded-sm bg-cyan-300/14" />
+              <div className="mt-4 h-20 w-full max-w-2xl rounded-sm bg-white/10 sm:h-28" />
+              <div className="mt-6 space-y-3">
+                <div className="h-4 w-full rounded-sm bg-white/7" />
+                <div className="h-4 w-4/5 rounded-sm bg-white/7" />
+              </div>
+            </div>
+
+            <div className="mt-12 grid gap-5 md:grid-cols-3">
+              {[Code, Activity, GitFork].map((Icon, index) => (
+                <article key={index} className="rounded-lg border border-white/10 bg-white/[0.035] p-5">
+                  <div className="mb-5 flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-white/10 bg-black/20 text-white/12">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="h-3 w-20 rounded-sm bg-white/8" />
                   </div>
+                  <div className="h-6 w-4/5 rounded-sm bg-white/10" />
+                  <div className="mt-4 space-y-2">
+                    <div className="h-3 w-full rounded-sm bg-white/7" />
+                    <div className="h-3 w-11/12 rounded-sm bg-white/7" />
+                    <div className="h-3 w-3/4 rounded-sm bg-white/7" />
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="bg-[#0b0b0a]">
+            <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 md:px-10 lg:grid-cols-[0.8fr_1.2fr] lg:py-28">
+              <div>
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-sm border border-emerald-300/20 bg-emerald-300/8 text-white/12">
+                  <TimerReset className="h-6 w-6" />
+                </div>
+                <div className="h-3 w-28 rounded-sm bg-emerald-200/14" />
+                <div className="mt-4 h-20 w-full max-w-md rounded-sm bg-white/10 sm:h-24" />
+                <div className="mt-5 space-y-3">
+                  <div className="h-4 w-full max-w-lg rounded-sm bg-white/7" />
+                  <div className="h-4 w-3/4 rounded-sm bg-white/7" />
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* CTA OUTRO */}
-        <section className="relative flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-          <div className="flex flex-col items-center w-full">
-            <div className="mb-10 flex items-center justify-center">
-              <div className="h-24 w-px bg-amber-500/20" />
+              <div className="grid gap-3">
+                {[0, 1, 2, 3, 4].map((item) => (
+                  <div key={item} className="grid gap-2 border border-white/10 bg-white/[0.025] px-4 py-4 sm:grid-cols-[8rem_1fr] sm:items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="h-3 w-5 rounded-sm bg-white/6" />
+                      <div className="h-4 w-24 rounded-sm bg-white/10" />
+                    </div>
+                    <div className="h-4 w-full rounded-sm bg-white/7" />
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="h-10 max-w-xl w-full bg-white/10 rounded-lg mb-8" />
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="h-14 w-64 bg-amber-500/10 rounded-full border border-amber-500/30" />
-              <div className="h-14 w-40 bg-white/5 rounded-full border border-white/10" />
+          </section>
+
+          <section className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 py-20 sm:px-6 md:px-10 md:py-28 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-sm border border-rose-300/20 bg-rose-300/8 text-white/12">
+                <History className="h-6 w-6" />
+              </div>
+              <div className="h-24 w-full max-w-2xl rounded-sm bg-white/10 sm:h-28" />
+              <div className="mt-6 h-4 w-4/5 rounded-sm bg-white/7" />
             </div>
-          </div>
-        </section>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row lg:flex-col">
+              <div className="h-11 w-full rounded-sm border border-white/12 bg-white/6 sm:w-44" />
+              <div className="h-11 w-full rounded-sm border border-amber-300/20 bg-amber-300/8 sm:w-40" />
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );

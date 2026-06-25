@@ -2,9 +2,7 @@ import dynamic from "next/dynamic";
 import { Nav } from "@/features/landing/components/Nav";
 import { Hero } from "@/features/landing/components/Hero";
 
-// Below-fold sections - code-split via next/dynamic.
-// Their HTML still renders on the server (SSR preserved), but JS is deferred,
-// reducing the initial bundle that causes the 5.0s main-thread parse cost.
+// Below-fold sections (code-split)
 const Lifecycle          = dynamic(() => import("@/features/landing/components/Lifecycle").then(m => m.Lifecycle));
 const Graveyard          = dynamic(() => import("@/features/landing/components/Graveyard").then(m => m.Graveyard));
 const TimeCapsule        = dynamic(() => import("@/features/landing/components/TimeCapsule").then(m => m.TimeCapsule));

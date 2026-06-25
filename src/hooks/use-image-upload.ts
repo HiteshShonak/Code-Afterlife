@@ -69,8 +69,19 @@ async function cleanupOrphans(publicIds: string[]): Promise<void> {
 }
 
 // image upload hook
-export function useImageUpload(maxImages = 5) {
-  const [images, setImages] = useState<UploadedImage[]>([]);
+function makeInitialImages(urls: readonly string[]): UploadedImage[] {
+  return urls.map((url, index) => ({
+    url,
+    publicId: '',
+    preview: url,
+    name: `Screenshot ${index + 1}`,
+    status: 'done' as const,
+  }));
+}
+
+// image upload hook
+export function useImageUpload(maxImages = 5, initialUrls: readonly string[] = []) {
+  const [images, setImages] = useState<UploadedImage[]>(() => makeInitialImages(initialUrls));
 
   const updateImage = useCallback((index: number, patch: Partial<UploadedImage>) => {
     setImages((prev) => prev.map((img, i) => (i === index ? { ...img, ...patch } : img)));
@@ -155,14 +166,16 @@ export function useImageUpload(maxImages = 5) {
   const removeImage = useCallback((index: number) => {
     setImages((prev) => {
       const img = prev[index];
-      if (img?.preview) URL.revokeObjectURL(img.preview);
+      if (img?.preview && img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview);
       return prev.filter((_, i) => i !== index);
     });
   }, []);
 
   const reset = useCallback(() => {
     setImages((prev) => {
-      prev.forEach((img) => { if (img.preview) URL.revokeObjectURL(img.preview); });
+      prev.forEach((img) => {
+        if (img.preview && img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview);
+      });
       return [];
     });
   }, []);

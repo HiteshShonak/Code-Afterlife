@@ -40,10 +40,12 @@ export const updateProjectAction = actionHandler(
     const title = formData.get('title');
     const description = formData.get('description');
     const stack = formData.getAll('stack');
+    const screenshots = formData.getAll('screenshots');
 
     if (title) rawData.title = String(title);
     if (description !== null) rawData.description = String(description);
     if (stack.length > 0) rawData.stack = stack.map(String);
+    if (screenshots.length > 0) rawData.screenshots = screenshots.map(String).filter(Boolean);
 
     const validated = updateProjectSchema.parse(rawData);
     const project = await projectService.update(projectId, user.id, validated);

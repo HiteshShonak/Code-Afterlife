@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth-guard';
 import { ForkSetupClient } from './ForkSetupClient';
 
 export default async function ResurrectSetupPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireAuth();
+  await requireAuth();
   const { id } = await params;
   const deadProject = await prisma.project.findUnique({
     where: { id },
@@ -31,17 +31,19 @@ export default async function ResurrectSetupPage({ params }: { params: Promise<{
           Resurrection Protocol
         </p>
         <h1 className="font-mono text-3xl font-extrabold tracking-tight text-foreground">
-          Revive "{deadProject.title}"
+          Revive &ldquo;{deadProject.title}&rdquo;
         </h1>
         <p className="mt-2 font-mono text-[12px] text-muted-foreground/70">
-          This project has been dead for a while. It's time to give it a second life.
+          This project has been dead for a while. It&apos;s time to give it a second life.
         </p>
       </div>
 
       <ForkSetupClient 
         deadProjectId={deadProject.id} 
         deadProjectTitle={deadProject.title}
+        deadProjectDescription={deadProject.description}
         deadProjectStack={deadProject.stack}
+        deadProjectScreenshots={deadProject.screenshots}
         parentRepoUrl={deadProject.githubRepoUrl}
         testament={deadProject.testament}
       />

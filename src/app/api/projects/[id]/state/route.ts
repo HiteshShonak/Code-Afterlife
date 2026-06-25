@@ -7,7 +7,7 @@ import { projectService } from '@/services/project.service';
 import { updateStateSchema } from '@/schemas/project.schema';
 import type { ProjectState } from '@prisma/client';
 
-/* ── AI-generated death reason (optional, best-effort) ─────────────────── */
+// ai generated death reason
 
 // generate epitaph
 async function generateDeathReason(
@@ -58,7 +58,7 @@ Return ONLY the sentence. No quotes. No punctuation after the period. No explana
   }
 }
 
-/* ── Route handler ─────────────────────────────────────────────────────── */
+// route handler
 
 // update state
 export const PATCH = asyncHandler(

@@ -38,8 +38,9 @@ export function ImageLightbox({
   }, [prev, next, onClose]);
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    return () => { document.body.style.overflow = previousOverflow; };
   }, []);
 
   return (
@@ -54,23 +55,23 @@ export function ImageLightbox({
     >
       {/* toolbar */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b border-white/10"
+        className="flex min-w-0 items-center justify-between gap-3 border-b border-white/10 px-3 py-3 sm:px-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3">
-          <h3 className="font-mono text-sm font-bold text-white/90 truncate max-w-[200px]">{projectTitle}</h3>
+        <div className="flex min-w-0 items-center gap-3">
+          <h3 className="max-w-[42vw] truncate font-mono text-xs font-bold text-white/90 sm:max-w-[200px] sm:text-sm">{projectTitle}</h3>
           {images.length > 1 && (
-            <span className="font-mono text-xs text-white/30">{current + 1} / {images.length}</span>
+            <span className="shrink-0 font-mono text-xs text-white/30">{current + 1} / {images.length}</span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             href={`/project/${projectSlug}`}
-            className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-mono text-xs font-semibold text-white/90 hover:bg-white/20 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 font-mono text-xs font-semibold text-white/90 transition-colors hover:bg-white/20 sm:px-3"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            View Project
+            <span className="hidden sm:inline">View Project</span>
           </Link>
           <button
             onClick={onClose}

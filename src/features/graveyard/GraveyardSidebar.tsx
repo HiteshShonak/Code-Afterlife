@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Users, Database, ArrowRight, ExternalLink } from 'lucide-react';
+import { X, Users, Database, ArrowRight, ExternalLink } from 'lucide-react';
 import { Project } from './types';
 
 interface GraveyardSidebarProps {
@@ -29,14 +29,14 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="absolute top-0 right-0 h-full w-[420px] z-50 bg-[#070a14]/80 backdrop-blur-xl border-l border-[#1a233a] p-8 flex flex-col text-slate-300 font-sans shadow-2xl overflow-y-auto"
+            className="absolute inset-y-0 right-0 z-50 flex h-full w-full max-w-[420px] flex-col overflow-y-auto border-l border-[#1a233a] bg-[#070a14]/90 p-5 font-sans text-slate-300 shadow-2xl backdrop-blur-xl sm:p-8"
           >
             {/* Header */}
             <div className="flex justify-between items-start mb-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold text-white">{project.name}</h2>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  <h2 className="min-w-0 break-words text-xl font-bold text-white sm:text-2xl">{project.name}</h2>
+                  <span className={`shrink-0 text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                     project.status === 'RESURRECTED' 
                       ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' 
                       : 'border-violet-500/30 text-violet-400 bg-violet-500/10'

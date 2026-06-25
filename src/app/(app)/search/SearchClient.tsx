@@ -40,8 +40,6 @@ const STATE_META: Record<ProjectState, { label: string; tagline: string; color: 
   DEAD:    { label: 'Dead',    tagline: 'Abandoned - waiting to be resurrected', color: 'oklch(0.52 0.12 25)'  },
 };
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-
 export const SearchClient = memo(function SearchClient({ initialProjects, initialCursor }: SearchClientProps) {
   const { state, search, sort, setState, setSearch, setSort, reset } = useSearchFilters();
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
@@ -70,12 +68,16 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   const [loading, setLoading]       = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const didSkipInitialFetchRef = useRef(false);
 
   const isInitialState = !state && search === '' && sort === 'TRENDING';
 
-  // ── Fetch on filter change (debounced implicitly by localSearch -> search) ──
+  // fetch on filter change
   useEffect(() => {
-    if (isInitialState && projects.length > 0 && projects[0].id === initialProjects[0]?.id) return;
+    if (!didSkipInitialFetchRef.current) {
+      didSkipInitialFetchRef.current = true;
+      if (isInitialState) return;
+    }
 
     // We no longer need the 400ms delay here because 'search' itself is debounced!
     setLoading(true);
@@ -101,9 +103,9 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
     fetchResults();
 
     return () => { isMounted = false; };
-  }, [search, state, sort]);
+  }, [isInitialState, search, state, sort]);
 
-  // ── Infinite scroll ────────────────────────────────────────────────────────
+  // infinite scroll
   const loadMore = useCallback(async () => {
     if (!cursor || loadingMore) return;
     setLoadingMore(true);
@@ -198,7 +200,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
               type="text"
               value={localSearch}
               onChange={e => setLocalSearch(e.target.value)}
-              placeholder="Search by title..."
+              placeholder="Search by title, description, or tech stack..."
               className="h-10 w-full rounded-xl border border-border/60 bg-card/60 pl-9 pr-20 font-mono text-[12px] text-foreground backdrop-blur-sm outline-none placeholder:text-muted-foreground/40 focus:border-accent/40 focus:ring-1 focus:ring-accent/20 transition-all"
             />
             {hasActiveFilter && (
@@ -282,11 +284,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </div>
       </div>
 
-      {/* ── State banner - CSS transition only (no AnimatePresence / unmount) ──
-          AnimatePresence would remove the element from the DOM instantly on exit,
-          collapsing its height and shifting the grid below it. Instead we use
-          max-height + opacity CSS transition so the space animates smoothly.
-      ──────────────────────────────────────────────────────────────────────── */}
+      {/* ── State banner ── */}
       <div
         className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-out"
         style={{
@@ -315,11 +313,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </div>
       </div>
 
-      {/* ── Results ─────────────────────────────────────────────────────────
-          min-h-[400px] provides a baseline.
-          Instead of unmounting the grid while loading, we keep it in the DOM
-          and just lower its opacity, preventing massive layout shifts.
-      ──────────────────────────────────────────────────────────────────── */}
+      {/* ── Results ── */}
       <div className="min-h-150 relative">
         {/* Loading Overlay */}
         <AnimatePresence>
@@ -337,7 +331,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
 
         <div className="transition-opacity duration-300">
           {projects.length === 0 && !loading ? (
-            /* ── Empty ── */
+            /* empty state */
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -356,7 +350,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
               )}
             </motion.div>
           ) : (
-            /* ── Grid / Feed ── */
+            /* grid or feed view */
             <div
               className={
                 viewMode === 'grid'

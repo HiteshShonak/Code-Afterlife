@@ -19,6 +19,7 @@ export const createProjectSchema = z.object({
     .max(15, 'Maximum 15 technologies'),
   screenshots: z
     .array(z.string().url('Must be a valid Cloudinary URL'))
+    .min(1, 'Add at least 1 screenshot')
     .max(5, 'Maximum 5 screenshots')
     .optional(),
 });
@@ -26,7 +27,7 @@ export const createProjectSchema = z.object({
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 // update schema
-export const updateProjectSchema = createProjectSchema.partial().extend({
+export const updateProjectSchema = createProjectSchema.omit({ repoUrl: true }).partial().extend({
   testament: z.string().max(2000, 'Testament must be at most 2000 characters').optional().nullable(),
   timeCapsule: z.string().max(2000, 'Message must be at most 2000 characters').optional().nullable(),
 });
@@ -35,6 +36,10 @@ export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
 // resurrect schema
 export const resurrectProjectSchema = z.object({
+  title: z
+    .string()
+    .min(3, 'Title must be at least 3 characters')
+    .max(100, 'Title must be at most 100 characters'),
   repoUrl: z
     .string()
     .url('Must be a valid GitHub repository URL'),
@@ -42,6 +47,10 @@ export const resurrectProjectSchema = z.object({
     .string()
     .max(500, 'Description must be at most 500 characters')
     .optional(),
+  screenshots: z
+    .array(z.string().url('Must be a valid Cloudinary URL'))
+    .min(1, 'Add at least 1 screenshot')
+    .max(5, 'Maximum 5 screenshots'),
   stack: z
     .array(z.string().min(1))
     .min(1)

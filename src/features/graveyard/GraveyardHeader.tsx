@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, Search, ArrowUpDown, X, Check, ChevronDown, CornerDownLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/* ─────────────────── Config ─────────────────── */
+// config
 
 export type GraveyardSort = 'trending' | 'newest' | 'oldest' | 'most_connections';
 
@@ -22,7 +22,7 @@ const TECH_FILTERS = [
   'PostgreSQL', 'MongoDB', 'Redis', 'Prisma', 'Docker', 'Flutter', 'Swift',
 ];
 
-/* ─────────────────── Props ─────────────────── */
+// props
 
 export interface GraveyardFilters {
   search: string;
@@ -35,7 +35,7 @@ interface GraveyardHeaderProps {
   onChange: (filters: GraveyardFilters) => void;
 }
 
-/* ─────────────────── TechPanel (left dropdown) ─────────────────── */
+// left dropdown
 
 function TechPanel({
   selected,
@@ -92,7 +92,7 @@ function TechPanel({
   );
 }
 
-/* ─────────────────── SortPanel (right dropdown) ─────────────────── */
+// right dropdown
 
 function SortPanel({
   current,
@@ -136,7 +136,7 @@ function SortPanel({
   );
 }
 
-/* ─────────────────── Main GraveyardHeader ─────────────────── */
+// graveyard header
 
 export function GraveyardHeader({ filters, onChange }: GraveyardHeaderProps) {
   const [techOpen, setTechOpen] = useState(false);

@@ -114,7 +114,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
     <div className="flex h-full flex-col">
       {/* brand */}
       <div className="mb-10 px-5 pt-4">
-        <Link href="/search" onNavigate={() => setMobileOpen(false)} className="flex items-center gap-3 group">
+        <Link href="/" onNavigate={() => setMobileOpen(false)} className="flex items-center gap-3 group">
           <Image 
             src="/logo.webp" 
             alt="Code Afterlife" 

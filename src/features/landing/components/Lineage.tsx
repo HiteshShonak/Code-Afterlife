@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -473,7 +474,7 @@ export function Lineage() {
               transition={{ duration: 1.5, delay: 0.85, ease: CINEMATIC_EASE }}
               className="mt-10"
             >
-              <button
+              <Link href="/explore"
                 className="group relative inline-flex items-center gap-2.5 border border-slate-700/50
                   bg-slate-900/40 px-6 py-3 font-mono text-[9.5px] uppercase tracking-[0.28em]
                   text-slate-400 backdrop-blur-sm transition-all duration-600
@@ -484,7 +485,7 @@ export function Lineage() {
                   transition-transform duration-700 group-hover:translate-x-full" />
                 <span className="relative">Trace the Echo</span>
                 <span className="relative transition-transform duration-400 group-hover:translate-x-1">→</span>
-              </button>
+              </Link>
             </motion.div>
           </motion.div>
 

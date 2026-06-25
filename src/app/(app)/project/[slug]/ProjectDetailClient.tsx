@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen, Plus, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Clock, Layers, Heart, MessageSquare, Flame, Bell, BellOff, LockOpen, Plus, ZoomIn, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { DecayVisuals } from '@/components/DecayVisuals';
 import { HealthIndicator } from '@/components/HealthIndicator';
 import { StateBadge } from '@/components/StateBadge';
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { ResurrectionModal } from '@/components/ResurrectionModal';
 import { ArchiveProjectModal } from '@/components/ArchiveProjectModal';
+import { ProjectEditModal } from '@/components/ProjectEditModal';
 import { TimeCapsuleSection } from '@/components/project/TimeCapsuleSection';
 import { useDecayState } from '@/hooks/use-decay-state';
 import { useLike } from '@/hooks/use-like';
@@ -69,7 +70,7 @@ export function ProjectDetailClient({
   const [isResurrectOpen, setIsResurrectOpen] = useState(false);
   const stateMeta           = STATE_META[project.state];
 
-  // Track view - AbortController ensures no double-fire on unmount
+  // track view
   useEffect(() => {
     const ctrl = new AbortController();
     fetch(`/api/projects/${project.id}/view`, { method: 'POST', signal: ctrl.signal }).catch(() => {});
@@ -83,7 +84,13 @@ export function ProjectDetailClient({
     useFollow(project.id, initialFollowing, project._count?.followers ?? 0);
 
   const isLoggedIn = !!currentUserId;
+  const existingResurrection = currentUserId
+    ? project.children.find(
+        (child) => child.userId === currentUserId || child.resurrecterUserId === currentUserId,
+      ) ?? null
+    : null;
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   // lightbox state for screenshot gallery
@@ -109,7 +116,7 @@ export function ProjectDetailClient({
   };
 
   const handleDelete = () => {
-    // Open the archive modal so the user can write an epitaph
+    // open archive modal
     setArchiveModalOpen(true);
   };
 
@@ -170,6 +177,17 @@ export function ProjectDetailClient({
         projectTitle={project.title}
         onClose={() => setArchiveModalOpen(false)}
         onArchived={() => router.push('/dashboard')}
+      />
+      <ProjectEditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        project={{
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          githubRepoUrl: project.githubRepoUrl,
+          screenshots,
+        }}
       />
 
       {/* Manual Update Modal */}
@@ -703,6 +721,10 @@ export function ProjectDetailClient({
                 <p className="mb-3 font-mono text-[11px] text-destructive">{actionError}</p>
               )}
               <div className="flex flex-wrap gap-3">
+                <Button variant="outline" size="sm" onClick={() => setEditModalOpen(true)} className="w-full sm:w-auto">
+                  <Pencil className="mr-2 h-3.5 w-3.5" />
+                  Edit Project
+                </Button>
                 {project.state === 'ACTIVE' && (
                   <Button variant="outline" size="sm" onClick={handleShip} isLoading={isPending} className="w-full sm:w-auto">
                     Mark as Shipped ✓
@@ -724,27 +746,49 @@ export function ProjectDetailClient({
           {!isOwner && project.state === 'DEAD' && isLoggedIn && (
             <motion.section {...sectionVariant(0.28)} className="mb-8 overflow-hidden relative rounded-2xl border border-emerald-500/20 bg-[#06120c] p-8 text-center backdrop-blur-sm">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15)_0%,transparent_70%)] blur-2xl pointer-events-none" />
-              <div className="relative z-10 flex flex-col items-center">
-                <h2 className="mb-2 font-mono text-[18px] font-bold text-emerald-400">
-                  This project is dead.
-                </h2>
-                <p className="mb-6 font-mono text-[12px] text-muted-foreground/80 max-w-sm mx-auto leading-relaxed">
-                  But software never dies. You can resurrect this code, inherit its legacy, and give it a second life.
-                </p>
-                <Button onClick={() => setIsResurrectOpen(true)} className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:scale-105">
-                  <Flame className="mr-2 h-4 w-4" /> Resurrect This Project
-                </Button>
-              </div>
-              <ResurrectionModal 
-                open={isResurrectOpen} 
-                onClose={() => setIsResurrectOpen(false)} 
-                deadProject={{
-                  id: project.id,
-                  title: project.title,
-                  stack: project.stack,
-                  lineageDepth: project.lineageDepth,
-                }}
-              />
+              {existingResurrection ? (
+                <div className="relative z-10 flex flex-col items-center">
+                  <h2 className="mb-2 font-mono text-[18px] font-bold text-emerald-400">
+                    You already gave this project a second life.
+                  </h2>
+                  <p className="mb-6 max-w-sm mx-auto font-mono text-[12px] leading-relaxed text-muted-foreground/80">
+                    Your resurrection is alive as{' '}
+                    <span className="font-semibold text-foreground">{existingResurrection.title}</span>.
+                    Continue from your child project instead of starting another branch of the same legacy.
+                  </p>
+                  <Link
+                    href={`/project/${existingResurrection.slug}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/20 px-4 py-2.5 font-mono text-xs font-semibold text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:scale-105 hover:bg-emerald-500/30"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Open Your Resurrection
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  <div className="relative z-10 flex flex-col items-center">
+                    <h2 className="mb-2 font-mono text-[18px] font-bold text-emerald-400">
+                      This project is dead.
+                    </h2>
+                    <p className="mb-6 font-mono text-[12px] text-muted-foreground/80 max-w-sm mx-auto leading-relaxed">
+                      But software never dies. You can resurrect this code, inherit its legacy, and give it a second life.
+                    </p>
+                    <Button onClick={() => setIsResurrectOpen(true)} className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:scale-105">
+                      <Flame className="mr-2 h-4 w-4" /> Resurrect This Project
+                    </Button>
+                  </div>
+                  <ResurrectionModal
+                    open={isResurrectOpen}
+                    onClose={() => setIsResurrectOpen(false)}
+                    deadProject={{
+                      id: project.id,
+                      title: project.title,
+                      stack: project.stack,
+                      lineageDepth: project.lineageDepth,
+                    }}
+                  />
+                </>
+              )}
             </motion.section>
           )}
 

@@ -12,17 +12,18 @@ interface ImageUploaderProps {
   required?:  boolean;
   error?:     string;
   maxImages?: number;
+  initialImages?: string[];
 }
 
 // image uploader
 export const ImageUploader = memo(function ImageUploader({
-  onChange, required, error, maxImages = 5,
+  onChange, required, error, maxImages = 5, initialImages = [],
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const {
     images, addFiles, removeImage,
-    isAnyBusy, canAddMore, formatFileSize,
-  } = useImageUpload(maxImages);
+    isAnyBusy, canAddMore,
+  } = useImageUpload(maxImages, initialImages);
 
   const handleAdd = useCallback(
     async (files: FileList | File[]) => { await addFiles(files); },
@@ -129,7 +130,7 @@ export const ImageUploader = memo(function ImageUploader({
                 <button
                   type="button"
                   onClick={() => removeImage(i)}
-                  className="absolute right-1 top-1 hidden h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white transition-colors hover:bg-destructive group-hover:flex"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white transition-colors hover:bg-destructive sm:hidden sm:group-hover:flex"
                   aria-label="Remove image"
                 >
                   <X className="h-3 w-3" />

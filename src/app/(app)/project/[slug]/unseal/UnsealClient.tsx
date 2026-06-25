@@ -60,7 +60,7 @@ function getCapsulePresentation(capsule: TimeCapsule) {
   };
 }
 
-// ─── ARTIFACT CARD BASE ───────────────────────────────────────────────────────
+// Artifact Card Base
 function ArtifactBase({
   open,
   delay,
@@ -106,7 +106,7 @@ function ArtifactBase({
   );
 }
 
-// ─── NODE TYPES ─────────────────────────────────────────────────────────────
+// Node Types
 function CapsuleNode({ data }: NodeProps) {
   const capsule = data.capsule as TimeCapsule;
   const onNodeClick = data.onNodeClick as (capsule: TimeCapsule) => void;
@@ -259,7 +259,7 @@ function ExpandedCapsuleCard({
   );
 }
 
-// ─── CAPSULE SVG ──────────────────────────────────────────────────────────────
+// Capsule SVG
 function CapsuleObject({
   lidRef,
   lockBodyRef,
@@ -365,7 +365,7 @@ function CapsuleObject({
   );
 }
 
-// ─── MAIN UNSEAL COMPONENT ────────────────────────────────────────────────────────
+// Main Unseal Component
 export function UnsealClient({ project, capsules }: { project: Project; capsules: TimeCapsule[] }) {
   const capsuleRef    = useRef<HTMLDivElement>(null);
   const lidRef        = useRef<SVGGElement>(null);
@@ -455,7 +455,7 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center">
-      {/* ── ATMOSPHERE ── */}
+      {/* Atmosphere */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-linear-to-b from-[#070502] via-[#0c0804] to-[#060503]" />
         <div className="absolute left-1/2 top-0 -translate-x-1/2 w-175 h-112.5 bg-[radial-gradient(ellipse_at_top,rgba(160,90,15,0.14)_0%,transparent_70%)]" />
@@ -474,14 +474,14 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
         ))}
       </div>
 
-      {/* ── HEADER ── */}
+      {/* Header */}
       <div className="absolute top-8 left-8 z-50">
          <Link href={`/project/${project.slug}`} className="font-mono text-xs text-foreground/40 hover:text-amber-500 transition-colors">
             ← Back to {project.title}
          </Link>
       </div>
 
-      {/* ── INTERACTIVE AREA ── */}
+      {/* Interactive Area */}
       <div className="relative flex items-center justify-center w-full h-full min-h-150 z-30">
         <div ref={warmHaloDiv} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-85 h-85 rounded-full opacity-0" style={{ background: "radial-gradient(ellipse at center,rgba(251,191,36,0.18) 0%,rgba(180,100,20,0.07) 55%,transparent 78%)" }} />
         <div ref={warmGlowDiv} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-42%] w-47.5 h-55 opacity-0 rounded-b-xl" style={{ background: "radial-gradient(ellipse at top,rgba(251,191,36,0.30) 0%,rgba(180,100,20,0.12) 60%,transparent 100%)" }} />
@@ -494,7 +494,7 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
           </div>
         </div>
 
-        {/* ── REACT FLOW CANVAS ── */}
+        {/* React Flow Canvas */}
         <div className="absolute inset-0 z-20" style={{ pointerEvents: opened ? "auto" : "none" }}>
           <ReactFlowProvider>
             <ReactFlow
@@ -517,7 +517,7 @@ export function UnsealClient({ project, capsules }: { project: Project; capsules
         </div>
       </div>
 
-      {/* ── BOTTOM CONTROLS ── */}
+      {/* Bottom Controls */}
       <AnimatePresence>
         {selectedCapsule && (
           <motion.div

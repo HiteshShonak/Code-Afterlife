@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-// Initialize Resend with the API key from environment variables
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
-  // Guard clause to ensure the API key is set
+
   if (!process.env.RESEND_API_KEY) {
     return NextResponse.json(
       { error: 'Resend API key not configured on the server.' },
@@ -20,12 +19,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // You can customize the "from" address once you verify a domain in Resend.
-    // For testing without a verified domain, use "onboarding@resend.dev"
-    // AND make sure the "to" address is the email you signed up to Resend with.
     const { data, error } = await resend.emails.send({
       from: 'Code Afterlife <onboarding@resend.dev>',
-      to: process.env.CONTACT_EMAIL || 'delivered@resend.dev', // Add CONTACT_EMAIL to your .env.local
+      to: process.env.CONTACT_EMAIL || 'delivered@resend.dev',
       subject: `New Contact Form Submission: ${type}`,
       html: `
         <!DOCTYPE html>

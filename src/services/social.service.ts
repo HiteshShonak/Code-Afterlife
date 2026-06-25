@@ -35,7 +35,7 @@ export interface LikeResult {
 }
 
 export const socialService = {
-  /* ─── Likes ─── */
+  // likes
 
   async toggleLike(projectId: string, userId: string): Promise<LikeResult> {
     return prisma.$transaction(async (tx) => {

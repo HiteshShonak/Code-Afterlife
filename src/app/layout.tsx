@@ -3,12 +3,10 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import 'lenis/dist/lenis.css';
 import './globals.css';
 
-// Self-hosted via next/font - no external CDN request, no render-blocking
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
-  // Only load the weights actually used in the design
   weight: ['400', '500', '600', '800'],
 });
 

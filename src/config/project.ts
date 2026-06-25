@@ -1,62 +1,62 @@
 // lists of tech stacks
 
-// ─── Frontend ──────────────────────────────────────────────────────────────────
+// Frontend
 const FRONTEND = [
   'React', 'Next.js', 'Vue', 'Nuxt', 'Angular', 'Svelte', 'SvelteKit',
   'Solid', 'Astro', 'Remix', 'Qwik', 'Vite',
 ] as const;
 
-// ─── Backend ───────────────────────────────────────────────────────────────────
+// Backend
 const BACKEND = [
   'Node.js', 'Express', 'Fastify', 'NestJS', 'Hono', 'Bun', 'Deno',
   'tRPC',
 ] as const;
 
-// ─── Languages ─────────────────────────────────────────────────────────────────
+// Languages
 const LANGUAGES = [
   'TypeScript', 'JavaScript', 'Python', 'Go', 'Rust', 'Java', 'Kotlin',
   'C#', 'PHP', 'Ruby', 'Elixir', 'Zig', 'Swift', 'Dart',
 ] as const;
 
-// ─── Frameworks ────────────────────────────────────────────────────────────────
+// Frameworks
 const FRAMEWORKS = [
   'Django', 'FastAPI', 'Flask', 'Ruby on Rails', 'Laravel',
   'Spring Boot', '.NET', 'Fiber', 'Gin', 'Echo',
 ] as const;
 
-// ─── Database ──────────────────────────────────────────────────────────────────
+// Database
 const DATABASE = [
   'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'SQLite', 'DynamoDB',
   'Supabase', 'PlanetScale', 'Neon', 'CockroachDB', 'Turso',
 ] as const;
 
-// ─── ORM / Query ───────────────────────────────────────────────────────────────
+// ORM / Query
 const ORM = [
   'Prisma', 'Drizzle', 'TypeORM', 'Mongoose', 'SQLAlchemy', 'GORM',
 ] as const;
 
-// ─── AI / ML ───────────────────────────────────────────────────────────────────
+// AI / ML
 const AI_ML = [
   'PyTorch', 'TensorFlow', 'LangChain', 'OpenAI', 'Hugging Face',
   'Ollama', 'LlamaIndex', 'Anthropic', 'Vercel AI SDK',
 ] as const;
 
-// ─── Mobile ────────────────────────────────────────────────────────────────────
+// Mobile
 const MOBILE = [
   'React Native', 'Expo', 'Flutter', 'Jetpack Compose',
 ] as const;
 
-// ─── Testing ───────────────────────────────────────────────────────────────────
+// Testing
 const TESTING = [
   'Vitest', 'Jest', 'Playwright', 'Cypress', 'Testing Library',
 ] as const;
 
-// ─── Styling ───────────────────────────────────────────────────────────────────
+// Styling
 const STYLING = [
   'Tailwind', 'CSS Modules', 'shadcn/ui', 'Radix UI', 'Styled Components',
 ] as const;
 
-// ─── Cloud / Infra ─────────────────────────────────────────────────────────────
+// Cloud / Infra
 const CLOUD = [
   'Vercel', 'Cloudflare', 'AWS', 'GCP', 'Azure', 'Railway', 'Fly.io',
   'Docker', 'GitHub Actions',
