@@ -44,8 +44,8 @@ const principles = [
 const lifecycle = [
   { state: 'Born', detail: 'A project enters the archive with a fresh pulse.' },
   { state: 'Active', detail: 'New owner activity or fresh commits prove the project is moving.' },
-  { state: 'Stalled', detail: 'One quiet day marks the first visible decay.' },
-  { state: 'Dead', detail: 'Three quiet days move it into the graveyard.' },
+  { state: 'Stalled', detail: 'Seven quiet days mark the first visible decay.' },
+  { state: 'Dead', detail: 'Thirty quiet days move it into the graveyard.' },
   { state: 'Shipped or resurrected', detail: 'A finished project can be sealed, and a dead one can begin a new lineage.' },
 ] as const;
 
@@ -114,8 +114,8 @@ export function AboutClient() {
         <section className="border-y border-white/8 bg-[#08090b]">
           <div className="mx-auto grid max-w-6xl gap-4 px-4 py-8 sm:grid-cols-3 sm:px-6 md:px-10">
             {[
-              ['1 day', 'to stall without activity'],
-              ['3 days', 'to enter the graveyard'],
+              ['7 days', 'to stall without activity'],
+              ['30 days', 'to enter the graveyard'],
               ['Forever', 'for lineage and credit'],
             ].map(([value, label]) => (
               <div key={value} className="border-l border-white/10 py-2 pl-4">

@@ -6,7 +6,7 @@ import { Lock, Save, ShieldAlert, Plus, UploadCloud, X, Play, Image as ImageIcon
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import type { TimeCapsule } from '@prisma/client';
-import { InteractiveCapsule } from './InteractiveCapsule';
+
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_VIDEO_SIZE = 90 * 1024 * 1024; // 90 MB
@@ -61,7 +61,6 @@ export function TimeCapsuleSection({
   const [tooltipOpen1, setTooltipOpen1] = useState(false);
   const [tooltipOpen2, setTooltipOpen2] = useState(false);
   
-  // upload state
   const [capsules, setCapsules] = useState<TimeCapsule[]>(initialCapsules);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'MESSAGE' | 'IMAGE' | 'VIDEO' | 'AUDIO'>('MESSAGE');
@@ -185,7 +184,6 @@ export function TimeCapsuleSection({
           formData.append('timestamp', timestamp.toString());
           formData.append('signature', signature);
           formData.append('folder', 'time-capsules');
-          // cloudinary compression
           if (uploadType === 'VIDEO') {
             formData.append('quality', 'auto');
           }
@@ -220,7 +218,6 @@ export function TimeCapsuleSection({
 
       setUploadProgress(100);
 
-      // save to db
       const dbRes = await fetch(`/api/projects/${projectId}/time-capsules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -246,19 +243,22 @@ export function TimeCapsuleSection({
     }
   };
 
-  // visibility logic
   const showTestament = isOwner || hasBeenResurrected;
 
-  // hide if visitor
   if (!isOwner && (!showTestament || !initialTestament)) {
     return null;
   }
 
   return (
-    <div className="w-full">
+    <motion.section
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className="mb-8 rounded-2xl border border-amber-500/10 bg-amber-500/2 p-4 sm:p-6 w-full"
+    >
       <div className="flex items-center justify-between mb-6 gap-2">
         <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-500/60 flex items-center gap-2">
-          <ShieldAlert className="h-3 w-3" /> Will & Testament
+          <ShieldAlert className="h-3 w-3" /> Will &amp; Testament
         </h2>
         {isOwner && !isEditing && !readOnly && (
           <button
@@ -273,7 +273,6 @@ export function TimeCapsuleSection({
 
       <div className="flex flex-col gap-8">
         
-        {/* testament section */}
         {showTestament && (
           <div className="relative">
             <h3 className="font-mono text-[11px] font-semibold text-foreground/80 mb-3 flex items-center gap-2">
@@ -338,7 +337,6 @@ export function TimeCapsuleSection({
           </div>
         )}
 
-        {/* time capsules */}
         {isOwner && (
           <div className="relative mt-4">
             <div className="flex items-center justify-between mb-4">
@@ -385,7 +383,6 @@ export function TimeCapsuleSection({
           </div>
         )}
 
-        {/* save controls */}
         <AnimatePresence>
           {isEditing && (
             <motion.div 
@@ -413,7 +410,6 @@ export function TimeCapsuleSection({
         )}
       </div>
 
-      {/* upload modal */}
       <Dialog
         open={isUploadModalOpen}
         onClose={() => { if (!isUploading) setIsUploadModalOpen(false); }}
@@ -471,7 +467,6 @@ export function TimeCapsuleSection({
                   >
                      {file && previewUrl ? (
                         <div className="flex flex-col items-center gap-4 w-full">
-                           {/* preview */}
                            {uploadType === 'IMAGE' && (
                              <img src={previewUrl} alt="Preview" className="max-h-[160px] object-contain rounded-md border border-border/50" />
                            )}
@@ -497,7 +492,6 @@ export function TimeCapsuleSection({
                         </div>
                      )}
                      
-                     {/* upload progress */}
                      {isUploading && uploadProgress > 0 && (
                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-background">
                          <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
@@ -538,6 +532,6 @@ export function TimeCapsuleSection({
             </div>
          </div>
       </Dialog>
-    </div>
+    </motion.section>
   );
 }

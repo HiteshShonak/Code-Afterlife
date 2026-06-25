@@ -3,7 +3,6 @@ import { HEALTH_CONFIG } from '@/config/health';
 import { daysBetween } from '@/lib/utils';
 import { ApiError } from '@/lib/api-error';
 
-// allowed states
 const TRANSITIONS: Readonly<Record<ProjectState, readonly ProjectState[]>> = {
   BORN: ['ACTIVE', 'STALLED', 'DEAD'],
   ACTIVE: ['STALLED', 'SHIPPED', 'DEAD'],
@@ -32,7 +31,6 @@ const SOURCE_TRANSITIONS: Readonly<Partial<Record<TransitionKey, readonly Transi
   'DEAD:ACTIVE': ['ai_pulse', 'resurrection'],
 };
 
-// project shape
 export interface StateEvaluationInput {
   readonly state: ProjectState;
   readonly lastActivityAt: Date | null;
@@ -44,7 +42,6 @@ function getTransitionKey(from: ProjectState, to: ProjectState): TransitionKey {
 }
 
 export const stateMachine = {
-  // check valid transition
   canTransition(from: ProjectState, to: ProjectState, context?: TransitionContext): boolean {
     if (from === to) return true;
     if (!TRANSITIONS[from].includes(to)) return false;
@@ -56,7 +53,6 @@ export const stateMachine = {
     return allowedSources.includes(context.source);
   },
 
-  // get next states
   getValidTransitions(state: ProjectState, context?: TransitionContext): readonly ProjectState[] {
     if (!context) {
       return TRANSITIONS[state];
@@ -67,7 +63,6 @@ export const stateMachine = {
     );
   },
 
-  // validate or throw
   validateTransition(from: ProjectState, to: ProjectState, context?: TransitionContext): void {
     if (!TRANSITIONS[from].includes(to) && from !== to) {
       const valid = TRANSITIONS[from].join(', ') || 'none';
@@ -85,24 +80,20 @@ export const stateMachine = {
   },
 
   evaluateState(project: StateEvaluationInput): ProjectState {
-    // shipped is terminal
     if (project.state === 'SHIPPED') return 'SHIPPED';
 
-    // dead stays dead UNLESS explicitly transitioned externally
     if (project.state === 'DEAD') return 'DEAD';
 
-    // get days since last activity
     const referenceDate = project.lastActivityAt || project.createdAt;
     const daysSince = daysBetween(referenceDate, new Date());
 
-    // Check decay thresholds
     const isDead = daysSince >= HEALTH_CONFIG.deadDays;
     const isStalled = daysSince >= HEALTH_CONFIG.stalledDays;
 
     if (project.state === 'BORN') {
       if (isDead) return 'DEAD';
       if (isStalled) return 'STALLED';
-      return 'BORN'; // Stay BORN until explicit activity moves it to ACTIVE
+      return 'BORN'; // stay BORN until explicit activity moves it to ACTIVE
     }
 
     if (project.state === 'ACTIVE' || project.state === 'STALLED') {

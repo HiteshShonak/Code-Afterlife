@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { ApiError } from '@/lib/api-error';
 import { projectService } from '@/services/project.service';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: Request,
@@ -22,7 +23,6 @@ export async function POST(
       return NextResponse.json({ message: 'Title is required' }, { status: 400 });
     }
 
-    // Verify ownership
     const project = await prisma.project.findUnique({
       where: { id },
       select: { userId: true },
@@ -36,7 +36,6 @@ export async function POST(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    // Check rate limit: 1 manual UPDATE per 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentUpdate = await prisma.timelineEntry.findFirst({
       where: {
@@ -77,7 +76,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, entry }, { status: 201 });
   } catch (error) {
-    console.error('Failed to add timeline entry:', error);
+    logger.error('Failed to add timeline entry', { error });
     if (error instanceof ApiError) {
       return NextResponse.json({ message: error.message }, { status: error.statusCode });
     }

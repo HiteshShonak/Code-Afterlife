@@ -3,12 +3,10 @@ import { twMerge } from 'tailwind-merge';
 
 import { SLUG_MAX_LENGTH } from '@/config/project';
 
-// merge classnames
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-// make slug
 export function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -17,18 +15,15 @@ export function generateSlug(title: string): string {
     .slice(0, SLUG_MAX_LENGTH);
 }
 
-// days between
 export function daysBetween(date1: Date, date2: Date): number {
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
   return Math.floor(Math.abs(date1.getTime() - date2.getTime()) / MS_PER_DAY);
 }
 
-// clamp value
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-// format date
 export function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', {
     month: 'short',
@@ -37,7 +32,6 @@ export function formatDate(date: Date): string {
   });
 }
 
-// format relative date
 export function formatRelativeDate(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -73,4 +67,20 @@ export function formatRelativeDate(date: Date): string {
   }
   
   return 'just now';
+}
+
+export function formatCompactDate(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return 'now';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  return `${month} ${date.getDate()}`;
 }

@@ -5,7 +5,6 @@ import { PROJECT_DEFAULTS } from '@/config/project';
 import type { Project } from '@prisma/client';
 import type { ResurrectProjectInput } from '@/schemas/project.schema';
 
-// chain project
 export interface ChainProject {
   readonly id: string;
   readonly title: string;
@@ -17,14 +16,12 @@ export interface ChainProject {
   readonly resurrecter: { username: string | null } | null;
 }
 
-/** Returns a random starting health in the range [42, 58]. */
 function seededInitialHealth(): number {
   const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8
   return PROJECT_DEFAULTS.initialHealth + offset;     // 42 … 58
 }
 
 export const resurrectionService = {
-  // resurrect project
   async resurrect(
     deadProjectId: string,
     resurrecterUserId: string,
@@ -67,7 +64,6 @@ export const resurrectionService = {
         },
       });
 
-      // mark death in parent
       await tx.timelineEntry.create({
         data: {
           projectId: deadProjectId,
@@ -77,7 +73,6 @@ export const resurrectionService = {
         },
       });
 
-      // mark rebirth in child
       await tx.timelineEntry.create({
         data: {
           projectId: created.id,
@@ -93,7 +88,6 @@ export const resurrectionService = {
     return newProject;
   },
 
-  // get chain
   async getResurrectionChain(projectId: string): Promise<ChainProject[]> {
     const selectFields = {
       id: true,
@@ -106,19 +100,23 @@ export const resurrectionService = {
       resurrecter: { select: { username: true } },
     } as const;
 
-    const chain: ChainProject[] = [];
-    let currentId: string | null = projectId;
+    const root = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: selectFields,
+    });
 
-    while (currentId) {
-      const result: ChainProject | null = await prisma.project.findUnique({
-        where: { id: currentId },
+    if (!root) return [];
+
+    const chain: ChainProject[] = [];
+    let current: ChainProject | null = root;
+
+    while (current) {
+      chain.unshift(current);
+      if (!current.parentProjectId) break;
+      current = await prisma.project.findUnique({
+        where: { id: current.parentProjectId },
         select: selectFields,
       });
-
-      if (!result) break;
-
-      chain.unshift(result);
-      currentId = result.parentProjectId;
     }
 
     return chain;

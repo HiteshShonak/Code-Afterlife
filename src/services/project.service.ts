@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { ApiError } from '@/lib/api-error';
+import { logger } from '@/lib/logger';
 import { generateSlug } from '@/lib/utils';
 import { stateMachine, type TransitionSource } from '@/lib/state-machine';
 import { PROJECT_DEFAULTS } from '@/config/project';
@@ -15,7 +16,6 @@ export interface UpdateProjectStateOptions {
   readonly tx?: Prisma.TransactionClient;
 }
 
-// get owned project
 async function findOwnedProject(id: string, userId: string): Promise<Project> {
   const project = await prisma.project.findUnique({ where: { id } });
 
@@ -29,7 +29,6 @@ async function findOwnedProject(id: string, userId: string): Promise<Project> {
   return project;
 }
 
-// ai birth entry
 async function seedBirthEntry(
   projectId: string,
   title: string,
@@ -77,8 +76,8 @@ Return ONLY the sentence. No quotes.`,
           aiMessage = raw.replace(/^["']|["']$/g, '').slice(0, 120);
         }
       }
-    } catch {
-      // ignore
+    } catch (error) {
+      logger.error('Project birth AI timeline text generation failed', { error });
     }
   }
 
@@ -92,11 +91,7 @@ Return ONLY the sentence. No quotes.`,
   });
 }
 
-/**
- * Returns a random starting health in the range [42, 58].
- * Pure Math.random - different every time a project is created.
- */
-function seededInitialHealth(_seed: string): number {
+function seededInitialHealth(): number {
   const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8
   return PROJECT_DEFAULTS.initialHealth + offset; // 42 … 58
 }
@@ -161,7 +156,6 @@ function buildStateTimelineEntry(
 }
 
 export const projectService = {
-  // create project
   async create(
     userId: string,
     data: CreateProjectInput
@@ -169,9 +163,8 @@ export const projectService = {
     const baseSlug = generateSlug(data.title);
     const suffix = Math.random().toString(36).substring(2, 7);
     const slug = `${baseSlug}-${suffix}`;
-    const startingHealth = seededInitialHealth(data.title + userId);
+    const startingHealth = seededInitialHealth();
 
-    // create db project
     const project = await prisma.project.create({
       data: {
         title: data.title,
@@ -188,13 +181,13 @@ export const projectService = {
       },
     });
 
-    // async ai entry
-    seedBirthEntry(project.id, project.title, project.description, project.stack).catch(console.error);
+    seedBirthEntry(project.id, project.title, project.description, project.stack).catch((err) =>
+      logger.error(`Failed to seed birth entry for project ${project.id}`, { error: err })
+    );
 
     return project;
   },
 
-  // get by slug
   async getBySlug(slug: string): Promise<ProjectDetail | null> {
     return prisma.project.findUnique({
       where: { slug },
@@ -217,7 +210,6 @@ export const projectService = {
     }) as Promise<ProjectDetail | null>;
   },
 
-  // get by id
   async getById(id: string): Promise<ProjectWithUser | null> {
     return prisma.project.findUnique({
       where: { id },
@@ -225,7 +217,6 @@ export const projectService = {
     }) as Promise<ProjectWithUser | null>;
   },
 
-  // get with full relations
   async getByIdWithFullRelations(id: string): Promise<ProjectDetail | null> {
     return prisma.project.findUnique({
       where: { id },
@@ -238,7 +229,6 @@ export const projectService = {
     }) as Promise<ProjectDetail | null>;
   },
 
-  // list user projects
   async getUserProjects(userId: string): Promise<Project[]> {
     return prisma.project.findMany({
       where: { userId },
@@ -246,7 +236,6 @@ export const projectService = {
     });
   },
 
-  // get dead projects
   async getDeadProjects(): Promise<ProjectWithUser[]> {
     return prisma.project.findMany({
       where: { state: 'DEAD' },
@@ -258,7 +247,6 @@ export const projectService = {
     }) as Promise<ProjectWithUser[]>;
   },
 
-  // list projects
   async list(filters: ProjectListFilters = {}): Promise<ProjectWithUser[]> {
     const where: Record<string, unknown> = {};
     if (filters.state) where.state = filters.state;
@@ -271,7 +259,6 @@ export const projectService = {
     }) as Promise<ProjectWithUser[]>;
   },
 
-  // update state
   async updateState(
     id: string,
     newState: ProjectState,
@@ -328,7 +315,6 @@ export const projectService = {
     return prisma.$transaction(runTransition);
   },
 
-  // update health
   async updateHealth(id: string, health: number): Promise<Project> {
     return prisma.project.update({
       where: { id },
@@ -339,13 +325,11 @@ export const projectService = {
     });
   },
 
-  // mark shipped
   async markAsShipped(id: string, userId: string): Promise<Project> {
     await findOwnedProject(id, userId);
     return this.updateState(id, 'SHIPPED', { source: 'manual' });
   },
 
-  // update project
   async update(
     id: string,
     userId: string,
@@ -359,7 +343,6 @@ export const projectService = {
     });
   },
 
-  // soft delete
   async delete(id: string, userId: string, deathReason?: string): Promise<Project> {
     await findOwnedProject(id, userId);
     const finalReason = deathReason ?? 'Lost to time.';
@@ -369,10 +352,8 @@ export const projectService = {
     });
   },
 
-  // hard delete
   async hardDelete(id: string, userId: string): Promise<void> {
     await findOwnedProject(id, userId);
-    // cascade delete
     await prisma.project.delete({ where: { id } });
   },
 };

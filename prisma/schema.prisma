@@ -89,6 +89,9 @@ model Project {
   githubRepoUrl String
   githubRepoId  Int?
 
+  // deployed app
+  deployedUrl String?
+
   // slug
   slug String @unique
 

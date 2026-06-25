@@ -8,7 +8,6 @@ import { createProjectSchema, updateProjectSchema } from '@/schemas/project.sche
 import { notificationService } from '@/services/notification.service';
 import type { Project } from '@prisma/client';
 
-// create project action
 export const createProjectAction = actionHandler(
   async (formData: FormData): Promise<Project> => {
     const user = await requireAuth();
@@ -31,7 +30,6 @@ export const createProjectAction = actionHandler(
   }
 );
 
-// update project action
 export const updateProjectAction = actionHandler(
   async (projectId: string, formData: FormData): Promise<Project> => {
     const user = await requireAuth();
@@ -41,11 +39,13 @@ export const updateProjectAction = actionHandler(
     const description = formData.get('description');
     const stack = formData.getAll('stack');
     const screenshots = formData.getAll('screenshots');
+    const deployedUrl = formData.get('deployedUrl');
 
     if (title) rawData.title = String(title);
     if (description !== null) rawData.description = String(description);
     if (stack.length > 0) rawData.stack = stack.map(String);
     if (screenshots.length > 0) rawData.screenshots = screenshots.map(String).filter(Boolean);
+    if (deployedUrl !== null) rawData.deployedUrl = String(deployedUrl) || null;
 
     const validated = updateProjectSchema.parse(rawData);
     const project = await projectService.update(projectId, user.id, validated);
@@ -57,13 +57,11 @@ export const updateProjectAction = actionHandler(
   }
 );
 
-// ship project action
 export const shipProjectAction = actionHandler(
   async (projectId: string): Promise<Project> => {
     const user = await requireAuth();
     const project = await projectService.markAsShipped(projectId, user.id);
 
-    // async notification
     notificationService.notifyProjectUnsealed(project.id, 'SHIPPED').catch(console.error);
 
     revalidatePath('/');
@@ -73,13 +71,11 @@ export const shipProjectAction = actionHandler(
   }
 );
 
-// soft delete action
 export const deleteProjectAction = actionHandler(
   async (projectId: string): Promise<{ deleted: true }> => {
     const user = await requireAuth();
     await projectService.delete(projectId, user.id, 'Lost to time.');
 
-    // async notification
     notificationService.notifyProjectUnsealed(projectId, 'DEAD').catch(console.error);
 
     revalidatePath('/');
@@ -90,12 +86,10 @@ export const deleteProjectAction = actionHandler(
   }
 );
 
-// archive project action
 export const archiveProjectAction = actionHandler(
   async (projectId: string, rawReason: string): Promise<{ archived: true }> => {
     const user = await requireAuth();
 
-    // sanitize reason
     const DEFAULT_REASONS = [
       'Lost to time.',
       'Abandoned by its creator.',
@@ -118,7 +112,6 @@ export const archiveProjectAction = actionHandler(
   }
 );
 
-// hard delete action
 export const permanentDeleteProjectAction = actionHandler(
   async (projectId: string): Promise<{ deleted: true }> => {
     const user = await requireAuth();

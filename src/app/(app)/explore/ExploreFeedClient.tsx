@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
@@ -21,11 +21,10 @@ import {
 import type { ProjectWithUser } from '@/types/project';
 import { StateBadge } from '@/components/StateBadge';
 import { useDecayState } from '@/hooks/use-decay-state';
-import { formatRelativeDate } from '@/lib/utils';
+import { formatRelativeDate, formatCompactDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { ImageLightbox } from '@/components/ImageLightbox';
 
-// Types
 
 interface ExploreFeedClientProps {
   initialProjects: ProjectWithUser[];
@@ -37,9 +36,8 @@ interface ExploreFeedClientProps {
   votedProjectIds: string[];
 }
 
-// Inline Post Image Carousel
 
-function PostImageCarousel({
+const PostImageCarousel = memo(function PostImageCarousel({
   images,
   projectTitle,
   onImageClick,
@@ -64,10 +62,9 @@ function PostImageCarousel({
   };
 
   return (
-    <div className="relative mt-3 overflow-hidden rounded-xl border border-border/30 bg-black group/carousel">
-      {/* 16:9 image container */}
+    <div className="relative mt-3 overflow-hidden rounded-lg border border-border/30 bg-black group/carousel">
       <div
-        className="relative aspect-video cursor-zoom-in"
+        className="relative h-40 cursor-zoom-in sm:aspect-video sm:h-auto"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick(current); }}
       >
         <AnimatePresence mode="popLayout" initial={false}>
@@ -79,16 +76,14 @@ function PostImageCarousel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         </AnimatePresence>
 
-        {/* Zoom hint on hover */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover/carousel:bg-black/15 transition-colors duration-200">
           <ZoomIn className="h-7 w-7 text-white opacity-0 group-hover/carousel:opacity-70 transition-opacity drop-shadow-lg" />
         </div>
 
-        {/* Prev/Next arrows (only when multiple) */}
         {hasMultiple && (
           <>
             <button
@@ -107,7 +102,6 @@ function PostImageCarousel({
         )}
       </div>
 
-      {/* Dot navigation strip */}
       {hasMultiple && (
         <div className="flex items-center justify-center gap-1.5 py-2 bg-black/40">
           {images.map((_, i) => (
@@ -126,11 +120,10 @@ function PostImageCarousel({
       )}
     </div>
   );
-}
+});
 
-// Health Pulse Dot
 
-function HealthDot({ health }: { health: number }) {
+const HealthDot = memo(function HealthDot({ health }: { health: number }) {
   const color =
     health >= 80 ? 'bg-sky-400' :
     health >= 60 ? 'bg-emerald-400' :
@@ -146,11 +139,10 @@ function HealthDot({ health }: { health: number }) {
       <span className={cn('relative inline-flex rounded-full h-2 w-2', color)} />
     </span>
   );
-}
+});
 
-// Single Feed Post
 
-function FeedPost({
+const FeedPost = memo(function FeedPost({
   project,
   currentUserId,
   initialLiked,
@@ -165,12 +157,10 @@ function FeedPost({
   const { decayState, healthPercent } = useDecayState(project.health);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // like state
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(project.likeCount);
   const [likeLoading, setLikeLoading] = useState(false);
 
-  // vote state
   const [myVote, setMyVote] = useState<'WILL_SHIP' | 'WILL_DIE' | null>(initialVoted ? 'WILL_SHIP' : null);
   const [voteCount, setVoteCount] = useState(project.voteCount);
   const [voteLoading, setVoteLoading] = useState(false);
@@ -180,6 +170,7 @@ function FeedPost({
   const displayName = project.user.name ?? project.user.username ?? 'Developer';
   const handle = project.user.username ? `@${project.user.username}` : '';
   const timeAgo = formatRelativeDate(new Date(project.createdAt));
+  const timeCompact = formatCompactDate(new Date(project.createdAt));
   const hasImages = project.screenshots && project.screenshots.length > 0;
 
   const cardFilter =
@@ -193,7 +184,6 @@ function FeedPost({
     e.stopPropagation();
     if (!isLoggedIn) { router.push('/'); return; }
     if (likeLoading) return;
-    // Optimistic
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikeCount((c) => wasLiked ? c - 1 : c + 1);
@@ -201,7 +191,6 @@ function FeedPost({
     try {
       const res = await fetch(`/api/projects/${project.id}/like`, { method: 'POST' });
       if (!res.ok) {
-        // Revert on failure
         setLiked(wasLiked);
         setLikeCount((c) => wasLiked ? c + 1 : c - 1);
       }
@@ -213,14 +202,12 @@ function FeedPost({
     }
   };
 
-  // toggle vote
   const handleVote = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isLoggedIn) { router.push('/'); return; }
     if (voteLoading) return;
     const wasVoted = myVote === 'WILL_SHIP';
-    // Optimistic
     setMyVote(wasVoted ? null : 'WILL_SHIP');
     setVoteCount((c) => {
       if (wasVoted) return c - 1;
@@ -235,7 +222,6 @@ function FeedPost({
         body: JSON.stringify({ vote: 'WILL_SHIP' }),
       });
       if (!res.ok) {
-        // Revert
         setMyVote(wasVoted ? 'WILL_SHIP' : (myVote === 'WILL_DIE' ? 'WILL_DIE' : null));
         setVoteCount((c) => {
           if (wasVoted) return c + 1;
@@ -266,6 +252,7 @@ function FeedPost({
             startIndex={lightboxIndex}
             projectTitle={project.title}
             projectSlug={project.slug}
+            projectGithubUrl={project.githubRepoUrl}
             onClose={() => setLightboxIndex(null)}
           />
         )}
@@ -287,11 +274,11 @@ function FeedPost({
         style={{ filter: cardFilter, transition: 'filter 0.6s ease' }}
       >
         <div className="flex min-w-0 gap-3">
-          {/* Avatar */}
           <div className="shrink-0 pt-0.5">
             <Link href={`/project/${project.slug}`} onClick={(e) => e.stopPropagation()}>
-              <div className="h-10 w-10 rounded-full bg-secondary border border-border overflow-hidden flex items-center justify-center font-bold text-sm text-muted-foreground hover:opacity-80 transition-opacity">
+              <div className="h-8 w-8 rounded-full bg-secondary border border-border overflow-hidden flex items-center justify-center font-bold text-sm text-muted-foreground hover:opacity-80 transition-opacity sm:h-10 sm:w-10">
                 {project.user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={project.user.image} alt={displayName} className="h-full w-full object-cover" />
                 ) : (
                   <span>{displayName.charAt(0).toUpperCase()}</span>
@@ -300,16 +287,37 @@ function FeedPost({
             </Link>
           </div>
 
-          {/* Content */}
           <div className="flex-1 min-w-0">
 
-            {/* Header: name / handle / time / state */}
-            <div className="mb-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
-              <span className="max-w-24 truncate text-sm font-semibold leading-none text-foreground sm:max-w-35">
+            {/*
+              Mobile header — single locked row: [name] [handle?] · [time] ... [BADGE right]
+              Uses flex layouts with min-w-0 and shrink to naturally truncate name and handle
+              while keeping the badge pushed to the right, maximizing text visibility on wider devices.
+            */}
+            <div className="mb-2.5 flex min-w-0 items-center justify-between gap-x-3 sm:hidden">
+              <div className="flex min-w-0 shrink items-center gap-x-1.5">
+                <span className="min-w-0 shrink truncate text-sm font-semibold leading-none text-foreground">
+                  {displayName}
+                </span>
+                {handle && (
+                  <span className="min-w-0 shrink truncate font-mono text-[11px] text-muted-foreground/45">
+                    {handle}
+                  </span>
+                )}
+                <span className="shrink-0 text-[10px] text-muted-foreground/30">·</span>
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground/40">{timeCompact}</span>
+              </div>
+              <div className="shrink-0">
+                <StateBadge state={project.state} />
+              </div>
+            </div>
+
+            <div className="mb-0.5 hidden min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 sm:flex">
+              <span className="max-w-35 truncate text-sm font-semibold leading-none text-foreground">
                 {displayName}
               </span>
               {handle && (
-                <span className="max-w-28 min-w-0 truncate font-mono text-xs text-muted-foreground/50 sm:max-w-none">
+                <span className="min-w-0 max-w-none truncate font-mono text-xs text-muted-foreground/50">
                   {handle}
                 </span>
               )}
@@ -320,40 +328,49 @@ function FeedPost({
               </div>
             </div>
 
-            {/* Clickable title */}
             <Link href={`/project/${project.slug}`}>
               <h2 className="mb-2 break-words font-mono text-[15px] font-bold leading-snug text-foreground transition-colors duration-150 hover:text-accent">
                 {project.title}
               </h2>
             </Link>
 
-            {/* Description */}
             {project.description && (
-              <p className="text-sm text-muted-foreground/75 leading-relaxed mb-3 line-clamp-3">
+              <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground/75 sm:line-clamp-3">
                 {project.description}
               </p>
             )}
 
-            {/* Stack pills */}
             {project.stack.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {project.stack.slice(0, 5).map((tech) => (
+                {project.stack.slice(0, 3).map((tech) => (
                   <span
                     key={tech}
-                    className="max-w-full truncate rounded-sm border border-border/40 bg-secondary/80 px-2 py-0.5 font-mono text-[10px] text-muted-foreground/65"
+                    className="inline-flex items-center max-w-full truncate rounded-sm border border-border/40 bg-secondary/80 px-2 py-0.5 font-mono text-[10px] text-muted-foreground/65 sm:hidden"
                   >
                     {tech}
                   </span>
                 ))}
+                {project.stack.slice(0, 5).map((tech) => (
+                  <span
+                    key={`desktop-${tech}`}
+                    className="hidden max-w-full truncate rounded-sm border border-border/40 bg-secondary/80 px-2 py-0.5 font-mono text-[10px] text-muted-foreground/65 sm:inline-flex sm:items-center"
+                  >
+                    {tech}
+                  </span>
+                ))}
+                {project.stack.length > 3 && (
+                  <span className="inline-flex items-center rounded-sm border border-border/30 bg-secondary/40 px-2 py-0.5 font-mono text-[10px] text-muted-foreground/35 sm:hidden">
+                    +{project.stack.length - 3} more
+                  </span>
+                )}
                 {project.stack.length > 5 && (
-                  <span className="font-mono text-[10px] px-2 py-0.5 rounded-sm bg-secondary/40 text-muted-foreground/35 border border-border/30">
+                  <span className="hidden rounded-sm border border-border/30 bg-secondary/40 px-2 py-0.5 font-mono text-[10px] text-muted-foreground/35 sm:inline-flex sm:items-center">
                     +{project.stack.length - 5}
                   </span>
                 )}
               </div>
             )}
 
-            {/* Health */}
             <div className="flex items-center gap-2 mb-3">
               <HealthDot health={project.health} />
               <span className="font-mono text-[11px] text-muted-foreground/50">
@@ -361,7 +378,6 @@ function FeedPost({
               </span>
             </div>
 
-            {/* Inline Image Carousel */}
             {hasImages && (
               <PostImageCarousel
                 images={project.screenshots!}
@@ -370,18 +386,15 @@ function FeedPost({
               />
             )}
 
-            {/* No screenshots placeholder */}
             {!hasImages && (
-              <div className="mt-2 flex items-center justify-center h-16 rounded-xl border border-dashed border-border/30 bg-secondary/10">
+              <div className="hidden mt-2 sm:flex h-16 items-center justify-center rounded-xl border border-dashed border-border/30 bg-secondary/10">
                 <span className="font-mono text-[10px] text-muted-foreground/25 uppercase tracking-widest">
                   no screenshots
                 </span>
               </div>
             )}
 
-            {/* Interaction Bar */}
-            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1 sm:flex-nowrap">
-              {/* Like */}
+            <div className="mt-3 flex min-w-0 items-center justify-between gap-1 sm:flex-nowrap sm:justify-start">
               <button
                 onClick={handleLike}
                 className={cn(
@@ -393,7 +406,6 @@ function FeedPost({
                 <span className="font-mono text-xs">{likeCount}</span>
               </button>
 
-              {/* Comment */}
               <Link
                 href={`/project/${project.slug}#comments`}
                 onClick={(e) => e.stopPropagation()}
@@ -403,7 +415,6 @@ function FeedPost({
                 <span className="font-mono text-xs">{project.commentCount}</span>
               </Link>
 
-              {/* Flame / Will Ship */}
               <button
                 onClick={handleVote}
                 className={cn(
@@ -419,17 +430,18 @@ function FeedPost({
                 <span className="font-mono text-xs">{Math.abs(voteCount)}</span>
               </button>
 
-              {/* View count */}
               <div className="flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground/25 sm:px-3">
                 <Activity className="h-4 w-4" />
                 <span className="font-mono text-xs">{project.viewCount}</span>
               </div>
 
-              {/* Open project */}
               <Link
-                href={`/project/${project.slug}`}
+                href={project.githubRepoUrl || `/project/${project.slug}`}
+                target={project.githubRepoUrl ? "_blank" : undefined}
+                rel={project.githubRepoUrl ? "noopener noreferrer" : undefined}
                 onClick={(e) => e.stopPropagation()}
                 className="ml-0 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground/30 transition-all duration-200 hover:bg-accent/10 hover:text-accent sm:ml-auto sm:px-3"
+                title={project.githubRepoUrl ? "View Repository" : "View Project"}
               >
                 <ExternalLink className="h-4 w-4" />
               </Link>
@@ -439,9 +451,8 @@ function FeedPost({
       </motion.article>
     </>
   );
-}
+});
 
-// Main Feed Client
 
 export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags, trendingProjects, currentUserId, likedProjectIds, votedProjectIds }: ExploreFeedClientProps) {
   const [projects, setProjects] = useState<ProjectWithUser[]>(initialProjects);
@@ -450,8 +461,11 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
 
   const { ref: loadMoreRef, inView: loadMoreInView } = useInView({ rootMargin: '800px' });
 
+  const loadingMoreRef = useRef(false);
+
   const loadMore = useCallback(async () => {
-    if (!cursor || loadingMore) return;
+    if (!cursor || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
       const res = await fetch(`/api/search?sort=DISCOVERY&cursor=${encodeURIComponent(cursor)}`);
@@ -464,9 +478,10 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
     } catch (e) {
       console.error('Failed to load more:', e);
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [cursor, loadingMore]);
+  }, [cursor]);
 
   useEffect(() => {
     if (!loadMoreInView || loadingMore) return;
@@ -481,10 +496,8 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
   return (
     <div className="mx-auto flex h-full w-full max-w-full min-w-0 overflow-x-clip lg:max-w-[1200px]">
 
-      {/* ── Main Feed ── */}
       <main className="w-full min-w-0 flex-1 border-x border-border/50">
 
-        {/* Sticky Header */}
         <div className="sticky top-0 z-10 border-b border-border/50 bg-background/85 backdrop-blur-md px-4 py-3 flex items-center justify-between">
           <h1 className="font-mono text-[13px] font-bold tracking-[0.2em] uppercase text-foreground/70">
             Explore
@@ -494,7 +507,6 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
           </span>
         </div>
 
-        {/* Empty State */}
         {projects.length === 0 && (
           <div className="flex flex-col items-center justify-center py-32 text-muted-foreground/30">
             <Activity className="h-10 w-10 mb-4 opacity-30" />
@@ -502,7 +514,6 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
           </div>
         )}
 
-        {/* Posts */}
         <div>
           {projects.map((project) => (
             <FeedPost
@@ -515,7 +526,6 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
           ))}
         </div>
 
-        {/* Infinite scroll trigger */}
         <div ref={loadMoreRef} className="h-16 flex items-center justify-center">
           {loadingMore ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
@@ -527,11 +537,9 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
         </div>
       </main>
 
-      {/* ── Right Sidebar ── */}
       <aside className="hidden lg:flex w-[320px] flex-col border-l border-border/40 px-5 py-4 shrink-0">
         <div className="sticky top-4 flex flex-col gap-4">
 
-          {/* Trending Topics */}
           <div className="rounded-2xl border border-border/40 bg-card/20 p-4">
             <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50 mb-3">
               Trending Topics
@@ -557,7 +565,6 @@ export function ExploreFeedClient({ initialProjects, initialCursor, trendingTags
             </div>
           </div>
 
-          {/* Trending Projects */}
           {trendingProjects.length > 0 && (
             <div className="rounded-2xl border border-border/40 bg-card/20 p-4">
               <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50 mb-3">

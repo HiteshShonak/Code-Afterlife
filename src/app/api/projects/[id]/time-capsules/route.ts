@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { CapsuleType } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: Request,
@@ -20,8 +21,10 @@ export async function POST(
     if (!title || !type) {
       return NextResponse.json({ message: 'Title and type are required' }, { status: 400 });
     }
+    if (!Object.values(CapsuleType).includes(type)) {
+      return NextResponse.json({ message: 'Invalid capsule type' }, { status: 400 });
+    }
 
-    // Verify ownership
     const project = await prisma.project.findUnique({
       where: { id },
       select: { userId: true },
@@ -35,7 +38,6 @@ export async function POST(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    // Generous Rate Limit: Max 20 capsules per hour per user
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentCapsules = await prisma.timeCapsule.count({
       where: {
@@ -51,12 +53,11 @@ export async function POST(
       );
     }
 
-    // Create the time capsule
     const capsule = await prisma.timeCapsule.create({
       data: {
         title,
         content: content || null,
-        type: type as CapsuleType,
+        type,
         mediaUrl: mediaUrl || null,
         projectId: id,
         userId: session.user.id,
@@ -65,7 +66,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, capsule }, { status: 201 });
   } catch (error) {
-    console.error('Failed to create time capsule:', error);
+    logger.error('Failed to create time capsule', { error });
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

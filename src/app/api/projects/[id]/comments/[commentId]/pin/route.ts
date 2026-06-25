@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth-guard';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: Request,
@@ -10,7 +11,6 @@ export async function POST(
     const user = await requireAuth();
     const resolvedParams = await params;
     
-    // Validate project ownership
     const project = await prisma.project.findUnique({
       where: { id: resolvedParams.id },
       select: { userId: true },
@@ -20,9 +20,8 @@ export async function POST(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    // Toggle pin status
-    const comment = await prisma.projectComment.findUnique({
-      where: { id: resolvedParams.commentId },
+    const comment = await prisma.projectComment.findFirst({
+      where: { id: resolvedParams.commentId, projectId: resolvedParams.id },
       select: { isPinned: true },
     });
 
@@ -37,7 +36,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, isPinned: updatedComment.isPinned });
   } catch (error) {
-    console.error('Failed to pin comment:', error);
+    logger.error('Failed to pin comment', { error });
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

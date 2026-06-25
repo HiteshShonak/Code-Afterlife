@@ -1,12 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export const notificationService = {
-  // notify on unseal
   async notifyProjectUnsealed(projectId: string, newState: 'DEAD' | 'SHIPPED') {
-    // get project info
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: { user: true },
@@ -14,7 +13,6 @@ export const notificationService = {
 
     if (!project) return;
 
-    // get followers
     const followers = await prisma.projectFollow.findMany({
       where: { projectId },
       include: { user: true },
@@ -48,12 +46,10 @@ export const notificationService = {
       </div>
     `;
 
-    // send notifications
     for (const follower of followers) {
       if (!follower.user.email) continue;
 
       try {
-        // in app
         await prisma.notification.create({
           data: {
             userId: follower.user.id,
@@ -63,7 +59,6 @@ export const notificationService = {
           },
         });
 
-        // email
         if (resend) {
           await resend.emails.send({
             from: 'Code Afterlife <notifications@codeafterlife.com>', // Requires verified domain in Resend
@@ -72,10 +67,15 @@ export const notificationService = {
             html: htmlContent,
           });
         } else {
-          console.warn('RESEND_API_KEY not set. Skipping email notification for', follower.user.email);
+          logger.warn('RESEND_API_KEY not set. Skipping email notification', {
+            email: follower.user.email,
+          });
         }
       } catch (err) {
-        console.error(`Failed to send notification to ${follower.user.email}:`, err);
+        logger.error('Failed to send notification', {
+          email: follower.user.email,
+          err,
+        });
       }
     }
   },

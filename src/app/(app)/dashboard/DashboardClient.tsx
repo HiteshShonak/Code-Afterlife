@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { ProjectCard } from '@/components/ProjectCard';
@@ -54,30 +54,29 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
   const displayedProjects = projects.slice(0, visibleCount);
   const hasMore = visibleCount < projects.length;
 
-  const stats = {
+  const stats = useMemo(() => ({
     total:   initialProjects.length,
     active:  initialProjects.filter(p => p.state === 'ACTIVE').length,
     stalled: initialProjects.filter(p => p.state === 'STALLED').length,
     dead:    initialProjects.filter(p => p.state === 'DEAD').length,
     shipped: initialProjects.filter(p => p.state === 'SHIPPED').length,
-  };
+  }), [initialProjects]);
 
-  const getGreeting = () => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
-  };
+  }, []);
 
   const displayName = user.username ?? user.name ?? 'Developer';
 
   return (
     <div className="mx-auto max-w-350 px-6 pb-24 pt-12 md:px-10">
-      {/* Welcome strip */}
       <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-start">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
-            {getGreeting()}, @{displayName}
+            {greeting}, @{displayName}
           </p>
           <h1 className="mt-1.5 font-mono text-2xl font-bold tracking-tight text-foreground">
             You have{' '}
@@ -89,7 +88,6 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
           </p>
         </div>
 
-        {/* Stats + Sort row */}
         <div className="flex flex-col items-end gap-3">
           <div className="flex gap-1.5 rounded-xl border border-border/60 bg-card/60 p-1.5 backdrop-blur-sm">
             <StatPill label="All" value={stats.total} onClick={() => setFilter('ALL')} active={filter === 'ALL'} />
@@ -115,7 +113,6 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
         </div>
       </div>
 
-      {/* Active filter context label */}
       {filter !== 'ALL' && (
         <div className="mb-6 flex items-center gap-2">
           <span className="font-mono text-[11px] text-muted-foreground/60">Showing</span>
@@ -169,7 +166,6 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
         </div>
       )}
 
-      {/* FAB */}
       <button
         onClick={() => setCreateOpen(true)}
         className="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-background shadow-lg shadow-accent/20 transition-transform hover:scale-110 active:scale-95"
@@ -183,7 +179,7 @@ export function DashboardClient({ projects: initialProjects, user }: DashboardCl
   );
 }
 
-function StatPill({ label, value, onClick, active, color = 'text-foreground/70' }: {
+const StatPill = memo(function StatPill({ label, value, onClick, active, color = 'text-foreground/70' }: {
   label: string;
   value: number;
   onClick: () => void;
@@ -199,7 +195,7 @@ function StatPill({ label, value, onClick, active, color = 'text-foreground/70' 
       <span className={['font-mono text-base font-bold', active ? color || 'text-foreground' : 'text-foreground/60'].join(' ')}>{value}</span>
     </button>
   );
-}
+});
 
 function EmptyState({ onNew, isFiltered }: { onNew: () => void; isFiltered: boolean }) {
   if (isFiltered) {

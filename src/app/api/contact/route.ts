@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 export async function POST(req: Request) {
 
@@ -19,10 +29,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
+    const safeType = escapeHtml(String(type ?? 'OTHER'));
+    const safeEmail = email ? escapeHtml(String(email)) : '';
+    const safeMessage = escapeHtml(String(message)).replace(/\n/g, '<br>');
+
     const { data, error } = await resend.emails.send({
       from: 'Code Afterlife <onboarding@resend.dev>',
       to: process.env.CONTACT_EMAIL || 'delivered@resend.dev',
-      subject: `New Contact Form Submission: ${type}`,
+      subject: `New Contact Form Submission: ${safeType}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -107,19 +121,19 @@ export async function POST(req: Request) {
           <div class="container">
             <div class="header">
               <h1 class="title">&gt;_ TRANSMISSION_RECEIVED</h1>
-              <span class="badge ${type}">${type}</span>
+              <span class="badge ${safeType}">${safeType}</span>
             </div>
             
             <div class="section">
               <div class="label">/// SENDER_IDENTITY</div>
               <div class="content" style="border-left-color: #52525b;">
-                ${email ? `<a href="mailto:${email}" class="content-email">${email}</a>` : '<span style="color: #71717a; font-style: italic;">[UNKNOWN_GHOST]</span>'}
+                ${safeEmail ? `<a href="mailto:${safeEmail}" class="content-email">${safeEmail}</a>` : '<span style="color: #71717a; font-style: italic;">[UNKNOWN_GHOST]</span>'}
               </div>
             </div>
             
             <div class="section">
               <div class="label">/// DECRYPTED_MESSAGE</div>
-              <div class="content">${message.replace(/\n/g, '<br>')}</div>
+              <div class="content">${safeMessage}</div>
             </div>
             
             <div class="footer">
@@ -133,13 +147,13 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      console.error('Resend API Error:', error);
+      logger.error('Resend API Error', { error });
       return NextResponse.json({ error }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error('Error sending email:', error);
+    logger.error('Error sending email', { error });
     return NextResponse.json(
       { error: 'Failed to send email' },
       { status: 500 }

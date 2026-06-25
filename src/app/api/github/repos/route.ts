@@ -1,8 +1,9 @@
-import { NextRequest } from 'next/server';
 import { apiResponse } from '@/lib/api-response';
 import { asyncHandler } from '@/lib/async-handler';
 import { requireAuth } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
+import { getGitHubFailureDetails } from '@/lib/ai-pulse';
+import { logger } from '@/lib/logger';
 
 export interface GithubRepoItem {
   id: number;
@@ -16,11 +17,9 @@ export interface GithubRepoItem {
   isPrivate: boolean;
 }
 
-// get user repos
-export const GET = asyncHandler(async (_request: NextRequest) => {
+export const GET = asyncHandler(async () => {
   const user = await requireAuth();
 
-  // get github access token
   const account = await prisma.account.findFirst({
     where: { userId: user.id, provider: 'github' },
     select: { access_token: true },
@@ -30,7 +29,6 @@ export const GET = asyncHandler(async (_request: NextRequest) => {
     return apiResponse.error('no_token', 401);
   }
 
-  // fetch owner repos
   const ghRes = await fetch(
     'https://api.github.com/user/repos?sort=updated&per_page=100&type=owner',
     {
@@ -46,29 +44,34 @@ export const GET = asyncHandler(async (_request: NextRequest) => {
     let errorCode = 'github_error';
     try {
       const body = await ghRes.json();
-      // handle auth errors
       if (ghRes.status === 401 || ghRes.status === 403) {
         errorCode = 'reauth_needed';
       }
-      console.error('[github/repos] GitHub API error:', ghRes.status, body);
-    } catch {
-      // ignore JSON parse error
+      logger.error('[github/repos] GitHub API error', {
+        ...getGitHubFailureDetails(ghRes),
+        body,
+      });
+    } catch (error) {
+      logger.error('[github/repos] GitHub API error body parse failed', {
+        ...getGitHubFailureDetails(ghRes),
+        error,
+      });
     }
     return apiResponse.error(errorCode, ghRes.status >= 500 ? 502 : 401);
   }
 
-  const raw: any[] = await ghRes.json();
+  const raw = await ghRes.json() as Array<Record<string, unknown>>;
 
   const repos: GithubRepoItem[] = raw.map((r) => ({
-    id: r.id,
-    name: r.name,
-    full_name: r.full_name,
-    html_url: r.html_url,
-    description: r.description ?? null,
-    language: r.language ?? null,
-    stars: r.stargazers_count ?? 0,
-    updatedAt: r.updated_at,
-    isPrivate: r.private ?? false,
+    id: Number(r.id),
+    name: String(r.name ?? ''),
+    full_name: String(r.full_name ?? ''),
+    html_url: String(r.html_url ?? ''),
+    description: typeof r.description === 'string' ? r.description : null,
+    language: typeof r.language === 'string' ? r.language : null,
+    stars: Number(r.stargazers_count ?? 0),
+    updatedAt: String(r.updated_at ?? ''),
+    isPrivate: Boolean(r.private),
   }));
 
   return apiResponse.success(repos);

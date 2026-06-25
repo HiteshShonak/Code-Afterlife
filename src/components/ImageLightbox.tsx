@@ -11,15 +11,16 @@ interface ImageLightboxProps {
   startIndex: number;
   projectTitle: string;
   projectSlug: string;
+  projectGithubUrl?: string | null;
   onClose: () => void;
 }
 
-// shared lightbox used on explore feed and project detail page
 export function ImageLightbox({
   images,
   startIndex,
   projectTitle,
   projectSlug,
+  projectGithubUrl,
   onClose,
 }: ImageLightboxProps) {
   const [current, setCurrent] = useState(startIndex);
@@ -53,7 +54,6 @@ export function ImageLightbox({
       className="fixed inset-0 z-9999 flex flex-col bg-black/96 backdrop-blur-xl"
       onClick={onClose}
     >
-      {/* toolbar */}
       <div
         className="flex min-w-0 items-center justify-between gap-3 border-b border-white/10 px-3 py-3 sm:px-4"
         onClick={(e) => e.stopPropagation()}
@@ -66,12 +66,14 @@ export function ImageLightbox({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href={`/project/${projectSlug}`}
+            href={projectGithubUrl || `/project/${projectSlug}`}
+            target={projectGithubUrl ? "_blank" : undefined}
+            rel={projectGithubUrl ? "noopener noreferrer" : undefined}
             className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 font-mono text-xs font-semibold text-white/90 transition-colors hover:bg-white/20 sm:px-3"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">View Project</span>
+            <span className="hidden sm:inline">{projectGithubUrl ? "GitHub" : "View Project"}</span>
           </Link>
           <button
             onClick={onClose}
@@ -82,7 +84,6 @@ export function ImageLightbox({
         </div>
       </div>
 
-      {/* main image */}
       <div
         className="relative flex flex-1 items-center justify-center overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -119,7 +120,6 @@ export function ImageLightbox({
         )}
       </div>
 
-      {/* thumbnail strip - shown when 2+ images */}
       {images.length > 1 && (
         <div
           className="flex items-center justify-center gap-2 py-3 px-4"

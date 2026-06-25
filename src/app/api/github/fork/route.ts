@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getGitHubFailureDetails } from '@/lib/ai-pulse';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const bodySchema = z.object({
@@ -17,8 +19,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { parentRepoUrl } = bodySchema.parse(body);
 
-    // Extract owner and repo from github url
-    // e.g. https://github.com/torvalds/linux
     const match = parentRepoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
     if (!match) {
       return NextResponse.json({ success: false, message: 'Invalid GitHub URL format.' }, { status: 400 });
@@ -26,7 +26,6 @@ export async function POST(req: Request) {
     const [, owner, repo] = match;
     const cleanRepo = repo.replace(/\.git$/, '');
 
-    // Get the user's GitHub access token from the Account table
     const account = await prisma.account.findFirst({
       where: {
         userId: session.user.id,
@@ -44,7 +43,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Call GitHub API to fork
     const ghRes = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}/forks`, {
       method: 'POST',
       headers: {
@@ -56,9 +54,11 @@ export async function POST(req: Request) {
 
     if (!ghRes.ok) {
       const errorData = await ghRes.json().catch(() => ({}));
-      console.error('GitHub API Fork Error:', errorData);
+      logger.error('GitHub API Fork Error', {
+        ...getGitHubFailureDetails(ghRes),
+        body: errorData,
+      });
       
-      // Handle the case where they haven't granted the public_repo scope
       if (ghRes.status === 404 || ghRes.status === 403) {
         return NextResponse.json({
           success: false, 
@@ -72,8 +72,9 @@ export async function POST(req: Request) {
 
     const data = await ghRes.json();
     return NextResponse.json({ success: true, url: data.html_url });
-  } catch (error: any) {
-    console.error('Fork API error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal server error' }, { status: 500 });
+  } catch (error) {
+    logger.error('Fork API error', { error });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

@@ -1,39 +1,44 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import {
   ghFetch,
   calcHealthFromCommits,
   generatePulse,
+  getGitHubFailureDetails,
   getFreshCommitsForPulse,
   getLatestCommitDate,
+  getPulseLifecycleContext,
   getPulseSinceDate,
   getPulseUntilDate,
+  isGitHubRateLimitExceeded,
   isOwnerAuthoredCommit,
   type GitHubCommit,
-} from '@/lib/ai-pulse';
-import { projectService } from '@/services/project.service';
+} from "@/lib/ai-pulse";
+import { projectService } from "@/services/project.service";
+import { healthService } from "@/services/health.service";
+import { HEALTH_CONFIG } from "@/config/health";
+import { logger } from "@/lib/logger";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
 
-    // Verify ownership
     const project = await prisma.project.findUnique({
       where: { id },
-      select: { 
-        userId: true, 
-        githubRepoUrl: true, 
-        state: true, 
-        health: true, 
+      select: {
+        userId: true,
+        githubRepoUrl: true,
+        state: true,
+        health: true,
         title: true,
         createdAt: true,
         lastActivityAt: true,
@@ -48,32 +53,43 @@ export async function POST(
     });
 
     if (!project) {
-      return NextResponse.json({ message: 'Project not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: "Project not found" },
+        { status: 404 },
+      );
     }
 
     if (project.userId !== session.user.id) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     if (!project.githubRepoUrl) {
-      return NextResponse.json({ message: 'No GitHub URL attached to this project. Cannot run AI Fetch.' }, { status: 400 });
+      return NextResponse.json(
+        {
+          message:
+            "No GitHub URL attached to this project. Cannot run AI Fetch.",
+        },
+        { status: 400 },
+      );
     }
 
-    // Rate limit: 1 manual AI pulse per 6 hours
     const now = new Date();
     const limitAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
-    
-    // Check if a manual AI fetch was done in the last 6h
+
     const recentAILogs = await prisma.timelineEntry.findMany({
       where: {
         projectId: id,
-        type: { in: ['AI_BUILD_LOG', 'RESURRECTION'] },
+        type: { in: ["AI_BUILD_LOG", "RESURRECTION"] },
         createdAt: { gte: limitAgo },
-      }
+      },
     });
 
     const recentManualLog = recentAILogs.find((log) => {
-      if (log.data && typeof log.data === 'object' && 'manualTrigger' in log.data) {
+      if (
+        log.data &&
+        typeof log.data === "object" &&
+        "manualTrigger" in log.data
+      ) {
         return log.data.manualTrigger === true;
       }
       return false;
@@ -81,148 +97,235 @@ export async function POST(
 
     if (recentManualLog) {
       return NextResponse.json(
-        { message: 'An AI Pulse has already run recently. Please wait 6 hours to manually force it again.' },
-        { status: 429 }
+        {
+          message:
+            "An AI Pulse has already run recently. Please wait 6 hours to manually force it again.",
+        },
+        { status: 429 },
       );
     }
 
     const match = project.githubRepoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
     if (!match) {
-      return NextResponse.json({ message: 'Invalid GitHub URL format.' }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid GitHub URL format." },
+        { status: 400 },
+      );
     }
 
     const [, owner, repoRaw] = match;
-    const repo = repoRaw.replace(/\.git$/, '');
+    const repo = repoRaw.replace(/\.git$/, "");
 
-    // Fetch only from the active freshness window
     const sinceDate = getPulseSinceDate(project, now);
     const untilDate = getPulseUntilDate(now);
     const commitsRes = await ghFetch(
-      `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&until=${untilDate.toISOString()}&per_page=20`
+      `/repos/${owner}/${repo}/commits?since=${sinceDate.toISOString()}&until=${untilDate.toISOString()}&per_page=100`,
     );
 
     if (!commitsRes.ok) {
-      return NextResponse.json({ message: 'Failed to fetch commits from GitHub.' }, { status: 502 });
+      logger.warn(
+        `[AI Pulse] Manual GitHub commit fetch failed for project ${id}`,
+        {
+          ...getGitHubFailureDetails(commitsRes),
+        },
+      );
+      if (isGitHubRateLimitExceeded(commitsRes)) {
+        return NextResponse.json(
+          {
+            message: "GitHub API rate limit exhausted. Please try again later.",
+          },
+          { status: 429 },
+        );
+      }
+
+      return NextResponse.json(
+        { message: "Failed to fetch commits from GitHub." },
+        { status: 502 },
+      );
     }
 
     const commits: GitHubCommit[] = await commitsRes.json();
     const freshCommits = getFreshCommitsForPulse(commits, project, now);
 
     if (freshCommits.length === 0) {
-      // Update check time but no new entry
-      await prisma.project.update({ where: { id }, data: { lastPulseCheckAt: now } });
+      await prisma.project.update({
+        where: { id },
+        data: { lastPulseCheckAt: now },
+      });
       return NextResponse.json(
         {
           message:
             commits.length === 0
-              ? 'No new commits found since the last check.'
-              : 'Only stale commits were found. Lifecycle activity requires commits from the last 24 hours.',
+              ? "No new commits found since the last check."
+              : `Only stale commits were found. Lifecycle activity requires commits from the last ${HEALTH_CONFIG.deadDays} days.`,
         },
-        { status: 400 }
-      ); // Return 400 to show message in UI
+        { status: 400 },
+      );
     }
 
-    // Fetch README
     let readme: string | null = null;
     try {
       const readmeRes = await ghFetch(`/repos/${owner}/${repo}/readme`);
       if (readmeRes.ok) {
         const readmeData = await readmeRes.json();
-        readme = Buffer.from(readmeData.content, 'base64').toString('utf-8');
+        readme = Buffer.from(readmeData.content, "base64").toString("utf-8");
       }
     } catch {
-      // ignore
     }
 
     const ownerCommits = freshCommits.filter((commit) =>
-      isOwnerAuthoredCommit(commit, project.user)
+      isOwnerAuthoredCommit(commit, project.user),
     );
-    const isDeadResurrection = project.state === 'DEAD';
-    const isRevival = project.state === 'STALLED' || isDeadResurrection;
-    const isFirstActivity = project.state === 'BORN';
-    const shouldActivate = isFirstActivity || isRevival;
-
-    if (shouldActivate && ownerCommits.length === 0) {
-      await prisma.project.update({
-        where: { id },
-        data: { lastPulseCheckAt: now },
-      });
-
-      return NextResponse.json(
-        {
-          message:
-            'Recent commits were found, but none were authored by the project owner, so the lifecycle state was left unchanged.',
-        },
-        { status: 400 }
-      );
-    }
-
-    const activityCommits = shouldActivate ? ownerCommits : freshCommits;
-    const latestActivityAt = getLatestCommitDate(activityCommits);
-    if (!latestActivityAt) {
-      await prisma.project.update({ where: { id }, data: { lastPulseCheckAt: now } });
-      return NextResponse.json(
-        { message: 'Fresh commits were found, but none had usable timestamps.' },
-        { status: 400 }
-      );
-    }
-
-    const commitMessages = activityCommits.map((commit) => commit.commit?.message ?? '');
+    const initialLifecycle = getPulseLifecycleContext(project.state);
+    const initialActivityCommits = initialLifecycle.shouldActivate
+      ? ownerCommits
+      : freshCommits;
+    const commitMessages = initialActivityCommits.map(
+      (commit) => commit.commit?.message ?? "",
+    );
     const summary = await generatePulse(
       project.title,
       commitMessages,
       readme,
-      isDeadResurrection
+      initialLifecycle.isDeadResurrection,
     );
-    const newHealth = calcHealthFromCommits(activityCommits.length, project.health);
 
     let entry = null;
+    let failureMessage: string | null = null;
     await prisma.$transaction(async (tx) => {
-      if (shouldActivate) {
-        await projectService.updateState(id, 'ACTIVE', {
-          source: 'ai_pulse',
+      const currentProject = await tx.project.findUnique({
+        where: { id },
+        select: {
+          state: true,
+          health: true,
+          createdAt: true,
+          lastActivityAt: true,
+        },
+      });
+
+      if (!currentProject) {
+        throw new Error(`Project ${id} disappeared during ai pulse`);
+      }
+
+      const lifecycle = getPulseLifecycleContext(currentProject.state);
+      const currentFreshCommits = getFreshCommitsForPulse(
+        commits,
+        {
+          createdAt: currentProject.createdAt,
+          lastActivityAt: currentProject.lastActivityAt,
+          lastPulseCheckAt: project.lastPulseCheckAt,
+        },
+        now,
+      );
+      const currentOwnerCommits = currentFreshCommits.filter((commit) =>
+        isOwnerAuthoredCommit(commit, project.user),
+      );
+      const activityCommits = lifecycle.shouldActivate
+        ? currentOwnerCommits
+        : currentFreshCommits;
+
+      if (currentFreshCommits.length === 0) {
+        await tx.project.update({
+          where: { id },
+          data: { lastPulseCheckAt: now },
+        });
+        failureMessage =
+          "Only stale commits were found. Another pulse may have already recorded them.";
+        return;
+      }
+
+      if (lifecycle.shouldActivate && currentOwnerCommits.length === 0) {
+        await tx.project.update({
+          where: { id },
+          data: { lastPulseCheckAt: now },
+        });
+        failureMessage =
+          "Recent commits were found, but none were authored by the project owner, so the lifecycle state was left unchanged.";
+        return;
+      }
+
+      const latestActivityAt = getLatestCommitDate(activityCommits);
+      if (!latestActivityAt) {
+        await tx.project.update({
+          where: { id },
+          data: { lastPulseCheckAt: now },
+        });
+        failureMessage =
+          "Fresh commits were found, but none had usable timestamps.";
+        return;
+      }
+
+      if (lifecycle.shouldActivate) {
+        await projectService.updateState(id, "ACTIVE", {
+          source: "ai_pulse",
           tx,
         });
       }
+
+      const storedState = lifecycle.shouldActivate
+        ? "ACTIVE"
+        : currentProject.state;
+      const newHealth = calcHealthFromCommits(
+        activityCommits.length,
+        currentProject.health,
+        storedState,
+      );
+
+      const storedLastActivityAt =
+        currentProject.lastActivityAt &&
+        currentProject.lastActivityAt > latestActivityAt
+          ? currentProject.lastActivityAt
+          : latestActivityAt;
 
       await tx.project.update({
         where: { id },
         data: {
           lastPulseCheckAt: now,
-          lastActivityAt: latestActivityAt,
+          lastActivityAt: storedLastActivityAt,
           health: newHealth,
         },
       });
 
-      if (isDeadResurrection) {
+      const fallbackDescription = lifecycle.isDeadResurrection
+        ? `The original author came back and pushed ${currentOwnerCommits.length} new commit(s). The project stirs back to life.`
+        : lifecycle.shouldActivate
+          ? `The original author pushed ${currentOwnerCommits.length} new commit(s), and the project woke back up.`
+          : `${activityCommits.length} new commit(s) landed in the repository.`;
+      const canUseGeneratedSummary =
+        lifecycle.shouldActivate === initialLifecycle.shouldActivate &&
+        lifecycle.isDeadResurrection === initialLifecycle.isDeadResurrection &&
+        activityCommits.length === initialActivityCommits.length;
+      const description = canUseGeneratedSummary
+        ? (summary ?? fallbackDescription)
+        : fallbackDescription;
+
+      if (lifecycle.isDeadResurrection) {
         entry = await tx.timelineEntry.create({
           data: {
             projectId: id,
-            type: 'RESURRECTION',
-            title: 'Resurrected by Original Author',
-            description:
-              summary ??
-              `The original author returned and pushed ${ownerCommits.length} new commit(s).`,
+            type: "AI_BUILD_LOG",
+            title: "Original Author Returned",
+            description,
             data: {
-              commitCount: ownerCommits.length,
+              commitCount: currentOwnerCommits.length,
               repo: `${owner}/${repo}`,
               latestCommitAt: latestActivityAt.toISOString(),
               manualTrigger: true,
             },
           },
         });
-      } else if (summary || shouldActivate) {
+      } else {
         entry = await tx.timelineEntry.create({
           data: {
             projectId: id,
-            type: 'AI_BUILD_LOG',
-            title: shouldActivate ? 'AI Pulse Activation' : 'AI Pulse Observation',
-            description:
-              summary ??
-              `The original author pushed ${ownerCommits.length} new commit(s), and the project woke back up.`,
+            type: "AI_BUILD_LOG",
+            title: lifecycle.shouldActivate
+              ? "AI Pulse Activation"
+              : "AI Pulse Observation",
+            description,
             data: {
               commitCount: activityCommits.length,
-              ownerCommitCount: ownerCommits.length,
+              ownerCommitCount: currentOwnerCommits.length,
               repo: `${owner}/${repo}`,
               latestCommitAt: latestActivityAt.toISOString(),
               manualTrigger: true,
@@ -233,17 +336,34 @@ export async function POST(
     });
 
     if (!entry) {
-      return NextResponse.json({ message: 'No notable changes to log.' }, { status: 400 });
+      return NextResponse.json(
+        { message: failureMessage ?? "No notable changes to log." },
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'AI Pulse successfully fetched and logged.',
-      entry 
-    });
+    let updatedHealth: number | undefined;
+    try {
+      const healthResult = await healthService.recalculateOne(id);
+      updatedHealth = healthResult?.health;
+    } catch (err) {
+      logger.warn(
+        `[AI Pulse] Health recalculate after manual pulse failed for project ${id}`,
+        { error: err },
+      );
+    }
 
+    return NextResponse.json({
+      success: true,
+      message: "AI Pulse successfully fetched and logged.",
+      entry,
+      ...(updatedHealth !== undefined ? { health: updatedHealth } : {}),
+    });
   } catch (error) {
-    console.error('Failed to trigger AI pulse:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    logger.error("Failed to trigger AI pulse", { error });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

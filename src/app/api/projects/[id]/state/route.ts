@@ -3,13 +3,12 @@ import { ApiError } from '@/lib/api-error';
 import { apiResponse } from '@/lib/api-response';
 import { asyncHandler, type RouteContext } from '@/lib/async-handler';
 import { requireAuth } from '@/lib/auth-guard';
+import { logger } from '@/lib/logger';
 import { projectService } from '@/services/project.service';
 import { updateStateSchema } from '@/schemas/project.schema';
 import type { ProjectState } from '@prisma/client';
 
-// ai generated death reason
 
-// generate epitaph
 async function generateDeathReason(
   title: string,
   description: string | null,
@@ -48,19 +47,23 @@ Return ONLY the sentence. No quotes. No punctuation after the period. No explana
       }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      logger.error('Groq death reason generation failed', {
+        status: res.status,
+        statusText: res.statusText,
+      });
+      return null;
+    }
     const data = await res.json();
     const raw = data.choices?.[0]?.message?.content?.trim() ?? null;
-    // Sanitize: strip surrounding quotes, limit length
     return raw ? raw.replace(/^["']|["']$/g, '').slice(0, 120) : null;
-  } catch {
+  } catch (error) {
+    logger.error('Groq death reason generation threw', { error });
     return null;
   }
 }
 
-// route handler
 
-// update state
 export const PATCH = asyncHandler(
   async (request: NextRequest, context?: RouteContext) => {
     const { id } = await context!.params;
@@ -69,13 +72,10 @@ export const PATCH = asyncHandler(
     const validated = updateStateSchema.parse(body);
     const newState = validated.state as ProjectState;
 
-    // Verify the authenticated user owns this project before mutating its state
     const existing = await projectService.getById(id);
     if (!existing) throw ApiError.notFound('Project not found');
     if (existing.userId !== user.id) throw ApiError.forbidden('You do not own this project');
 
-    // When transitioning to DEAD via API (not via archiveProjectAction),
-    // generate an AI epitaph as a best-effort fallback so the tombstone always has text.
     let deathReason: string | undefined;
     if (newState === 'DEAD') {
       const aiReason = await generateDeathReason(

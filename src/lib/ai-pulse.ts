@@ -1,20 +1,39 @@
-import { HEALTH_CONFIG } from '@/config/health';
+import { HEALTH_CONFIG } from "@/config/health";
+import { logger } from "@/lib/logger";
+import type { ProjectState } from "@prisma/client";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const COMMIT_FETCH_OVERLAP_MS = 5 * 60 * 1000;
-const CLOCK_SKEW_ALLOWANCE_MS = 5 * 60 * 1000;
+const COMMIT_FETCH_OVERLAP_MS = 24 * 60 * 60 * 1000;
+const CLOCK_SKEW_MS = 5 * 60 * 1000;
 
 export const ghFetch = (path: string) =>
   fetch(`https://api.github.com${path}`, {
     headers: {
-      'User-Agent': 'Code-Afterlife-AI-Cron',
-      Accept: 'application/vnd.github+json',
+      "User-Agent": "Code-Afterlife-AI-Cron",
+      Accept: "application/vnd.github+json",
       ...(process.env.GITHUB_TOKEN && {
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
       }),
     },
     next: { revalidate: 0 },
   });
+
+export function getGitHubFailureDetails(
+  response: Response,
+): Record<string, string | null> {
+  return {
+    status: String(response.status),
+    statusText: response.statusText,
+    rateLimitRemaining: response.headers.get("x-ratelimit-remaining"),
+    rateLimitReset: response.headers.get("x-ratelimit-reset"),
+    retryAfter: response.headers.get("retry-after"),
+  };
+}
+
+export function isGitHubRateLimitExceeded(response: Response): boolean {
+  const remaining = response.headers.get("x-ratelimit-remaining");
+  return response.status === 429 || remaining === "0";
+}
 
 export interface GitHubCommit {
   author?: {
@@ -43,6 +62,11 @@ export interface PulseProjectActivity {
   readonly lastPulseCheckAt?: Date | null;
 }
 
+export interface PulseLifecycleContext {
+  readonly isDeadResurrection: boolean;
+  readonly shouldActivate: boolean;
+}
+
 function maxDate(dates: readonly Date[]): Date {
   return new Date(Math.max(...dates.map((date) => date.getTime())));
 }
@@ -62,7 +86,7 @@ export function getPulseSinceDate(
   now = new Date(),
 ): Date {
   const freshnessCutoff = new Date(
-    now.getTime() - HEALTH_CONFIG.stalledDays * MS_PER_DAY,
+    now.getTime() - HEALTH_CONFIG.deadDays * MS_PER_DAY,
   );
   const lastPulseOverlap = project.lastPulseCheckAt
     ? new Date(project.lastPulseCheckAt.getTime() - COMMIT_FETCH_OVERLAP_MS)
@@ -76,7 +100,7 @@ export function getPulseSinceDate(
 }
 
 export function getPulseUntilDate(now = new Date()): Date {
-  return new Date(now.getTime() + CLOCK_SKEW_ALLOWANCE_MS);
+  return new Date(now.getTime() + CLOCK_SKEW_MS);
 }
 
 export function getFreshCommitsForPulse(
@@ -86,9 +110,9 @@ export function getFreshCommitsForPulse(
 ): GitHubCommit[] {
   const baseline = project.lastActivityAt ?? project.createdAt;
   const freshnessCutoff = new Date(
-    now.getTime() - HEALTH_CONFIG.stalledDays * MS_PER_DAY,
+    now.getTime() - HEALTH_CONFIG.deadDays * MS_PER_DAY,
   );
-  const futureCutoff = new Date(now.getTime() + CLOCK_SKEW_ALLOWANCE_MS);
+  const futureCutoff = new Date(now.getTime() + CLOCK_SKEW_MS);
 
   return commits
     .filter((commit) => {
@@ -108,7 +132,9 @@ export function getFreshCommitsForPulse(
     });
 }
 
-export function getLatestCommitDate(commits: readonly GitHubCommit[]): Date | null {
+export function getLatestCommitDate(
+  commits: readonly GitHubCommit[],
+): Date | null {
   const dates = commits
     .map((commit) => getCommitDate(commit))
     .filter((date): date is Date => Boolean(date));
@@ -116,6 +142,19 @@ export function getLatestCommitDate(commits: readonly GitHubCommit[]): Date | nu
   if (!dates.length) return null;
 
   return maxDate(dates);
+}
+
+export function getPulseLifecycleContext(
+  state: ProjectState,
+): PulseLifecycleContext {
+  const isDeadResurrection = state === "DEAD";
+  const isRevival = state === "STALLED" || isDeadResurrection;
+  const isFirstActivity = state === "BORN";
+
+  return {
+    isDeadResurrection,
+    shouldActivate: isFirstActivity || isRevival,
+  };
 }
 
 export function isOwnerAuthoredCommit(
@@ -133,24 +172,43 @@ export function isOwnerAuthoredCommit(
   return false;
 }
 
-export function calcHealthFromCommits(commitCount: number, currentHealth: number): number {
-  const commitScore = Math.min(100, (commitCount / HEALTH_CONFIG.activity.maxCommits) * 100);
-  return Math.round(commitScore * 0.6 + currentHealth * 0.4);
+export function sanitizeFutureDate(
+  date: Date | null | undefined,
+  now = new Date(),
+): Date | null {
+  if (!date) return null;
+  return date > now ? null : date;
+}
+
+export function calcHealthFromCommits(
+  commitCount: number,
+  currentHealth: number,
+  currentState?: string,
+): number {
+  const bump = Math.min(15, commitCount * 3);
+  const raw = Math.round(Math.min(100, currentHealth + bump));
+
+  if (currentState === "SHIPPED") return Math.max(90.1, Math.min(raw, 99.9));
+  if (currentState === "DEAD") return Math.min(raw, 45);
+  if (currentState === "STALLED")
+    return Math.min(raw, HEALTH_CONFIG.thresholds.stable);
+
+  return Math.min(raw, 95);
 }
 
 export async function generatePulse(
   projectTitle: string,
   commitMessages: string[],
   readme: string | null,
-  isResurrection: boolean
+  isResurrection: boolean,
 ): Promise<string | null> {
   if (!process.env.GROQ_API_KEY) return null;
 
   const context = [
     `Project: "${projectTitle}"`,
-    readme ? `\nREADME excerpt:\n${readme.slice(0, 800)}` : '',
-    `\nRecent commits:\n- ${commitMessages.slice(0, 12).join('\n- ')}`,
-  ].join('');
+    readme ? `\nREADME excerpt:\n${readme.slice(0, 800)}` : "",
+    `\nRecent commits:\n- ${commitMessages.slice(0, 12).join("\n- ")}`,
+  ].join("");
 
   const systemPrompt = isResurrection
     ? `You are a cinematic narrator for Code Afterlife - a platform where dead software projects come back to life.
@@ -167,26 +225,33 @@ Length: Between 20 to 40 words.
 Example: "The creator pushed deep into the night, stabilizing the core engine and sealing a long-standing memory leak. As the final tests passed, a new era for the architecture began."`;
 
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: "llama-3.3-70b-versatile",
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: context },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: context },
         ],
         max_tokens: 80,
         temperature: 0.82,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      logger.error("Groq pulse generation failed", {
+        status: res.status,
+        statusText: res.statusText,
+      });
+      return null;
+    }
     const data = await res.json();
     return data.choices?.[0]?.message?.content?.trim() ?? null;
-  } catch {
+  } catch (error) {
+    logger.error("Groq pulse generation threw", { error });
     return null;
   }
 }

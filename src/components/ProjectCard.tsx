@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageSquare, Flame, Skull } from 'lucide-react';
@@ -35,7 +35,14 @@ const cardVariants = {
   hover: { scale: 1.01, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } },
 };
 
-// project card
+const STATE_STYLES: Record<ProjectState, { wrapper: string; anim: string }> = {
+  BORN:    { wrapper: 'border-blue-500/20 bg-blue-500/5', anim: 'ca-hover-born' },
+  ACTIVE:  { wrapper: 'border-emerald-500/20 bg-emerald-500/5', anim: 'ca-hover-active' },
+  STALLED: { wrapper: 'border-amber-500/20 bg-amber-500/5', anim: 'ca-hover-stalled' },
+  SHIPPED: { wrapper: 'border-teal-500/30 bg-teal-500/5', anim: 'ca-hover-shipped' },
+  DEAD:    { wrapper: 'border-border/40 bg-card/20', anim: 'ca-hover-dead' },
+};
+
 export const ProjectCard = memo(function ProjectCard({
   slug,
   title,
@@ -57,7 +64,6 @@ export const ProjectCard = memo(function ProjectCard({
   const [isHovered, setIsHovered] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // auto cycle screenshots
   useEffect(() => {
     if (!isHovered || screenshots.length <= 1) return;
     const interval = setInterval(() => {
@@ -66,7 +72,6 @@ export const ProjectCard = memo(function ProjectCard({
     return () => clearInterval(interval);
   }, [isHovered, screenshots.length]);
 
-  // reset index
   useEffect(() => {
     if (!isHovered) setCurrentImageIndex(0);
   }, [isHovered]);
@@ -74,13 +79,8 @@ export const ProjectCard = memo(function ProjectCard({
   const activityDate = lastActivityAt ?? createdAt;
   const isTrending = trendingScore > 0.5;
 
-  const STATE_STYLES: Record<ProjectState, { wrapper: string; anim: string }> = {
-    BORN:    { wrapper: 'border-blue-500/20 bg-blue-500/5', anim: 'ca-hover-born' },
-    ACTIVE:  { wrapper: 'border-emerald-500/20 bg-emerald-500/5', anim: 'ca-hover-active' },
-    STALLED: { wrapper: 'border-amber-500/20 bg-amber-500/5', anim: 'ca-hover-stalled' },
-    SHIPPED: { wrapper: 'border-teal-500/30 bg-teal-500/5', anim: 'ca-hover-shipped' },
-    DEAD:    { wrapper: 'border-border/40 bg-card/20', anim: 'ca-hover-dead' },
-  };
+  const handleHoverStart = useCallback(() => setIsHovered(true), []);
+  const handleHoverEnd   = useCallback(() => setIsHovered(false), []);
 
   return (
     <DecayVisuals decayState={decayState}>
@@ -88,8 +88,8 @@ export const ProjectCard = memo(function ProjectCard({
         variants={cardVariants}
         initial="rest"
         whileHover="hover"
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
+        onHoverStart={handleHoverStart}
+        onHoverEnd={handleHoverEnd}
         className={cn(
           "group relative flex flex-col overflow-hidden rounded-sm border backdrop-blur-sm transition-colors hover:border-accent/50",
           "h-full min-h-[420px]", // standard grid height
@@ -97,14 +97,12 @@ export const ProjectCard = memo(function ProjectCard({
           STATE_STYLES[state].anim
         )}
       >
-        {/* trending ribbon */}
         {isTrending && (
           <div className="absolute -right-12 top-6 z-10 w-40 rotate-45 bg-accent py-1 text-center font-mono text-[9px] font-bold uppercase tracking-widest text-background shadow-lg">
             Trending
           </div>
         )}
 
-        {/* screenshot header */}
         <Link href={`/project/${slug}`} className="relative aspect-video w-full overflow-hidden bg-black/40">
           {screenshots.length > 0 ? (
             <AnimatePresence mode="wait">
@@ -127,7 +125,6 @@ export const ProjectCard = memo(function ProjectCard({
         </Link>
 
         <div className="flex flex-1 flex-col p-5">
-          {/* header row */}
           <div className="mb-3 flex items-start justify-between gap-3">
             <Link
               href={`/project/${slug}`}
@@ -141,7 +138,6 @@ export const ProjectCard = memo(function ProjectCard({
             <StateBadge state={state} className="shrink-0" />
           </div>
 
-          {/* description */}
           <div className="mb-4 h-[40px]">
             {description ? (
               <p className="line-clamp-2 text-[12px] leading-relaxed text-muted-foreground">
@@ -150,7 +146,6 @@ export const ProjectCard = memo(function ProjectCard({
             ) : null}
           </div>
 
-          {/* stack tags */}
           <div className="mb-4 flex h-[22px] flex-nowrap items-center gap-1.5 overflow-hidden">
             {stack.slice(0, 3).map((tech) => (
               <span
@@ -167,12 +162,10 @@ export const ProjectCard = memo(function ProjectCard({
             )}
           </div>
 
-          {/* health bar */}
           <div className="mb-4 mt-auto">
             <HealthIndicator health={health} showLabel={false} />
           </div>
 
-          {/* footer row */}
           <div className="flex flex-wrap items-center justify-between gap-y-3 border-t border-border pt-3 font-mono text-[10px] text-muted-foreground/60">
             <div className="flex gap-3">
               <span className="flex items-center gap-1">

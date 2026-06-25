@@ -18,6 +18,8 @@ import { ResurrectionModal } from '@/components/ResurrectionModal';
 import { ArchiveProjectModal } from '@/components/ArchiveProjectModal';
 import { ProjectEditModal } from '@/components/ProjectEditModal';
 import { TimeCapsuleSection } from '@/components/project/TimeCapsuleSection';
+import { LiveAppSection } from '@/components/project/LiveAppSection';
+
 import { useDecayState } from '@/hooks/use-decay-state';
 import { useLike } from '@/hooks/use-like';
 import { useFollow } from '@/hooks/use-follow';
@@ -42,12 +44,11 @@ interface ProjectDetailClientProps {
 const STATE_META = {
   BORN:    { label: 'Born',    color: 'oklch(0.60 0.18 240)', tagline: 'Just beginning its journey' },
   ACTIVE:  { label: 'Active',  color: 'oklch(0.60 0.18 150)', tagline: 'Alive and growing' },
-  STALLED: { label: 'Stalled', color: 'oklch(0.72 0.14 60)',  tagline: 'No activity for 1+ day' },
+  STALLED: { label: 'Stalled', color: 'oklch(0.72 0.14 60)',  tagline: 'No activity for 7+ days' },
   SHIPPED: { label: 'Shipped', color: 'oklch(0.66 0.18 162)', tagline: 'Successfully completed' },
   DEAD:    { label: 'Dead',    color: 'oklch(0.52 0.12 25)',  tagline: 'Abandoned - awaiting resurrection' },
 } as const;
 
-// stagger animation
 const sectionVariant = (delay: number) => ({
   initial:  { opacity: 0, y: 14 },
   animate:  { opacity: 1, y: 0 },
@@ -71,14 +72,12 @@ export function ProjectDetailClient({
   const [isResurrectOpen, setIsResurrectOpen] = useState(false);
   const stateMeta           = STATE_META[project.state];
 
-  // track view
   useEffect(() => {
     const ctrl = new AbortController();
     fetch(`/api/projects/${project.id}/view`, { method: 'POST', signal: ctrl.signal }).catch(() => {});
     return () => ctrl.abort();
   }, [project.id]);
 
-  // Social hooks
   const { liked, likeCount, toggle: toggleLike, isPending: likePending } =
     useLike(project.id, initialLiked, project.likeCount ?? 0);
   const { following, followerCount, toggle: toggleFollow, isPending: followPending } =
@@ -96,13 +95,11 @@ export function ProjectDetailClient({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  // lightbox state for screenshot gallery
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const screenshots = project.screenshots ?? [];
   const hasScreenshots = screenshots.length > 0;
 
-  // Manual Update Modal State
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateMethod, setUpdateMethod] = useState<'MANUAL' | 'AI'>('MANUAL');
   const [updateTitle, setUpdateTitle] = useState('');
@@ -119,7 +116,6 @@ export function ProjectDetailClient({
   };
 
   const handleDelete = () => {
-    // open archive modal
     setArchiveModalOpen(true);
   };
 
@@ -139,7 +135,6 @@ export function ProjectDetailClient({
 
   return (
     <div className="min-h-screen min-w-0 overflow-x-clip bg-background">
-      {/* Lightbox */}
       <AnimatePresence>
         {lightboxIndex !== null && hasScreenshots && (
           <ImageLightbox
@@ -147,11 +142,11 @@ export function ProjectDetailClient({
             startIndex={lightboxIndex}
             projectTitle={project.title}
             projectSlug={project.slug}
+            projectGithubUrl={project.deployedUrl ?? project.githubRepoUrl}
             onClose={() => setLightboxIndex(null)}
           />
         )}
       </AnimatePresence>
-      {/* Permanent Delete Modal */}
       <Dialog
         open={isDeleteConfirmOpen}
         onClose={() => { if (!isPending) setIsDeleteConfirmOpen(false); }}
@@ -173,7 +168,6 @@ export function ProjectDetailClient({
         </div>
       </Dialog>
 
-      {/* Archive epitaph modal */}
       <ArchiveProjectModal
         open={archiveModalOpen}
         projectId={project.id}
@@ -193,12 +187,15 @@ export function ProjectDetailClient({
         }}
       />
 
-      {/* Manual Update Modal */}
       <Dialog
         open={updateModalOpen}
         onClose={() => { if (!isUpdatingTimeline) setUpdateModalOpen(false); }}
         title="Log Update"
-        description="Add a milestone to the timeline. You can only do this once every 24 hours."
+        description={
+          updateMethod === 'MANUAL'
+            ? "Log a manual milestone to reset your activity timer. You can post one manual update every 24 hours."
+            : "Force an AI check for new GitHub commits to restore your project's health. You can trigger this once every 6 hours."
+        }
       >
         <div className="mt-4 flex flex-col gap-4">
           <div className="flex gap-2">
@@ -301,7 +298,6 @@ export function ProjectDetailClient({
           </div>
         </div>
       </Dialog>
-      {/* Back nav */}
       <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6 md:px-10 md:pt-8">
         <div className="mb-6 flex min-w-0 items-center gap-3 md:mb-8 md:gap-4">
           <Link
@@ -321,7 +317,6 @@ export function ProjectDetailClient({
       <DecayVisuals decayState={decayState}>
         <main className="mx-auto max-w-4xl px-4 pb-28 sm:px-6 md:px-10 md:pb-32">
 
-          {/* ── Resurrection Banner ────────────────────────────── */}
           {project.lineageDepth > 0 && project.parentProject && (
             <motion.div {...sectionVariant(0)} className="mb-6 sticky top-4 z-20">
               <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/20 bg-[#0a1a12] px-4 py-3 font-mono text-xs text-emerald-400 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.15)]">
@@ -337,18 +332,14 @@ export function ProjectDetailClient({
             </motion.div>
           )}
 
-          {/* ── Hero Header ─────────────────────────────────────── */}
           <motion.div {...sectionVariant(0.02)} className="mb-10">
-            {/* State tagline */}
             <p className="mb-3 font-mono text-xs uppercase tracking-[0.22em] font-medium"
                style={{ color: stateMeta.color }}>
               {stateMeta.tagline}
             </p>
 
-            {/* Screenshot Gallery */}
             {hasScreenshots && (
               <div className="mb-6">
-                {/* Main image - click to zoom */}
                 <div
                   className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl cursor-zoom-in group"
                   onClick={() => setLightboxIndex(galleryIndex)}
@@ -366,18 +357,15 @@ export function ProjectDetailClient({
                     />
                   </AnimatePresence>
                   <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent opacity-70 pointer-events-none" />
-                  {/* Zoom hint */}
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 px-2.5 py-1.5 font-mono text-[10px] text-white/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <ZoomIn className="h-3 w-3" />
                     Click to zoom
                   </div>
-                  {/* Count badge when multiple */}
                   {screenshots.length > 1 && (
                     <div className="absolute bottom-3 right-3 rounded-lg border border-white/10 bg-black/50 px-2 py-1 font-mono text-[10px] text-white/50 backdrop-blur-sm">
                       {galleryIndex + 1} / {screenshots.length}
                     </div>
                   )}
-                  {/* Prev/Next arrows on main image */}
                   {screenshots.length > 1 && (
                     <>
                       <button
@@ -396,7 +384,6 @@ export function ProjectDetailClient({
                   )}
                 </div>
 
-                {/* Thumbnail strip for additional screenshots */}
                 {screenshots.length > 1 && (
                   <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                     {screenshots.map((src, i) => (
@@ -432,7 +419,6 @@ export function ProjectDetailClient({
               </p>
             )}
 
-            {/* Meta row */}
             <div className="mt-5 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs text-muted-foreground/60 sm:text-sm">
               <span className="flex min-w-0 items-center gap-1.5">
                 <span className="text-accent/70">by</span>
@@ -458,7 +444,6 @@ export function ProjectDetailClient({
               )}
             </div>
 
-            {/* Lineage Breadcrumb Preview */}
             {(project.parentProject || project.children.length > 0) && (
               <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground/50">
                 <Layers className="h-3.5 w-3.5" />
@@ -478,9 +463,7 @@ export function ProjectDetailClient({
               </div>
             )}
 
-            {/* Social action bar */}
             <div className="mt-6 flex min-w-0 flex-wrap items-center gap-2">
-              {/* Like button */}
               <button
                 onClick={() => isLoggedIn ? toggleLike() : router.push('/')}
                 disabled={likePending}
@@ -497,7 +480,6 @@ export function ProjectDetailClient({
                 <span>{likeCount}</span>
               </button>
 
-              {/* Comment count (scroll hint) */}
               <a
                 href="#comments"
                 className="flex shrink-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -511,13 +493,11 @@ export function ProjectDetailClient({
                 <span>{Math.abs(voteStats.willShip - voteStats.willDie)}</span>
               </span>
 
-              {/* View count */}
               <span className="flex shrink-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 font-mono text-sm text-muted-foreground/60">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span>{project.viewCount ?? 0}</span>
               </span>
 
-              {/* Follow button / It's you badge */}
               {isOwner ? (
                 <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-3 py-2 font-mono text-sm font-medium text-accent sm:ml-auto sm:w-auto">
                   <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
@@ -545,7 +525,6 @@ export function ProjectDetailClient({
             </div>
           </motion.div>
 
-          {/* ── Unseal Time Capsule (Dead / Shipped only) ───────── */}
           {(project.state === 'DEAD' || project.state === 'SHIPPED') && (
             <motion.div {...sectionVariant(0.05)} className="mb-10 flex justify-center">
               <a
@@ -561,7 +540,6 @@ export function ProjectDetailClient({
           )}
 
 
-          {/* ── Health ──────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.07)}
             className="mb-8 rounded-2xl border border-foreground/8 bg-card/60 p-4 backdrop-blur-sm sm:p-6">
             <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
@@ -570,7 +548,6 @@ export function ProjectDetailClient({
             <HealthIndicator health={project.health} showLabel showStateLabel className="max-w-sm" />
           </motion.section>
 
-          {/* ── Community Vote ───────────────────────────────────── */}
           {project.state !== 'DEAD' && project.state !== 'SHIPPED' && (
             <motion.section {...sectionVariant(0.1)}
               className="mb-8 rounded-2xl border border-foreground/8 bg-card/60 p-4 backdrop-blur-sm sm:p-6">
@@ -589,7 +566,6 @@ export function ProjectDetailClient({
 
 
 
-          {/* ── Stack ───────────────────────────────────────────── */}
           {project.stack.length > 0 && (
             <motion.section {...sectionVariant(0.16)} className="mb-8">
               <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium flex items-center gap-2">
@@ -606,7 +582,6 @@ export function ProjectDetailClient({
             </motion.section>
           )}
 
-          {/* ── GitHub link ─────────────────────────────────────── */}
           {project.githubRepoUrl && (
             <motion.div {...sectionVariant(0.18)} className="mb-8">
               <a
@@ -622,7 +597,13 @@ export function ProjectDetailClient({
             </motion.div>
           )}
 
-          {/* ── Lineage ─────────────────────────────────────────── */}
+          <LiveAppSection
+            projectId={project.id}
+            initialUrl={project.deployedUrl ?? null}
+            isOwner={isOwner}
+          />
+
+
           {(project.parentProject || project.children.length > 0) && (
             <motion.section {...sectionVariant(0.2)}
               className="mb-8 rounded-2xl border border-foreground/8 bg-card/60 p-4 sm:p-6">
@@ -660,22 +641,18 @@ export function ProjectDetailClient({
             </motion.section>
           )}
 
-          {/* ── Will & Testament + Time Capsules ──────────────────── */}
           {(isOwner || project.testament || (project.timeCapsules && project.timeCapsules.length > 0)) && (
-            <motion.section {...sectionVariant(0.22)} className="mb-8 rounded-2xl border border-amber-500/10 bg-amber-500/2 p-4 sm:p-6">
-              <TimeCapsuleSection
-                projectId={project.id}
-                isOwner={isOwner}
-                initialTestament={project.testament ?? null}
-                initialCapsules={project.timeCapsules ?? []}
-                isDead={project.state === 'DEAD' || project.state === 'SHIPPED'}
-                readOnly={project.state === 'DEAD' || project.state === 'SHIPPED'}
-                hasBeenResurrected={Boolean(project.children && project.children.length > 0)}
-              />
-            </motion.section>
+            <TimeCapsuleSection
+              projectId={project.id}
+              isOwner={isOwner}
+              initialTestament={project.testament ?? null}
+              initialCapsules={project.timeCapsules ?? []}
+              isDead={project.state === 'DEAD' || project.state === 'SHIPPED'}
+              readOnly={project.state === 'DEAD' || project.state === 'SHIPPED'}
+              hasBeenResurrected={Boolean(project.children && project.children.length > 0)}
+            />
           )}
 
-          {/* ── Timeline ────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.23)} className="mb-8">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
@@ -696,18 +673,32 @@ export function ProjectDetailClient({
               )}
             </div>
             {project.timelineEntries && project.timelineEntries.length > 0 ? (
-              <ul>
-                {project.timelineEntries.map((entry, i) => (
-                  <TimelineEntry
-                    key={entry.id}
-                    type={entry.type}
-                    title={entry.title}
-                    description={entry.description}
-                    createdAt={entry.createdAt}
-                    index={i}
-                  />
-                ))}
-              </ul>
+              <div
+                onWheel={(e) => {
+                  const el = e.currentTarget;
+                  const atTop = el.scrollTop <= 0;
+                  const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                  const goingUp = e.deltaY < 0;
+                  const goingDown = e.deltaY > 0;
+                  if ((atBottom && goingDown) || (atTop && goingUp)) return;
+                  e.stopPropagation();
+                }}
+                className="max-h-[520px] overflow-y-auto pr-1"
+                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}
+              >
+                <ul>
+                  {project.timelineEntries.map((entry, i) => (
+                    <TimelineEntry
+                      key={entry.id}
+                      type={entry.type}
+                      title={entry.title}
+                      description={entry.description}
+                      createdAt={entry.createdAt}
+                      index={i}
+                    />
+                  ))}
+                </ul>
+              </div>
             ) : (
               <p className="font-mono text-[12px] text-muted-foreground/40">
                 No timeline entries yet. Activity will appear here.
@@ -715,7 +706,6 @@ export function ProjectDetailClient({
             )}
           </motion.section>
 
-          {/* ── Owner Actions ────────────────────────────────────── */}
           {isOwner && (
             <motion.section {...sectionVariant(0.26)}
               className="mb-8 rounded-2xl border border-foreground/8 p-6">
@@ -747,7 +737,6 @@ export function ProjectDetailClient({
             </motion.section>
           )}
 
-          {/* ── Resurrection CTA (For visitors on DEAD projects) ── */}
           {!isOwner && project.state === 'DEAD' && isLoggedIn && (
             <motion.section {...sectionVariant(0.28)} className="mb-8 overflow-hidden relative rounded-2xl border border-emerald-500/20 bg-[#06120c] p-8 text-center backdrop-blur-sm">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15)_0%,transparent_70%)] blur-2xl pointer-events-none" />
@@ -797,7 +786,6 @@ export function ProjectDetailClient({
             </motion.section>
           )}
 
-          {/* ── Code Afterlife AI Chatbot ────────────────────────── */}
           <motion.section {...sectionVariant(0.29)} className="mb-8">
             <h2 className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
               Ask AI
@@ -808,7 +796,6 @@ export function ProjectDetailClient({
             />
           </motion.section>
 
-          {/* ── Comments ─────────────────────────────────────────── */}
           <motion.section {...sectionVariant(0.3)} id="comments" className="mb-8">
             <h2 className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
               Discussion

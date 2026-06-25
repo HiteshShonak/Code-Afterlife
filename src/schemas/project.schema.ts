@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// new project schema
 export const createProjectSchema = z.object({
   title: z
     .string()
@@ -26,15 +25,17 @@ export const createProjectSchema = z.object({
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
-// update schema
 export const updateProjectSchema = createProjectSchema.omit({ repoUrl: true }).partial().extend({
   testament: z.string().max(2000, 'Testament must be at most 2000 characters').optional().nullable(),
   timeCapsule: z.string().max(2000, 'Message must be at most 2000 characters').optional().nullable(),
+  deployedUrl: z.union([
+    z.string().url('Must be a valid URL (e.g. https://myapp.vercel.app)'),
+    z.literal(''),
+  ]).optional().nullable(),
 });
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
-// resurrect schema
 export const resurrectProjectSchema = z.object({
   title: z
     .string()
@@ -60,7 +61,6 @@ export const resurrectProjectSchema = z.object({
 
 export type ResurrectProjectInput = z.infer<typeof resurrectProjectSchema>;
 
-// update state schema
 export const updateStateSchema = z.object({
   state: z.enum(['BORN', 'ACTIVE', 'STALLED', 'SHIPPED', 'DEAD'], {
     error: 'Invalid project state',

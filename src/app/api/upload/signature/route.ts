@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -17,6 +18,10 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { folder = 'time-capsules' } = body;
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      logger.error('Cloudinary signature requested without required env vars');
+      return NextResponse.json({ error: 'Cloudinary upload is not configured' }, { status: 500 });
+    }
 
     const timestamp = Math.round(new Date().getTime() / 1000);
     const signature = cloudinary.utils.api_sign_request(
@@ -34,7 +39,7 @@ export async function POST(request: Request) {
       apiKey: process.env.CLOUDINARY_API_KEY,
     });
   } catch (error) {
-    console.error('Cloudinary signature error:', error);
+    logger.error('Cloudinary signature error', { error });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

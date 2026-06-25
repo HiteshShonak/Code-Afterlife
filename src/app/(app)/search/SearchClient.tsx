@@ -44,15 +44,12 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   const { state, search, sort, setState, setSearch, setSort, reset } = useSearchFilters();
   const [isSortOpen, setIsSortOpen] = useState(false);
 
-  // local search state
   const [localSearch, setLocalSearch] = useState(search);
 
-  // sync search
   useEffect(() => {
     setLocalSearch(search);
   }, [search]);
 
-  // debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localSearch !== search) {
@@ -66,19 +63,18 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   const [cursor, setCursor]         = useState<string | null>(initialCursor);
   const [loading, setLoading]       = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const observerRef        = useRef<IntersectionObserver | null>(null);
   const didSkipInitialFetchRef = useRef(false);
+  const loadingMoreRef     = useRef(false);
 
   const isInitialState = !state && search === '' && sort === 'TRENDING';
 
-  // fetch on filter change
   useEffect(() => {
     if (!didSkipInitialFetchRef.current) {
       didSkipInitialFetchRef.current = true;
       if (isInitialState) return;
     }
 
-    // fetch data
     setLoading(true);
 
     let isMounted = true;
@@ -104,9 +100,9 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
     return () => { isMounted = false; };
   }, [isInitialState, search, state, sort]);
 
-  // infinite scroll
   const loadMore = useCallback(async () => {
-    if (!cursor || loadingMore) return;
+    if (!cursor || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
       const params = new URLSearchParams({ sort, cursor });
@@ -124,17 +120,19 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         setCursor(json.data.nextCursor);
       }
     } catch { /* no-op */ }
-    finally { setLoadingMore(false); }
-  }, [cursor, loadingMore, search, sort, state]);
+    finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  }, [cursor, search, sort, state]);
 
   const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
-    if (loadingMore) return;
     if (observerRef.current) observerRef.current.disconnect();
     observerRef.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && cursor) loadMore();
     });
     if (node) observerRef.current.observe(node);
-  }, [cursor, loadMore, loadingMore]);
+  }, [cursor, loadMore]);
 
   const hasActiveFilter  = !!state || !!search.trim();
   const activeFilter     = STATE_FILTERS.find(f => f.value === state) ?? STATE_FILTERS[0];
@@ -143,7 +141,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
   return (
     <div className="mx-auto max-w-350 px-6 pb-32 pt-10 md:px-10 min-h-screen">
 
-      {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <div className="mb-12">
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/60 mb-2">
           Code Afterlife - Search
@@ -160,9 +157,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </p>
       </div>
 
-      {/* ── Filter Bar ─────────────────────────────────────────────────────── */}
       <div className="mb-8 space-y-4">
-        {/* State chips */}
         <div className="flex flex-wrap items-center gap-2">
           {STATE_FILTERS.map(f => {
             const Icon     = f.icon;
@@ -191,7 +186,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
           })}
         </div>
 
-        {/* Search + Sort + View toggle */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1 flex items-center">
             <Search className="absolute left-3 h-3.5 w-3.5 text-muted-foreground/50" />
@@ -272,7 +266,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </div>
       </div>
 
-      {/* ── State banner ── */}
       <div
         className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-out"
         style={{
@@ -281,7 +274,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
           marginBottom: state ? '24px'  : '0px',
         }}
       >
-        {/* Always in the DOM but hidden - avoids layout jump */}
         <div
           className="flex items-center gap-3 rounded-xl border px-5 py-3.5"
           style={{
@@ -301,9 +293,7 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </div>
       </div>
 
-      {/* ── Results ── */}
       <div className="min-h-150 relative">
-        {/* Loading Overlay */}
         <AnimatePresence>
           {loading && (
             <motion.div
@@ -319,7 +309,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
 
         <div className="transition-opacity duration-300">
           {projects.length === 0 && !loading ? (
-            /* empty state */
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -338,7 +327,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
               )}
             </motion.div>
           ) : (
-            /* grid view */
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
               {projects.map((p) => (
                 <div key={p.id}>
@@ -367,7 +355,6 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
         </div>
       </div>
 
-      {/* ── Infinite scroll trigger ─────────────────────────────────────────── */}
       {cursor && !loading && (
         <div ref={loadMoreRef} className="mt-12 flex items-center justify-center py-8">
           {loadingMore && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />}

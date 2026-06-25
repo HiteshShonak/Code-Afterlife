@@ -14,6 +14,10 @@ async function recalculateHealth(request: NextRequest) {
     return apiResponse.error('Unauthorized', 401);
   }
 
+  if (!process.env.GITHUB_TOKEN) {
+    logger.warn('[Health Recalculate] GITHUB_TOKEN is not set. GitHub commit fetches will use unauthenticated rate limits. Health scores may be inaccurate for projects with many repos.');
+  }
+
   const result = await healthService.recalculateAll();
 
   logger.info('Health recalculation completed', result);
@@ -21,8 +25,6 @@ async function recalculateHealth(request: NextRequest) {
   return apiResponse.success(result, 'Health recalculation complete');
 }
 
-// Vercel cron invokes scheduled routes with GET.
 export const GET = asyncHandler(recalculateHealth);
 
-// Keep POST available for manual/admin trigger calls.
 export const POST = asyncHandler(recalculateHealth);
