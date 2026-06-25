@@ -14,6 +14,7 @@ import { SimplexNoise } from "three/addons/math/SimplexNoise.js";
 import type { Project } from "./types";
 import { GraveyardSidebar } from "./GraveyardSidebar";
 import { GraveyardHeader, type GraveyardFilters } from "./GraveyardHeader";
+import { VirtualJoystick } from "./VirtualJoystick";
 
 const simplex = new SimplexNoise();
 
@@ -971,10 +972,12 @@ function BushChunk({ chunkX, chunkZ }: { chunkX: number; chunkZ: number }) {
 
 function WASDControls({
   controlsRef,
+  joystickRef,
   boundary,
   setAtBoundary,
 }: {
   controlsRef: React.RefObject<any>;
+  joystickRef: React.MutableRefObject<{ x: number; y: number }>;
   boundary: BoundaryBox | null;
   setAtBoundary: (v: boolean) => void;
 }) {
@@ -1004,6 +1007,8 @@ function WASDControls({
   useFrame((_, delta) => {
     if (!controlsRef.current) return;
     const speed = 10 * delta;
+    const jX = joystickRef.current?.x || 0;
+    const jY = joystickRef.current?.y || 0;
     _WASD_fwd.set(0, 0, -1).applyQuaternion(controlsRef.current.object.quaternion);
     _WASD_fwd.y = 0; _WASD_fwd.normalize();
     _WASD_right.set(1, 0, 0).applyQuaternion(controlsRef.current.object.quaternion);
@@ -1013,8 +1018,13 @@ function WASDControls({
     if (keys.current.s) _WASD_move.sub(_WASD_fwd);
     if (keys.current.a) _WASD_move.sub(_WASD_right);
     if (keys.current.d) _WASD_move.add(_WASD_right);
+    if (jY !== 0) _WASD_move.addScaledVector(_WASD_fwd, -jY);
+    if (jX !== 0) _WASD_move.addScaledVector(_WASD_right, jX);
     if (_WASD_move.lengthSq() > 0) {
-      _WASD_move.normalize().multiplyScalar(speed);
+      if (_WASD_move.lengthSq() > 1) {
+        _WASD_move.normalize();
+      }
+      _WASD_move.multiplyScalar(speed);
       
       const objPos = controlsRef.current.object.position;
       
@@ -1120,8 +1130,10 @@ interface OriginalGraveyardCanvasProps {
 export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect }: OriginalGraveyardCanvasProps) {
   const [loaded, setLoaded] = useState(false);
   const controlsRef = useRef<any>(null);
+  const joystickRef = useRef({ x: 0, y: 0 });
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [atBoundary, setAtBoundary] = useState(false);
+  const [showJoystick, setShowJoystick] = useState(false);
   // Stable callback - avoids creating a new function ref on every render
   const handleCloseSidebar = useCallback(() => setSelectedProjectId(null), []);
 
@@ -1199,6 +1211,56 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const coarseQuery = window.matchMedia("(pointer: coarse)");
+    const narrowQuery = window.matchMedia("(max-width: 1024px)");
+    const legacyCoarseQuery = coarseQuery as MediaQueryList & {
+      addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+      removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+    };
+    const legacyNarrowQuery = narrowQuery as MediaQueryList & {
+      addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+      removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+    };
+    const updateTouchCapability = () => {
+      setShowJoystick(
+        narrowQuery.matches &&
+        (
+          coarseQuery.matches ||
+          "ontouchstart" in window ||
+          navigator.maxTouchPoints > 0
+        )
+      );
+    };
+
+    updateTouchCapability();
+    if ("addEventListener" in coarseQuery) {
+      coarseQuery.addEventListener("change", updateTouchCapability);
+    } else if (legacyCoarseQuery.addListener) {
+      legacyCoarseQuery.addListener(updateTouchCapability);
+    }
+    if ("addEventListener" in narrowQuery) {
+      narrowQuery.addEventListener("change", updateTouchCapability);
+    } else if (legacyNarrowQuery.addListener) {
+      legacyNarrowQuery.addListener(updateTouchCapability);
+    }
+
+    return () => {
+      if ("removeEventListener" in coarseQuery) {
+        coarseQuery.removeEventListener("change", updateTouchCapability);
+      } else if (legacyCoarseQuery.removeListener) {
+        legacyCoarseQuery.removeListener(updateTouchCapability);
+      }
+      if ("removeEventListener" in narrowQuery) {
+        narrowQuery.removeEventListener("change", updateTouchCapability);
+      } else if (legacyNarrowQuery.removeListener) {
+        legacyNarrowQuery.removeListener(updateTouchCapability);
+      }
+    };
+  }, []);
+
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#030611", overflow: "hidden", position: "relative" }}>
 
@@ -1227,6 +1289,8 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
       />
 
       <BoundaryBanner atBoundary={atBoundary} />
+
+      {showJoystick && <VirtualJoystick joystickRef={joystickRef} />}
 
       <Canvas
         dpr={[1, 1.5]}
@@ -1288,7 +1352,12 @@ export function OriginalGraveyardCanvas({ projects, isAuthenticated, onResurrect
           target={[0, 1.5, -5]}
         />
 
-        <WASDControls controlsRef={controlsRef} boundary={null} setAtBoundary={setAtBoundary} />
+        <WASDControls
+          controlsRef={controlsRef}
+          joystickRef={joystickRef}
+          boundary={null}
+          setAtBoundary={setAtBoundary}
+        />
 
         <EffectComposer multisampling={4}>
           <Bloom luminanceThreshold={0.5} luminanceSmoothing={0.9} intensity={1.2} mipmapBlur />

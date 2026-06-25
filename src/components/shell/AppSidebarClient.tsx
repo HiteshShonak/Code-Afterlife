@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -57,10 +57,17 @@ const SIDEBAR_STYLES = `
 `;
 
 // nav item
-function NavItem({ href, label, icon: Icon, active }: NavItemDef & { active: boolean }) {
+function NavItem({
+  href,
+  label,
+  icon: Icon,
+  active,
+  onNavigate,
+}: NavItemDef & { active: boolean; onNavigate?: () => void }) {
   return (
     <Link
       href={href}
+      onNavigate={onNavigate}
       className={cn(
         'group relative flex items-center gap-3.5 rounded-xl px-4 py-3 font-mono text-[13px] font-medium transition-all duration-200',
         active
@@ -94,14 +101,6 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const displayName = user.username ? `@${user.username}` : (user.name ?? 'Developer');
 
-  // sidebar state
-  const [sidebarKey, setSidebarKey] = useState(pathname);
-
-  useEffect(() => {
-    setSidebarKey(pathname);
-    setMobileOpen(false);
-  }, [pathname]);
-
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     router.push('/');
@@ -111,12 +110,11 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
 
-  // sidebar body
-  const SidebarBody = () => (
+  const sidebarBody = (
     <div className="flex h-full flex-col">
       {/* brand */}
       <div className="mb-10 px-5 pt-4">
-        <Link href="/search" className="flex items-center gap-3 group">
+        <Link href="/search" onNavigate={() => setMobileOpen(false)} className="flex items-center gap-3 group">
           <Image 
             src="/logo.webp" 
             alt="Code Afterlife" 
@@ -136,6 +134,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       {user.username ? (
         <Link 
           href={`/u/${user.username}`}
+          onNavigate={() => setMobileOpen(false)}
           className="group mx-3 mb-8 flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-3.5 backdrop-blur-sm transition-all hover:border-accent/30 hover:bg-white/6"
         >
           <div className="relative h-9 w-9 shrink-0">
@@ -194,6 +193,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
             key={`${item.href}-${item.label}`}
             {...item}
             active={isActive(item)}
+            onNavigate={() => setMobileOpen(false)}
           />
         ))}
       </nav>
@@ -206,7 +206,7 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       </p>
       <nav className="flex flex-col gap-1 px-3">
         {SECONDARY_NAV.map((item) => (
-          <NavItem key={item.href} {...item} active={isActive(item)} />
+          <NavItem key={item.href} {...item} active={isActive(item)} onNavigate={() => setMobileOpen(false)} />
         ))}
       </nav>
 
@@ -232,14 +232,14 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
 
       {/* desktop sidebar */}
       <aside
-        key={sidebarKey}
+        key={pathname}
         className="fixed left-4 top-4 z-40 hidden h-[calc(100vh-2rem)] w-64 flex-col overflow-y-auto rounded-2xl border border-white/8 bg-background/75 py-4 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:flex"
         style={{
           WebkitBackdropFilter: 'blur(24px)',
           animation: 'sidebar-slide-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both',
         }}
       >
-        <SidebarBody />
+        {sidebarBody}
       </aside>
 
       {/* mobile hamburger */}
@@ -252,37 +252,35 @@ export function AppSidebarClient({ user }: AppSidebarClientProps) {
       </button>
 
       {/* mobile drawer */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.div
-              key="overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.aside
-              key="drawer"
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col overflow-y-auto border-r border-white/8 bg-background/95 py-4 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:hidden"
-            >
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <SidebarBody />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+      <motion.div
+        data-lenis-prevent
+        initial={false}
+        animate={{ 
+          opacity: mobileOpen ? 1 : 0,
+          visibility: mobileOpen ? "visible" : "hidden"
+        }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
+        onClick={() => setMobileOpen(false)}
+      />
+      <motion.aside
+        data-lenis-prevent
+        initial={false}
+        animate={{ 
+          x: mobileOpen ? 0 : -300,
+          visibility: mobileOpen ? "visible" : "hidden"
+        }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col overflow-y-auto border-r border-white/8 bg-background/95 py-4 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:hidden"
+      >
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        {sidebarBody}
+      </motion.aside>
     </>
   );
 }

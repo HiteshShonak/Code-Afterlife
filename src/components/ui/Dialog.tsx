@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -28,12 +28,6 @@ const panelVariants = {
 
 // dialog component
 export function Dialog({ open, onClose, title, description, children, className }: DialogProps) {
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // lock scroll
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
@@ -48,12 +42,12 @@ export function Dialog({ open, onClose, title, description, children, className 
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  if (!mounted) return null;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+        <div data-lenis-prevent className="fixed inset-0 z-100 flex items-center justify-center p-4">
           {/* backdrop */}
           <motion.div
             variants={backdropVariants}

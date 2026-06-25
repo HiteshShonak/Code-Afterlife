@@ -74,12 +74,12 @@ export const ProjectCard = memo(function ProjectCard({
   const activityDate = lastActivityAt ?? createdAt;
   const isTrending = trendingScore > 0.5;
 
-  const DECAY_GLOW: Record<string, string> = {
-    thriving:  'rgba(110,231,183,0.08)',
-    stable:    'rgba(103,232,249,0.06)',
-    unstable:  'rgba(251,191,36,0.06)',
-    nearDeath: 'rgba(248,113,113,0.06)',
-    dead:      'transparent',
+  const STATE_STYLES: Record<ProjectState, { wrapper: string; anim: string }> = {
+    BORN:    { wrapper: 'border-blue-500/20 bg-blue-500/5', anim: 'ca-hover-born' },
+    ACTIVE:  { wrapper: 'border-emerald-500/20 bg-emerald-500/5', anim: 'ca-hover-active' },
+    STALLED: { wrapper: 'border-amber-500/20 bg-amber-500/5', anim: 'ca-hover-stalled' },
+    SHIPPED: { wrapper: 'border-teal-500/30 bg-teal-500/5', anim: 'ca-hover-shipped' },
+    DEAD:    { wrapper: 'border-border/40 bg-card/20', anim: 'ca-hover-dead' },
   };
 
   return (
@@ -90,8 +90,12 @@ export const ProjectCard = memo(function ProjectCard({
         whileHover="hover"
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        className="group relative flex h-full flex-col overflow-hidden rounded-sm border border-border bg-card/60 backdrop-blur-sm transition-colors hover:border-accent/30"
-        style={{ boxShadow: `inset 0 0 40px ${DECAY_GLOW[decayState]}` }}
+        className={cn(
+          "group relative flex flex-col overflow-hidden rounded-sm border backdrop-blur-sm transition-colors hover:border-accent/50",
+          "h-[420px]", // standard height
+          STATE_STYLES[state].wrapper,
+          STATE_STYLES[state].anim
+        )}
       >
         {/* trending ribbon */}
         {isTrending && (

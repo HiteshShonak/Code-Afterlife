@@ -212,8 +212,92 @@
 .ca-pulse-dot { animation: ca-pulse-dot 3.2s ease-in-out infinite; will-change: filter, opacity; }
 .ca-fog-drift-1 { animation: ca-fog-drift 35s ease-in-out infinite alternate; will-change: transform; }
 .ca-fog-drift-2 { animation: ca-fog-drift 45s ease-in-out infinite alternate-reverse; will-change: transform; }
-.ca-panel-float { animation: ca-panel-float var(--tw-panel-duration, 15s) ease-in-out infinite; will-change: transform; }
-.ca-dust { animation: ca-dust-float var(--tw-dust-duration, 20s) ease-in-out infinite; animation-delay: var(--tw-dust-delay, 0s); will-change: transform, opacity; }
+/* ── Advanced Hover Animations ───────────────────────────────── */
+/* BORN: Upward spark / Genesis sweep */
+.ca-hover-born { position: relative; overflow: hidden; }
+.ca-hover-born::before {
+  content: ''; position: absolute; inset: -50%; z-index: 10;
+  background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.15) 45%, rgba(147, 197, 253, 0.3) 50%, rgba(59, 130, 246, 0.15) 55%, transparent 70%);
+  transform: translate(-100%, 100%); pointer-events: none; opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.ca-hover-born:hover::before {
+  opacity: 1;
+  animation: ca-sweep-born 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes ca-sweep-born {
+  0% { transform: translate(-50%, 50%); }
+  100% { transform: translate(50%, -50%); }
+}
+
+/* ACTIVE: Heartbeat Pulse */
+.ca-hover-active { transition: all 0.4s ease; }
+.ca-hover-active:hover {
+  animation: ca-pulse-active 2s ease-in-out infinite;
+}
+@keyframes ca-pulse-active {
+  0%, 100% { box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); }
+  50% { box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.5); }
+}
+
+/* STALLED: Digital Glitch */
+.ca-hover-stalled { transition: filter 0.3s; }
+.ca-hover-stalled:hover {
+  animation: ca-glitch-stalled 4s infinite;
+}
+@keyframes ca-glitch-stalled {
+  0%, 100% { transform: translate(0); opacity: 1; filter: grayscale(0.2) sepia(0.2) hue-rotate(-20deg); }
+  45% { transform: translate(-1px, 1px); opacity: 0.9; }
+  46% { transform: translate(1px, -1px); opacity: 0.8; filter: grayscale(0.5) sepia(0.5) hue-rotate(-20deg) brightness(1.2); }
+  47% { transform: translate(0); opacity: 1; }
+  85% { transform: translate(0); opacity: 1; }
+  86% { transform: translate(-2px, 0); opacity: 0.8; }
+  87% { transform: translate(0); opacity: 1; }
+}
+
+/* SHIPPED: Golden Beam */
+.ca-hover-shipped { position: relative; overflow: hidden; }
+.ca-hover-shipped::after {
+  content: ''; position: absolute; inset: -100%; z-index: 10;
+  background: linear-gradient(60deg, transparent 40%, rgba(250, 204, 21, 0.1) 45%, rgba(250, 204, 21, 0.4) 50%, rgba(250, 204, 21, 0.1) 55%, transparent 60%);
+  transform: translateX(-100%); pointer-events: none; opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.ca-hover-shipped:hover {
+  border-color: rgba(250, 204, 21, 0.4);
+  box-shadow: inset 0 0 20px rgba(250, 204, 21, 0.05), 0 0 15px rgba(250, 204, 21, 0.1);
+}
+.ca-hover-shipped:hover::after {
+  opacity: 1;
+  animation: ca-sweep-gold 2.5s ease-in-out infinite;
+}
+@keyframes ca-sweep-gold {
+  0% { transform: translateX(-60%); }
+  100% { transform: translateX(60%); }
+}
+
+/* DEAD: Last of Us Moss Decay */
+.ca-hover-dead { position: relative; transition: all 0.8s ease; overflow: hidden; }
+.ca-hover-dead::before {
+  content: ''; position: absolute; inset: 0; z-index: 5;
+  /* Dark green radial gradients creeping from bottom-left and top-right */
+  background: 
+    radial-gradient(circle at 0% 100%, rgba(20, 83, 45, 0.5) 0%, rgba(20, 83, 45, 0.1) 40%, transparent 70%),
+    radial-gradient(circle at 100% 0%, rgba(20, 83, 45, 0.4) 0%, rgba(20, 83, 45, 0.05) 30%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 1.5s ease, transform 1.5s ease;
+  pointer-events: none;
+}
+.ca-hover-dead:hover {
+  border-color: rgba(20, 83, 45, 0.3);
+  filter: grayscale(0.4) contrast(1.1);
+}
+.ca-hover-dead:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
 
 .ca-reveal { opacity: 0; transform: translateY(24px); transition: opacity 900ms cubic-bezier(0.16,1,0.3,1), transform 900ms cubic-bezier(0.16,1,0.3,1); }
 .ca-reveal.is-visible { opacity: 1; transform: translateY(0); }

@@ -5,24 +5,31 @@ import { motion } from 'framer-motion';
 import { formatDate } from '@/lib/utils';
 import type { TimelineEntryType } from '@prisma/client';
 
-// colors config
 const TYPE_CONFIG: Record<
-  TimelineEntryType,
+  TimelineEntryType | 'SYSTEM_DECAY',
   { label: string; color: string; icon: string }
 > = {
-  MILESTONE:    { label: 'Milestone',   color: 'oklch(0.72 0.18 295)',  icon: '◆' },
-  DEATH:        { label: 'Death',       color: 'oklch(0.55 0.02 0)',    icon: '†' },
-  RESURRECTION: { label: 'Resurrected', color: 'var(--health-thriving)', icon: '↑' },
-  UPDATE:       { label: 'Update',      color: 'oklch(0.72 0.18 220)',  icon: '·' },
-  AI_BUILD_LOG: { label: 'AI Log',      color: 'oklch(0.78 0.17 70)',   icon: '⚡' },
+  MILESTONE: { label: 'Milestone', color: 'oklch(0.72 0.18 295)', icon: '*' },
+  DEATH: { label: 'Death', color: 'oklch(0.55 0.02 0)', icon: '+' },
+  RESURRECTION: {
+    label: 'Resurrected',
+    color: 'var(--health-thriving)',
+    icon: '^',
+  },
+  UPDATE: { label: 'Update', color: 'oklch(0.72 0.18 220)', icon: '.' },
+  SYSTEM_DECAY: {
+    label: 'Decay',
+    color: 'var(--health-near-death)',
+    icon: 'v',
+  },
+  AI_BUILD_LOG: { label: 'AI Log', color: 'oklch(0.78 0.17 70)', icon: '!' },
 };
 
 interface TimelineEntryProps {
-  type: TimelineEntryType;
+  type: TimelineEntryType | 'SYSTEM_DECAY';
   title: string;
   description?: string | null;
   createdAt: Date;
-  // stagger index
   index?: number;
 }
 
@@ -35,7 +42,6 @@ const entryVariants = {
   }),
 };
 
-// timeline event
 export const TimelineEntry = memo(function TimelineEntry({
   type,
   title,
@@ -53,7 +59,6 @@ export const TimelineEntry = memo(function TimelineEntry({
       custom={index}
       className="relative flex gap-4 pb-6 last:pb-0"
     >
-      {/* timeline dot */}
       <div className="relative flex flex-col items-center">
         <span
           className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-foreground/10 bg-card font-mono text-sm shadow-sm"
@@ -64,11 +69,10 @@ export const TimelineEntry = memo(function TimelineEntry({
         <div className="mt-1 w-px flex-1 bg-foreground/8 last:hidden" />
       </div>
 
-      {/* content */}
       <div className="flex-1 pt-0.5">
         <div className="flex items-center gap-2">
           <span
-            className="font-mono text-xs uppercase tracking-[0.16em] font-medium"
+            className="font-mono text-xs font-medium uppercase tracking-[0.16em]"
             style={{ color }}
           >
             {label}
@@ -78,11 +82,11 @@ export const TimelineEntry = memo(function TimelineEntry({
           </span>
         </div>
         <p className="mt-1 text-base font-semibold text-foreground/90">{title}</p>
-        {description && (
-          <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground/90 font-sans">
+        {description ? (
+          <p className="mt-1.5 font-sans text-[15px] leading-relaxed text-muted-foreground/90">
             {description}
           </p>
-        )}
+        ) : null}
       </div>
     </motion.li>
   );

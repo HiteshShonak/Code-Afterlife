@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import 'lenis/dist/lenis.css';
 import './globals.css';
 
 // Self-hosted via next/font - no external CDN request, no render-blocking

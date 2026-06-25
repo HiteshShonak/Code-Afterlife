@@ -4,7 +4,7 @@ import { memo, useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Grid3x3, List, X, Flame, Zap, AlertTriangle,
-  CheckCircle, Skull, Sprout, type LucideIcon, Loader2,
+  CheckCircle, Skull, Sprout, type LucideIcon, Loader2, ArrowDownUp,
 } from 'lucide-react';
 import { ProjectCard } from '@/components/ProjectCard';
 import { useSearchFilters, type SearchSort } from '@/hooks/use-search-filters';
@@ -45,6 +45,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 export const SearchClient = memo(function SearchClient({ initialProjects, initialCursor }: SearchClientProps) {
   const { state, search, sort, setState, setSearch, setSort, reset } = useSearchFilters();
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   // Local state for the input to prevent router transitions from stealing focus while typing
   const [localSearch, setLocalSearch] = useState(search);
@@ -214,22 +215,59 @@ export const SearchClient = memo(function SearchClient({ initialProjects, initia
             )}
           </div>
 
-          <select
-            value={sort}
-            onChange={e => {
-              const newSort = e.target.value as SearchSort;
-              if (sort !== newSort) {
-                setProjects([]);
-                setLoading(true);
-                setSort(newSort);
-              }
-            }}
-            className="h-10 rounded-xl border border-border/60 bg-card/60 px-3 font-mono text-[11px] text-foreground outline-none focus:border-accent/40 backdrop-blur-sm cursor-pointer"
-          >
-            {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
+          <div className="relative">
+            <button
+              onClick={() => setIsSortOpen(!isSortOpen)}
+              className="flex items-center gap-2 h-10 rounded-xl border border-border/60 bg-card/60 px-3 font-mono text-[11px] text-foreground outline-none focus:border-accent/40 backdrop-blur-sm transition-colors hover:bg-card/80"
+              aria-label="Sort options"
+            >
+              <ArrowDownUp className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {SORT_OPTIONS.find(o => o.value === sort)?.label}
+              </span>
+            </button>
 
-          <div className="flex rounded-xl border border-border/60 bg-card/60 overflow-hidden backdrop-blur-sm">
+            <AnimatePresence>
+              {isSortOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsSortOpen(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 z-50 w-36 rounded-xl border border-border/60 bg-background/95 p-1 shadow-xl backdrop-blur-xl"
+                  >
+                    {SORT_OPTIONS.map(o => (
+                      <button
+                        key={o.value}
+                        onClick={() => {
+                          if (sort !== o.value) {
+                            setProjects([]);
+                            setLoading(true);
+                            setSort(o.value);
+                          }
+                          setIsSortOpen(false);
+                        }}
+                        className={`w-full text-left rounded-lg px-3 py-2 font-mono text-[11px] transition-colors ${
+                          sort === o.value
+                            ? 'bg-accent/20 text-accent'
+                            : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                        }`}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="hidden sm:flex rounded-xl border border-border/60 bg-card/60 overflow-hidden backdrop-blur-sm">
             {(['grid', 'feed'] as const).map(mode => (
               <button
                 key={mode}
