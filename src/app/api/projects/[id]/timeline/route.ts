@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { ApiError } from '@/lib/api-error';
+import { projectService } from '@/services/project.service';
 
 export async function POST(
   request: Request,
@@ -51,26 +53,34 @@ export async function POST(
       );
     }
 
-    // Create entry and update project's lastActivityAt
-    // This bumps the health automatically by updating lastActivityAt
-    const [entry] = await prisma.$transaction([
-      prisma.timelineEntry.create({
+    const now = new Date();
+    const entry = await prisma.$transaction(async (tx) => {
+      await projectService.updateState(id, 'ACTIVE', {
+        source: 'manual',
+        tx,
+      });
+
+      await tx.project.update({
+        where: { id },
+        data: { lastActivityAt: now },
+      });
+
+      return tx.timelineEntry.create({
         data: {
           projectId: id,
           type: 'UPDATE',
           title: title.trim(),
           description: description?.trim() || null,
         }
-      }),
-      prisma.project.update({
-        where: { id },
-        data: { lastActivityAt: new Date(), state: 'ACTIVE' } // Force ACTIVE if it was STALLED
-      })
-    ]);
+      });
+    });
 
     return NextResponse.json({ success: true, entry }, { status: 201 });
   } catch (error) {
     console.error('Failed to add timeline entry:', error);
+    if (error instanceof ApiError) {
+      return NextResponse.json({ message: error.message }, { status: error.statusCode });
+    }
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

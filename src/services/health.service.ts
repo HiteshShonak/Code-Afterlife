@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { calculateHealth, getDecayState } from '@/lib/health-calculator';
 import { stateMachine } from '@/lib/state-machine';
 import { projectService } from './project.service';
+import type { Project } from '@prisma/client';
 import type { HealthCalculationInput, DecayState } from '@/types/health';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -12,12 +13,18 @@ export const healthService = {
   async recalculateOne(
     projectId: string
   ): Promise<{ health: number; decayState: DecayState } | undefined> {
-    const project = await prisma.project.findUnique({
+    let project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
     if (!project) {
       logger.warn(`Health recalculation skipped: project ${projectId} not found`);
+      return;
+    }
+
+    project = await this.evaluateAndTransition(projectId, project);
+    if (!project) {
+      logger.warn(`Health recalculation skipped: project ${projectId} disappeared during transition`);
       return;
     }
 
@@ -29,12 +36,14 @@ export const healthService = {
       prisma.timelineEntry.count({
         where: {
           projectId,
+          type: { not: 'SYSTEM_DECAY' },
           createdAt: { gte: thirtyDaysAgo },
         },
       }),
       prisma.timelineEntry.count({
         where: {
           projectId,
+          type: { not: 'SYSTEM_DECAY' },
           createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
         },
       }),
@@ -57,10 +66,8 @@ export const healthService = {
       health,
       decayState,
       commitsThisMonth,
+      state: project.state,
     });
-
-    // eval state
-    await this.evaluateAndTransition(projectId);
 
     return { health, decayState };
   },
@@ -92,22 +99,32 @@ export const healthService = {
   },
 
   // check state change
-  async evaluateAndTransition(projectId: string): Promise<void> {
-    const project = await prisma.project.findUnique({
+  async evaluateAndTransition(
+    projectId: string,
+    projectSnapshot?: Pick<Project, 'state' | 'lastActivityAt' | 'createdAt'> & { id?: string }
+  ): Promise<Project | null> {
+    const project = projectSnapshot ?? await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project) return;
+    if (!project) return null;
 
     const suggestedState = stateMachine.evaluateState(project);
 
-    if (suggestedState && suggestedState !== project.state) {
+    if (
+      suggestedState &&
+      suggestedState !== project.state &&
+      stateMachine.canTransition(project.state, suggestedState, { source: 'health_cron' })
+    ) {
       logger.info(`State transition for project ${projectId}`, {
         from: project.state,
         to: suggestedState,
       });
-      await projectService.updateState(projectId, suggestedState);
+      return projectService.updateState(projectId, suggestedState, {
+        source: 'health_cron',
+      });
     }
+
+    return prisma.project.findUnique({ where: { id: projectId } });
   },
 };
-

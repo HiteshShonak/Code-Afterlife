@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ghFetch, calcHealthFromCommits, generatePulse } from '@/lib/ai-pulse';
+import {
+  ghFetch,
+  calcHealthFromCommits,
+  generatePulse,
+  isOwnerAuthoredCommit,
+  type GitHubCommit,
+} from '@/lib/ai-pulse';
+import { projectService } from '@/services/project.service';
 
 export const maxDuration = 60; // Vercel serverless limit
 
@@ -24,7 +31,7 @@ export async function GET(request: Request) {
     //    that have a GitHub URL and haven't been checked within 6 hours.
     const candidates = await prisma.project.findMany({
       where: {
-        state: { in: ['BORN', 'ACTIVE', 'STALLED', 'DEAD', 'SHIPPED'] },
+        state: { in: ['BORN', 'ACTIVE', 'STALLED', 'DEAD'] },
         githubRepoUrl: { not: '' },
         OR: [
           { lastPulseCheckAt: null },
@@ -39,6 +46,12 @@ export async function GET(request: Request) {
         githubRepoUrl: true,
         lastActivityAt: true,
         lastPulseCheckAt: true,
+        user: {
+          select: {
+            githubId: true,
+            username: true,
+          },
+        },
       },
     });
 
@@ -84,7 +97,7 @@ export async function GET(request: Request) {
           continue;
         }
 
-        const commits: any[] = await commitsRes.json();
+        const commits: GitHubCommit[] = await commitsRes.json();
 
         // --- Always update lastPulseCheckAt ---
         if (commits.length === 0) {
@@ -106,67 +119,91 @@ export async function GET(request: Request) {
           // README is optional context - continue without it
         }
 
-        const commitMessages = commits.map((c: any) => c.commit?.message ?? '');
-        const isResurrection =
-          project.state === 'DEAD' || project.state === 'STALLED';
+        const ownerCommits = commits.filter((commit) =>
+          isOwnerAuthoredCommit(commit, project.user)
+        );
+        const isDeadResurrection = project.state === 'DEAD';
+        const isRevival = project.state === 'STALLED' || isDeadResurrection;
+        const isFirstActivity = project.state === 'BORN';
+        const shouldActivate = isFirstActivity || isRevival;
+
+        if (shouldActivate && ownerCommits.length === 0) {
+          await prisma.project.update({
+            where: { id: project.id },
+            data: pulseUpdate,
+          });
+          results.push({ id: project.id, action: 'no_owner_commits' });
+          continue;
+        }
+
+        const activityCommits = shouldActivate ? ownerCommits : commits;
+        const commitMessages = activityCommits.map((commit) => commit.commit?.message ?? '');
 
         // --- Generate AI summary ---
         const summary = await generatePulse(
           project.title,
           commitMessages,
           readme,
-          isResurrection
+          isDeadResurrection
         );
 
         // --- Calculate new health score ---
-        const newHealth = calcHealthFromCommits(commits.length, project.health);
+        const newHealth = calcHealthFromCommits(activityCommits.length, project.health);
 
-        // --- Build DB updates ---
-        const projectDataUpdate: Record<string, unknown> = {
-          ...pulseUpdate,
-          lastActivityAt: now,
-          health: newHealth,
-        };
+        await prisma.$transaction(async (tx) => {
+          if (shouldActivate) {
+            await projectService.updateState(project.id, 'ACTIVE', {
+              source: 'ai_pulse',
+              tx,
+            });
+          }
 
-        if (isResurrection) {
-          // Auto-resurrect the project
-          projectDataUpdate.state = 'ACTIVE';
-        }
+          await tx.project.update({
+            where: { id: project.id },
+            data: {
+              ...pulseUpdate,
+              lastActivityAt: now,
+              health: newHealth,
+            },
+          });
 
-        await prisma.project.update({
-          where: { id: project.id },
-          data: projectDataUpdate,
+          if (isDeadResurrection) {
+            await tx.timelineEntry.create({
+              data: {
+                projectId: project.id,
+                type: 'RESURRECTION',
+                title: 'Resurrected by Original Author',
+                description:
+                  summary ??
+                  `The original author returned and pushed ${ownerCommits.length} new commit${ownerCommits.length > 1 ? 's' : ''}. The project lives again.`,
+                data: {
+                  commitCount: ownerCommits.length,
+                  repo: `${owner}/${repo}`,
+                },
+              },
+            });
+          } else if (summary || shouldActivate) {
+            await tx.timelineEntry.create({
+              data: {
+                projectId: project.id,
+                type: 'AI_BUILD_LOG',
+                title: shouldActivate ? 'AI Pulse Activation' : 'AI Pulse Observation',
+                description:
+                  summary ??
+                  `The original author pushed ${ownerCommits.length} new commit${ownerCommits.length > 1 ? 's' : ''}, and the project woke back up.`,
+                data: {
+                  commitCount: activityCommits.length,
+                  ownerCommitCount: ownerCommits.length,
+                  repo: `${owner}/${repo}`,
+                },
+              },
+            });
+          }
         });
-
-        // --- Create timeline entries ---
-        if (isResurrection) {
-          await prisma.timelineEntry.create({
-            data: {
-              projectId: project.id,
-              type: 'RESURRECTION',
-              title: 'Resurrected by Original Author',
-              description:
-                summary ??
-                `The original author returned and pushed ${commits.length} new commit${commits.length > 1 ? 's' : ''}. The project lives again.`,
-              data: { commitCount: commits.length, repo: `${owner}/${repo}` },
-            },
-          });
-        } else if (summary) {
-          // Regular AI pulse for active projects
-          await prisma.timelineEntry.create({
-            data: {
-              projectId: project.id,
-              type: 'AI_BUILD_LOG',
-              title: 'AI Pulse Observation',
-              description: summary,
-              data: { commitCount: commits.length, repo: `${owner}/${repo}` },
-            },
-          });
-        }
 
         results.push({
           id: project.id,
-          action: isResurrection ? 'resurrected' : 'pulse_written',
+          action: isDeadResurrection ? 'resurrected' : shouldActivate ? 'activated' : 'pulse_written',
         });
       } catch (err) {
         console.error(`[AI Pulse] Failed project ${project.id}:`, err);

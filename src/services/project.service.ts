@@ -1,13 +1,19 @@
 import { prisma } from '@/lib/prisma';
 import { ApiError } from '@/lib/api-error';
 import { generateSlug } from '@/lib/utils';
-import { stateMachine } from '@/lib/state-machine';
+import { stateMachine, type TransitionSource } from '@/lib/state-machine';
 import { PROJECT_DEFAULTS } from '@/config/project';
-import type { Project, ProjectState } from '@prisma/client';
+import type { Prisma, Project, ProjectState } from '@prisma/client';
 import type { CreateProjectInput, UpdateProjectInput } from '@/schemas/project.schema';
 import type { ProjectWithUser, ProjectDetail, ProjectListFilters } from '@/types/project';
 
 export type { ProjectWithUser, ProjectDetail, ProjectListFilters };
+
+export interface UpdateProjectStateOptions {
+  readonly source: TransitionSource;
+  readonly deathReason?: string;
+  readonly tx?: Prisma.TransactionClient;
+}
 
 // get owned project
 async function findOwnedProject(id: string, userId: string): Promise<Project> {
@@ -93,6 +99,65 @@ Return ONLY the sentence. No quotes.`,
 function seededInitialHealth(_seed: string): number {
   const offset = Math.floor(Math.random() * 17) - 8; // -8 … +8
   return PROJECT_DEFAULTS.initialHealth + offset; // 42 … 58
+}
+
+function buildStateTimelineEntry(
+  projectId: string,
+  previousState: ProjectState,
+  nextState: ProjectState,
+  options: UpdateProjectStateOptions,
+): Prisma.TimelineEntryUncheckedCreateInput | null {
+  if (previousState === nextState) {
+    return null;
+  }
+
+  if (options.source === 'health_cron' && nextState === 'STALLED') {
+    return {
+      projectId,
+      type: 'SYSTEM_DECAY',
+      title: 'Project Stalled',
+      description: 'Development activity has ceased. The codebase is gathering dust.',
+      data: {
+        from: previousState,
+        to: nextState,
+        source: options.source,
+      },
+    };
+  }
+
+  if (options.source === 'health_cron' && nextState === 'DEAD') {
+    return {
+      projectId,
+      type: 'SYSTEM_DECAY',
+      title: 'Project Died',
+      description:
+        options.deathReason ??
+        'The project has been abandoned. It now rests in the graveyard.',
+      data: {
+        from: previousState,
+        to: nextState,
+        source: options.source,
+      },
+    };
+  }
+
+  if (nextState === 'DEAD') {
+    return {
+      projectId,
+      type: 'DEATH',
+      title: 'Project Died',
+      description:
+        options.deathReason ??
+        'The project has been abandoned. It now rests in the graveyard.',
+      data: {
+        from: previousState,
+        to: nextState,
+        source: options.source,
+      },
+    };
+  }
+
+  return null;
 }
 
 export const projectService = {
@@ -207,22 +272,60 @@ export const projectService = {
   },
 
   // update state
-  async updateState(id: string, newState: ProjectState, deathReason?: string): Promise<Project> {
-    const project = await prisma.project.findUnique({ where: { id } });
-    if (!project) {
-      throw ApiError.notFound('Project not found');
+  async updateState(
+    id: string,
+    newState: ProjectState,
+    options: UpdateProjectStateOptions,
+  ): Promise<Project> {
+    const runTransition = async (tx: Prisma.TransactionClient): Promise<Project> => {
+      const project = await tx.project.findUnique({ where: { id } });
+      if (!project) {
+        throw ApiError.notFound('Project not found');
+      }
+
+      if (project.state === newState) {
+        return project;
+      }
+
+      stateMachine.validateTransition(project.state, newState, {
+        source: options.source,
+      });
+
+      const updateResult = await tx.project.updateMany({
+        where: {
+          id,
+          state: project.state,
+        },
+        data: {
+          state: newState,
+          ...(newState === 'DEAD' && options.deathReason
+            ? { deathReason: options.deathReason }
+            : {}),
+        },
+      });
+
+      if (updateResult.count !== 1) {
+        throw ApiError.conflict('Project state changed during transition. Please retry.');
+      }
+
+      const timelineEntry = buildStateTimelineEntry(id, project.state, newState, options);
+      if (timelineEntry) {
+        await tx.timelineEntry.create({ data: timelineEntry });
+      }
+
+      const updated = await tx.project.findUnique({ where: { id } });
+      if (!updated) {
+        throw ApiError.notFound('Project not found after update');
+      }
+
+      return updated;
+    };
+
+    if (options.tx) {
+      return runTransition(options.tx);
     }
 
-    stateMachine.validateTransition(project.state, newState);
-
-    return prisma.project.update({
-      where: { id },
-      data: {
-        state: newState,
-        ...(newState === 'DEAD' && { lastActivityAt: null }),
-        ...(newState === 'DEAD' && deathReason && { deathReason }),
-      },
-    });
+    return prisma.$transaction(runTransition);
   },
 
   // update health
@@ -238,13 +341,8 @@ export const projectService = {
 
   // mark shipped
   async markAsShipped(id: string, userId: string): Promise<Project> {
-    const project = await findOwnedProject(id, userId);
-    stateMachine.validateTransition(project.state, 'SHIPPED');
-
-    return prisma.project.update({
-      where: { id },
-      data: { state: 'SHIPPED' },
-    });
+    await findOwnedProject(id, userId);
+    return this.updateState(id, 'SHIPPED', { source: 'manual' });
   },
 
   // update project
@@ -264,17 +362,10 @@ export const projectService = {
   // soft delete
   async delete(id: string, userId: string, deathReason?: string): Promise<Project> {
     await findOwnedProject(id, userId);
-
-    return prisma.project.update({
-      where: { id },
-      data: {
-        state: 'DEAD',
-        lastActivityAt: null,
-        ...(deathReason ? { deathReason } : {
-          // Fall back to a cinematic default if the user didn't provide one
-          deathReason: 'Lost to time.',
-        }),
-      },
+    const finalReason = deathReason ?? 'Lost to time.';
+    return this.updateState(id, 'DEAD', {
+      source: 'manual',
+      deathReason: finalReason,
     });
   },
 

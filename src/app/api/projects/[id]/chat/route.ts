@@ -99,7 +99,7 @@ Lineage Depth: Generation ${project.lineageDepth}
 ${project.parentProject ? `Parent Project: ${project.parentProject.title} by @${project.parentProject.user.username ?? project.parentProject.user.name}` : ''}
 ${project.children.length > 0 ? `Child Projects (Resurrections): ${project.children.map(c => `${c.title} by @${c.user.username ?? c.user.name}`).join(', ')}` : ''}
 ${project.deathReason ? `Death Reason / Epitaph: ${project.deathReason}` : ''}
-${project.testament ? `Creator's Testament: ${project.testament}` : ''}
+${project.testament && project.children.length > 0 ? `Creator's Testament: ${project.testament}` : ''}
 
 == CODE AFTERLIFE LIFECYCLE RULES (CRITICAL) ==
 You MUST strictly abide by these lifecycle rules when answering questions. Never invent conflicting rules:

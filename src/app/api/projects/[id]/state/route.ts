@@ -86,7 +86,10 @@ export const PATCH = asyncHandler(
       deathReason = aiReason ?? 'Lost to time.';
     }
 
-    const updated = await projectService.updateState(id, newState, deathReason);
+    const updated = await projectService.updateState(id, newState, {
+      source: 'manual',
+      deathReason,
+    });
 
     return apiResponse.success(updated, `State changed to ${newState}`);
   }
