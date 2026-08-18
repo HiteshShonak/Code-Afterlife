@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Prisma-6-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma 6"/>
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4"/>
   <img src="https://img.shields.io/badge/Auth.js-v5-4B32C3?style=for-the-badge" alt="Auth.js v5"/>
-  <img src="https://img.shields.io/badge/Groq_AI-Llama_3.3-F55036?style=for-the-badge" alt="Groq AI"/>
+  <img src="https://img.shields.io/badge/Groq_AI-Llama_4_Scout-F55036?style=for-the-badge" alt="Groq AI"/>
   <img src="https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js"/>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"/></a>
 </p>
@@ -45,7 +45,7 @@ Code Afterlife is a full-stack platform built to honor the lifecycle of open-sou
 - **Discovery**: Future developers who resurrect the project will uncover these sealed capsules via a drag-and-drop React Flow canvas interface.
 
 ### 👻 AI-Powered Resident Chatbot
-- **Deep Context**: Every project page features an AI Chatbot (powered by Llama 3.3 70B via Groq) that has consumed the project's entire history, README, engagement metrics, lineage depth, and timeline.
+- **Deep Context**: Every project page features an AI Chatbot (powered by Llama 4 Scout via Groq) that has consumed the project's entire history, README, engagement metrics, lineage depth, and timeline.
 - **Immersive Persona**: The AI acts as a cinematic narrator of the Code Afterlife, refusing to break character while answering technical questions about the codebase's legacy.
 
 ### 📜 AI Pulse & Timeline Archives
@@ -67,7 +67,7 @@ The platform is engineered with obsessive attention to frontend performance, cin
 - **Procedural 3D Generation**: The Graveyard Canvas utilizes `Three.js` and custom vertex/fragment shaders to generate infinite noise-based terrain, dynamic grass blades (rendering 12,000+ instanced meshes efficiently), and rolling ground fog that evolves over time.
 - **Advanced State Machines & Health Algorithms**: A rigorous state-machine tracks projects from `BORN` -> `ACTIVE` -> `STALLED` -> `DEAD` (or `SHIPPED`). A mathematical health calculator evaluates GitHub commit consistency, month-over-month momentum, and applies specific exponential decays based on project states.
 - **Performant Visual Choreography**: Built with `GSAP ScrollTrigger` and `Framer Motion`, the landing page executes heavy parallax, scroll-scrubbed vault unlocks, and SVG path drawing with near-zero JavaScript RAF (Request Animation Frame) costs by offloading complex floating animations to pure CSS where possible.
-- **Generative AI Narratives**: Connected to LLaMA-3.3-70B-Versatile via the Groq API, the `ai-pulse` engine synthesizes raw GitHub commit histories and Markdown READMEs into poetic, 30-word cinematic observations, bringing dead projects back to life emotionally.
+- **Generative AI Narratives**: Connected to Llama 4 Scout via the Groq API, the `ai-pulse` engine synthesizes raw GitHub commit histories and Markdown READMEs into poetic, 30-word cinematic observations, bringing dead projects back to life emotionally.
 
 ---
 
@@ -90,7 +90,7 @@ The platform is engineered with obsessive attention to frontend performance, cin
 | Database   | PostgreSQL (Neon), Prisma ORM 6              |
 | Auth       | NextAuth.js v5 (Auth.js)                     |
 | Validation | Zod                                          |
-| AI         | Groq SDK (Llama 3.3 70B Versatile), Vercel AI SDK |
+| AI         | Groq SDK (Llama 4 Scout 17B), Vercel AI SDK      |
 | Email      | Resend                                       |
 | Testing    | Vitest (Unit and State Machine Testing)      |
 
