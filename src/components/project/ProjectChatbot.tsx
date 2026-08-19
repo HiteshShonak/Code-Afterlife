@@ -2,6 +2,10 @@
 
 import { Bot, Send, User, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import rehypeHighlight from 'rehype-highlight';
 
 interface Message {
   id: string;
@@ -198,9 +202,9 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
               </div>
             )}
             <div className={[
-              'max-w-[80%] rounded-xl px-3.5 py-2.5 leading-relaxed wrap-break-word whitespace-pre-wrap',
+              'max-w-[80%] rounded-xl px-3.5 py-2.5 leading-relaxed wrap-break-word',
               m.role === 'user'
-                ? 'bg-accent text-background rounded-tr-sm'
+                ? 'bg-accent text-background rounded-tr-sm whitespace-pre-wrap'
                 : 'bg-card/80 border border-border/50 text-foreground/80 rounded-tl-sm',
               m.content === '' && m.role === 'assistant' ? 'min-w-[60px]' : ''
             ].join(' ')}>
@@ -210,6 +214,69 @@ export function ProjectChatbot({ projectId, isLoggedIn }: ProjectChatbotProps) {
                   <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
                 </span>
+              ) : m.role === 'assistant' ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold text-foreground">{children}</strong>,
+                    em: ({ children }) => <em className="italic text-foreground/70">{children}</em>,
+                    // Distinguish inline code (no className) from block code (has language-* className)
+                    code: ({ className, children }) => {
+                      const isBlock = Boolean(className);
+                      if (isBlock) {
+                        // Block code — let rehype-highlight handle the content via hljs classes
+                        return <code className={className}>{children}</code>;
+                      }
+                      // Inline code
+                      return (
+                        <code className="rounded px-1 py-0.5 bg-background/60 border border-border/40 text-accent font-mono text-[10px]">
+                          {children}
+                        </code>
+                      );
+                    },
+                    pre: ({ children }) => (
+                      <pre className="my-2 rounded-lg bg-[#1a1b26] border border-border/40 p-3 overflow-x-auto text-[10px] leading-relaxed">
+                        {children}
+                      </pre>
+                    ),
+                    ul: ({ children }) => <ul className="list-disc list-inside space-y-0.5 my-1.5 pl-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-0.5 my-1.5 pl-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-foreground/80">{children}</li>,
+                    h1: ({ children }) => <h1 className="font-bold text-foreground text-sm mb-1 mt-2">{children}</h1>,
+                    h2: ({ children }) => <h2 className="font-bold text-foreground text-[12px] mb-1 mt-2">{children}</h2>,
+                    h3: ({ children }) => <h3 className="font-semibold text-foreground/90 mb-0.5 mt-1.5">{children}</h3>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-2 border-accent/40 pl-3 my-1.5 text-foreground/60 italic">{children}</blockquote>
+                    ),
+                    hr: () => <hr className="border-border/40 my-2" />,
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noreferrer" className="text-accent underline underline-offset-2 hover:text-accent/70 transition-colors">{children}</a>
+                    ),
+                    table: ({ children }) => (
+                      <div className="my-2 overflow-x-auto rounded-lg border border-border/40">
+                        <table className="w-full text-[10px] border-collapse">{children}</table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="bg-accent/10 border-b border-border/40">{children}</thead>
+                    ),
+                    tbody: ({ children }) => <tbody>{children}</tbody>,
+                    tr: ({ children }) => (
+                      <tr className="border-b border-border/30 last:border-0 transition-colors hover:bg-accent/5">{children}</tr>
+                    ),
+                    th: ({ children }) => (
+                      <th className="px-3 py-1.5 text-left font-bold text-foreground/90 whitespace-nowrap">{children}</th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="px-3 py-1.5 text-foreground/70 align-top">{children}</td>
+                    ),
+                    del: ({ children }) => <del className="line-through text-foreground/40">{children}</del>,
+                  }}
+                >
+                  {m.content}
+                </ReactMarkdown>
               ) : m.content}
             </div>
             {m.role === 'user' && (

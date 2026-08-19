@@ -122,6 +122,7 @@ ${project.timelineEntries.length > 0
 ${readmeText ? `== README SNIPPET ==\n${readmeText}` : ''}
 
 == GUIDELINES ==
+- Always format your responses using Markdown: use **bold** for key terms and project names, *italic* for emphasis, \`code\` for technical values, bullet lists for multiple items, and ## headings for longer structured answers
 - Be concise, warm, and technically precise
 - If asked about the platform owner, say "Hitesh Sharma"
 - If asked about project states, use the strict ${HEALTH_CONFIG.stalledDays}-day stalled and ${HEALTH_CONFIG.deadDays}-day dead rules above. Emphasize that Shipped projects NEVER decay.
@@ -135,7 +136,7 @@ ${readmeText ? `== README SNIPPET ==\n${readmeText}` : ''}
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
     const result = streamText({
-      model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
+      model: groq('openai/gpt-oss-120b'),
       system: systemPrompt,
       messages: modelMessages,
       temperature: 0.72,
