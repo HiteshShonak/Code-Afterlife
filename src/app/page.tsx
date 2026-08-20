@@ -13,6 +13,24 @@ const FinalCta           = dynamic(() => import("@/features/landing/components/F
 const CinematicSpacer    = dynamic(() => import("@/features/landing/components/CinematicSpacer").then(m => m.CinematicSpacer));
 const Footer             = dynamic(() => import("@/features/landing/components/Footer").then(m => m.Footer));
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Code Afterlife | Software Never Dies',
+  description: 'A platform for abandoned software projects to be rediscovered, inherited, and revived. Projects decay. Builders disappear. Code survives.',
+  openGraph: {
+    title: 'Code Afterlife | Software Never Dies',
+    description: 'A platform for abandoned software projects to be rediscovered, inherited, and revived. Projects decay. Builders disappear. Code survives.',
+    url: 'https://codeafterlife.vercel.app',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Code Afterlife | Software Never Dies',
+    description: 'Rediscover, inherit, and revive abandoned software projects.',
+  },
+};
+
 
 export default function Home() {
   return (

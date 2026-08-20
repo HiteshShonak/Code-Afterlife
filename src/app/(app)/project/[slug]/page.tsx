@@ -73,12 +73,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const project = await projectService.getBySlug(slug);
     if (!project) return { title: 'Project Not Found | Code Afterlife' };
+    
+    const title = `${project.title} | Code Afterlife`;
+    const description = project.description ?? `Track the lifecycle of ${project.title}.`;
+    const url = `/project/${slug}`;
+
     return {
-      title: `${project.title} | Code Afterlife`,
-      description: project.description ?? `Track the lifecycle of ${project.title}.`,
+      title,
+      description,
+      alternates: { canonical: url },
       openGraph: {
-        title: `${project.title} | Code Afterlife`,
-        description: project.description ?? undefined,
+        title,
+        description,
+        url,
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
       },
     };
   } catch {

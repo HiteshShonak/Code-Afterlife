@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://codeafterlife.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://codeafterlife.vercel.app';
 
   let projects: Array<{ slug: string; updatedAt: Date }> = [];
 
