@@ -68,10 +68,14 @@ export default async function Image() {
           </div>
           <div style={{ display: 'flex', flexGrow: 1 }} />
           <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
-             <p style={{ fontSize: 24, color: '#666', margin: 0 }}>Rediscover. Inherit. Revive.</p>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#fff' }} />
-                <p style={{ fontSize: 24, color: '#fff', margin: 0 }}>codeafterlife.vercel.app</p>
+             <p style={{ fontSize: 24, color: '#666', margin: 0, lineHeight: 1 }}>Rediscover. Inherit. Revive.</p>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img 
+                  src="https://codeafterlife.vercel.app/favicon-32x32.png" 
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', marginTop: '4px' }} 
+                  alt="Code Afterlife Icon" 
+                />
+                <p style={{ fontSize: 24, color: '#fff', margin: 0, lineHeight: 1 }}>codeafterlife.vercel.app</p>
              </div>
           </div>
         </div>
