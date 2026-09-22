@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Database, ArrowRight, ExternalLink } from 'lucide-react';
@@ -12,13 +12,72 @@ interface GraveyardSidebarProps {
 }
 
 export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrect }: GraveyardSidebarProps) {
+  const isHistoryPushedRef = useRef(false);
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onEsc);
-    return () => window.removeEventListener('keydown', onEsc);
+    onCloseRef.current = onClose;
   }, [onClose]);
+
+  // Unified close handler that cleans up pushed history entry if present
+  const handleClose = useCallback(() => {
+    if (isHistoryPushedRef.current) {
+      isHistoryPushedRef.current = false;
+      if (typeof window !== 'undefined' && window.history.state?.graveyardSidebarOpen) {
+        window.history.back();
+      }
+    }
+    onCloseRef.current();
+  }, []);
+
+  // Clean up history state when navigating forward to another route
+  const handleNavigation = useCallback(() => {
+    if (isHistoryPushedRef.current) {
+      isHistoryPushedRef.current = false;
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.href);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!project) {
+      if (isHistoryPushedRef.current) {
+        isHistoryPushedRef.current = false;
+        if (typeof window !== 'undefined' && window.history.state?.graveyardSidebarOpen) {
+          window.history.back();
+        }
+      }
+      return;
+    }
+
+    // Push history state so mobile back button / swipe back gesture dismisses the modal
+    if (!isHistoryPushedRef.current) {
+      window.history.pushState({ graveyardSidebarOpen: true }, '');
+      isHistoryPushedRef.current = true;
+    }
+
+    const onPopState = () => {
+      if (isHistoryPushedRef.current) {
+        isHistoryPushedRef.current = false;
+        onCloseRef.current();
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'BrowserBack') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+
+    window.addEventListener('popstate', onPopState);
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [project, handleClose]);
 
   return (
     <AnimatePresence>
@@ -46,7 +105,8 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
                 </div>
               </div>
               <button 
-                onClick={onClose}
+                onClick={handleClose}
+                aria-label="Close sidebar"
                 className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
               >
                 <X size={20} />
@@ -138,6 +198,7 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
             {project.slug && (
               <Link
                 href={`/project/${project.slug}`}
+                onClick={handleNavigation}
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/4 py-3 transition-colors hover:bg-white/8 hover:border-white/25"
               >
                 <ExternalLink size={13} className="text-slate-400" />
@@ -157,6 +218,7 @@ export function GraveyardSidebar({ project, onClose, isAuthenticated, onResurrec
               ) : (
                 <Link
                   href="/"
+                  onClick={handleNavigation}
                   className="mt-4 w-full py-4 border border-white/10 rounded-xl flex items-center justify-center gap-2 bg-white/5 transition-colors hover:bg-white/10 cursor-pointer"
                 >
                   <span className="text-xs uppercase tracking-widest font-medium text-slate-400">Sign in to resurrect</span>
